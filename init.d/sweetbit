@@ -33,7 +33,7 @@ start)  log_daemon_msg "Starting sweetbit" "sweetbit"
         log_end_msg $?
         ;;
 stop)   log_daemon_msg "Stopping sweetbit" "sweetbit"
-        start-stop-daemon --stop --oknodo --pidfile $PIDFILE --name "bridge"
+        start-stop-daemon --stop --oknodo --pidfile $PIDFILE --name "sweetbit"
         log_end_msg $?
         rm -f $PIDFILE
         ;;
