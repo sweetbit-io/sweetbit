@@ -7,8 +7,8 @@ fi
 
 ### BEGIN INIT INFO
 # Provides:          sweetbit
-# Required-Start:    $remote_fs $syslog $network
-# Required-Stop:     $remote_fs $syslog $network
+# Required-Start:    $all
+# Required-Stop:     $all
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
 # Short-Description: Controller for Bitcoin-enabled candy dispenser
@@ -21,7 +21,7 @@ NAME=sweetbit
 DAEMON=/home/pi/go/bin/sweetbit
 PIDFILE=/var/run/sweetbit.pid
 SCRIPTNAME=/etc/init.d/"$NAME"
-EXTRA_OPTS="-device /dev/ttyACM0"
+EXTRA_OPTS="-dispense 0.4s -device /dev/ttyACM0"
 
 test -f $DAEMON || exit 0
 
