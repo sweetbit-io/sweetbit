@@ -13,6 +13,7 @@ import (
 	"gobot.io/x/gobot/platforms/firmata"
 	"gobot.io/x/gobot/drivers/gpio"
 	"gobot.io/x/gobot"
+	"github.com/matryer/try"
 )
 
 var addr = flag.String("addr", "35cqbbBap7trDfb18YExSBjaN8rTQ8CmhL", "receiving Bitcoin address")
@@ -46,10 +47,21 @@ func main() {
 	u := url.URL{Scheme: "wss", Host: "ws.blockchain.info", Path: "/inv"}
 	log.Printf("Connecting to %s", u.String())
 
-	c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
+	var c *websocket.Conn
+
+	err := try.Do(func(attempt int) (bool, error) {
+		var err error
+		c, _, err = websocket.DefaultDialer.Dial(u.String(), nil)
+		if err != nil {
+			log.Println("dial failed, retrying in 5s:", err)
+			time.Sleep(5 * time.Second)
+		}
+		return attempt < 5, err
+	})
 	if err != nil {
-		log.Fatal("dial:", err)
+		log.Fatal("dial failed 5 times:", err)
 	}
+
 	defer c.Close()
 
 	done := make(chan struct{})
