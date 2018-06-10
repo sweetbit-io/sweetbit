@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"bytes"
+	"github.com/go-errors/errors"
 )
 
 type InvoiceMessage struct {
@@ -44,7 +45,7 @@ const startPayloadTmplString = `{
 	}
 }`
 
-func listenForCandyPayments(candySubscriptionEndpoint string, paidInvoices chan<- Invoice) {
+func establishConnection(candySubscriptionEndpoint string) (*websocket.Conn, error) {
 	var conn *websocket.Conn
 
 	// Establish connection to candy subscription web socket endpoint
@@ -52,14 +53,11 @@ func listenForCandyPayments(candySubscriptionEndpoint string, paidInvoices chan<
 		var err error
 
 		var header = http.Header{}
-		// header.Add("Sec-WebSocket-Extensions", "permessage-deflate; client_max_window_bits")
-		// header.Add("Sec-WebSocket-Key", "kBzKaCDYRKnLaTGDzsFeXg==")
 		header.Add("Sec-WebSocket-Protocol", "graphql-ws")
-		// header.Add("Sec-WebSocket-Version", "13")
 
 		conn, _, err = websocket.DefaultDialer.Dial(candySubscriptionEndpoint, header)
 		if err != nil {
-			log.Fatal("Dial failed. Retrying in 5s: ", err)
+			log.Println("Dial failed. Retrying in 5s: ", err)
 			time.Sleep(5 * time.Second)
 		}
 		return attempt < 5, err
@@ -67,39 +65,34 @@ func listenForCandyPayments(candySubscriptionEndpoint string, paidInvoices chan<
 
 	if err != nil {
 		log.Fatal("Dial failed 5 times: ", err)
+		return nil, errors.New("Dial failed 5 times")
 	}
-
-	// Close established web socket connection when done
-	defer conn.Close()
 
 	// Send connection initialization message
 	err = conn.WriteMessage(websocket.TextMessage, []byte(connectionInitPayload))
 	if err != nil {
 		log.Fatal("Init WriteMessage: ", err)
-		return
+		return nil, errors.New("Sending connection init message failed")
 	}
 
 	// Wait for ack
 	_, _, err = conn.ReadMessage()
 	if err != nil {
 		log.Fatal("Ack ReadMessage:", err)
-		return
+		return nil, errors.New("Receiving connection ack message failed")
 	}
 
+	return conn, nil
+}
+
+func subscribeToPaidInvoices(conn *websocket.Conn) error {
 	// Create start payload template
 	startPayloadTmpl := template.New("start")
-	startPayloadTmpl, err = startPayloadTmpl.Parse(startPayloadTmplString)
+	startPayloadTmpl, err := startPayloadTmpl.Parse(startPayloadTmplString)
 	if err != nil {
 		log.Fatal("Template Parse: ", err)
-		return
+		return err
 	}
-
-	// Create a connection writer
-	// writer, err := conn.NextWriter(websocket.TextMessage)
-	// if err != nil {
-	// 	log.Fatal("NextWriter: ", err)
-	// 	return
-	// }
 
 	// Start listening for incoming paid invoices
 	var payload bytes.Buffer
@@ -108,37 +101,77 @@ func listenForCandyPayments(candySubscriptionEndpoint string, paidInvoices chan<
 	})
 	if err != nil {
 		log.Fatal("Template Execute: ", err)
-		return
+		return err
 	}
 
 	// Send subscription message
 	err = conn.WriteMessage(websocket.TextMessage, payload.Bytes())
 	if err != nil {
 		log.Fatal("Subscription WriteMessage: ", err)
-		return
+		return err
+	}
+
+	return nil
+}
+
+func establishConnectionAndSubscribeToPaidInvoices(candySubscriptionEndpoint string) (*websocket.Conn, error) {
+	conn, err := establishConnection(candySubscriptionEndpoint)
+	if err != nil {
+		log.Fatal("Connection failed: ", err)
+		return nil, err
+	}
+
+	log.Println("Connected")
+
+	err = subscribeToPaidInvoices(conn)
+	if err != nil {
+		log.Fatal("Subscription: ", err)
+		return conn, err
 	}
 
 	log.Println("Subscribed to invoices")
 
+	return conn, nil
+}
+
+func listenForCandyPayments(candySubscriptionEndpoint string, paidInvoices chan<- Invoice) {
+	var conn *websocket.Conn
+
+	conn, err := establishConnectionAndSubscribeToPaidInvoices(candySubscriptionEndpoint)
+	if err != nil {
+		log.Fatal("Connection and subscription failed: ", err)
+		return
+	}
+
+	defer conn.Close()
+
 	for {
 		// Read incoming message
 		_, message, err := conn.ReadMessage()
-		if err != nil {
+		if websocket.IsCloseError(err, 1006) {
+			conn, err = establishConnectionAndSubscribeToPaidInvoices(candySubscriptionEndpoint)
+			if err != nil {
+				log.Fatal("Connection and subscription failed: ", err)
+				return
+			}
+
+			defer conn.Close()
+		} else if err != nil {
 			log.Fatal("Incoming ReadMessage: ", err)
 			return
+		} else {
+			log.Println("Got a message", string(message))
+
+			var msg InvoiceMessage
+
+			err = json.Unmarshal(message, &msg)
+			if err != nil {
+				log.Fatal("Incoming Unmarshal: ", err)
+			}
+
+			log.Println("Got paid invoice", msg)
+
+			paidInvoices <- msg.Payload.Data.InvoicesPaid
 		}
-
-		log.Println("Got a message", string(message))
-
-		var msg InvoiceMessage
-
-		err = json.Unmarshal(message, &msg)
-		if err != nil {
-			log.Fatal("Incoming Unmarshal: ", err)
-		}
-
-		log.Println("Got paid invoice", msg)
-
-		paidInvoices <- msg.Payload.Data.InvoicesPaid
 	}
 }
