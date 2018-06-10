@@ -62,7 +62,7 @@ func main() {
 				}
 				payment = Payment{Value:value, Type:"lightning"}
 
-				dispense := time.Duration(payment.Value / 10) * time.Millisecond
+				dispense := time.Duration(payment.Value / 2) * time.Millisecond
 
 				log.Println("Dispensing for a duration of", dispense)
 
@@ -72,7 +72,7 @@ func main() {
 			case invoice := <- invoices:
 				payment = Payment{Value:invoice.Value, Type:"bitcoin"}
 
-				dispense := time.Duration(payment.Value / 10) * time.Millisecond
+				dispense := time.Duration(payment.Value / 2) * time.Millisecond
 
 				log.Println("Dispensing for a duration of", dispense)
 
