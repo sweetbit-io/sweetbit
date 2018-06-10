@@ -1,0 +1,83 @@
+package main
+
+import (
+	"log"
+	"github.com/gorilla/websocket"
+	"github.com/matryer/try"
+	"time"
+	"encoding/json"
+	"net/url"
+)
+
+type AddrSubMessage struct {
+	Op   string `json:"op"`
+	Addr string `json:"addr"`
+}
+
+type UtxMessage struct {
+	Op   string `json:"op"`
+	X    struct {
+		Out []struct {
+			Addr  string `json:"addr"`
+			Value int    `json:"value"`
+		} `json:"out"`
+	} `json:"x"`
+}
+
+func listenForBlockchainTxns(bitcoinAddr string, transactions chan<- UtxMessage) {
+	var conn *websocket.Conn
+
+	u := url.URL{Scheme: "wss", Host: "ws.blockchain.info", Path: "/inv"}
+
+	// Establish connection to candy subscription web socket endpoint
+	err := try.Do(func(attempt int) (bool, error) {
+		var err error
+
+		conn, _, err = websocket.DefaultDialer.Dial(u.String(), nil)
+		if err != nil {
+			log.Fatal("Dial failed. Retrying in 5s: ", err)
+			time.Sleep(5 * time.Second)
+		}
+		return attempt < 5, err
+	})
+
+	if err != nil {
+		log.Fatal("Dial failed 5 times: ", err)
+	}
+
+	// Close established web socket connection when done
+	defer conn.Close()
+
+	// Create subscribe payload
+	payload, err := json.Marshal(AddrSubMessage{Op: "addr_sub", Addr: bitcoinAddr})
+	if err != nil {
+		log.Fatal("Marshal: ", err)
+	}
+
+	// Start listening for incoming paid invoices
+	err = conn.WriteMessage(websocket.TextMessage, payload)
+	if err != nil {
+		log.Fatal("WriteMessage: ", err)
+		return
+	}
+
+	for {
+		// Read incoming message
+		_, message, err := conn.ReadMessage()
+		if err != nil {
+			log.Fatal("ReadMessage: ", err)
+			return
+		}
+
+		var msg UtxMessage
+
+		// Parse message
+		err = json.Unmarshal(message, &msg)
+		if err != nil {
+			log.Fatal("Unmarshal: ", err)
+		}
+
+		// Send incoming transaction to channel
+		transactions <- msg
+	}
+}
