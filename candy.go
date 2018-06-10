@@ -60,12 +60,12 @@ func establishConnection(candySubscriptionEndpoint string) (*websocket.Conn, err
 			log.Println("Dial failed. Retrying in 5s: ", err)
 			time.Sleep(5 * time.Second)
 		}
-		return attempt < 5, err
+		return attempt < 12, err
 	})
 
 	if err != nil {
 		log.Fatal("Dial failed 5 times: ", err)
-		return nil, errors.New("Dial failed 5 times")
+		return nil, errors.New("Dial failed 12 times")
 	}
 
 	// Send connection initialization message

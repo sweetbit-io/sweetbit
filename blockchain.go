@@ -38,11 +38,11 @@ func listenForBlockchainTxns(bitcoinAddr string, transactions chan<- UtxMessage)
 			log.Fatal("Dial failed. Retrying in 5s: ", err)
 			time.Sleep(5 * time.Second)
 		}
-		return attempt < 5, err
+		return attempt < 12, err
 	})
 
 	if err != nil {
-		log.Fatal("Dial failed 5 times: ", err)
+		log.Fatal("Dial failed 12 times: ", err)
 	}
 
 	// Close established web socket connection when done
