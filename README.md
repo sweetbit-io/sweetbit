@@ -8,3 +8,12 @@
 * All electronics exchanged
 * Arduino Micro added to make things controllable through USB
 * A Go tool that listens to transactions and controls the dispenser
+
+```
+sweetbit \
+  --debug.dispense 0.5s \
+  --device.path /dev/tty.usbmodem1411 \
+  --device.pin 3 \
+  --bitcoin.address 35cqbbBap7trDfb18YExSBjaN8rTQ8CmhL \
+  --lightning.subscription wss://the.testnet.lightning.land/candy/graphql
+```

@@ -2,18 +2,19 @@ package main
 
 import (
 	"flag"
-	"time"
 	"log"
-	"fmt"
 	"gobot.io/x/gobot/platforms/firmata"
 	"gobot.io/x/gobot/drivers/gpio"
+	"fmt"
+	"time"
 	"gobot.io/x/gobot"
 )
 
-var candyEndpoint = flag.String("candyendpoint", "", "where to listen for paid invoices")
-var bitcoinAddress = flag.String("bitcoinaddress", "", "receiving Bitcoin address")
-var device = flag.String("device", "/dev/tty.usbmodem1411", "interface to the usb dispenser")
-var initialDispense = flag.Duration("dispense", 0, "initial dispensing duration")
+var candyEndpoint = flag.String("lightning.subscription", "", "subscription endpoint to paid lightning invoices")
+var bitcoinAddress = flag.String("bitcoin.address", "", "receiving Bitcoin address")
+var device = flag.String("device.path", "/dev/tty.usbmodem1411", "path to the USB device")
+var devicePin = flag.String("device.pin", "3", "dispensing GPIO pin on device")
+var initialDispense = flag.Duration("debug.dispense", 0, "dispensing duration on startup")
 
 type Payment struct {
 	Type  string
@@ -36,7 +37,7 @@ func main() {
 	}
 
 	firmataAdaptor := firmata.NewAdaptor(*device)
-	pin := gpio.NewDirectPinDriver(firmataAdaptor, "3")
+	pin := gpio.NewDirectPinDriver(firmataAdaptor, *devicePin)
 
 	work := func() {
 		if *initialDispense > 0 {
