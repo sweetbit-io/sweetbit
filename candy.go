@@ -71,14 +71,14 @@ func establishConnection(candySubscriptionEndpoint string) (*websocket.Conn, err
 	// Send connection initialization message
 	err = conn.WriteMessage(websocket.TextMessage, []byte(connectionInitPayload))
 	if err != nil {
-		log.Fatal("Init WriteMessage: ", err)
+		log.Println("Init WriteMessage: ", err)
 		return nil, errors.New("Sending connection init message failed")
 	}
 
 	// Wait for ack
 	_, _, err = conn.ReadMessage()
 	if err != nil {
-		log.Fatal("Ack ReadMessage:", err)
+		log.Println("Ack ReadMessage:", err)
 		return nil, errors.New("Receiving connection ack message failed")
 	}
 
@@ -90,7 +90,7 @@ func subscribeToPaidInvoices(conn *websocket.Conn) error {
 	startPayloadTmpl := template.New("start")
 	startPayloadTmpl, err := startPayloadTmpl.Parse(startPayloadTmplString)
 	if err != nil {
-		log.Fatal("Template Parse: ", err)
+		log.Println("Template Parse: ", err)
 		return err
 	}
 
@@ -100,14 +100,14 @@ func subscribeToPaidInvoices(conn *websocket.Conn) error {
 		Id: 1,
 	})
 	if err != nil {
-		log.Fatal("Template Execute: ", err)
+		log.Println("Template Execute: ", err)
 		return err
 	}
 
 	// Send subscription message
 	err = conn.WriteMessage(websocket.TextMessage, payload.Bytes())
 	if err != nil {
-		log.Fatal("Subscription WriteMessage: ", err)
+		log.Println("Subscription WriteMessage: ", err)
 		return err
 	}
 
@@ -123,8 +123,9 @@ func listenForCandyPayments(candySubscriptionEndpoint string, paidInvoices chan<
 	for {
 		select {
 		case <-error:
-			log.Println("Connection closed. Establishing a new one in 5s.")
-			time.Sleep(5 * time.Second)
+			retry := 2 * time.Second
+			log.Println("Connection closed. Establishing a new one in", retry)
+			time.Sleep(retry)
 
 			client := &Client{error:error, paidInvoices:paidInvoices}
 			go client.listen(candySubscriptionEndpoint, stop)
@@ -155,7 +156,7 @@ func (c *Client) listen(candySubscriptionEndpoint string, stop <-chan bool) {
 	var err error
 
 	if conn, err = establishConnection(candySubscriptionEndpoint); err != nil {
-		log.Fatal("Connection failed: ", err)
+		log.Println("Connection failed: ", err)
 		c.error <- true
 		return
 	}
@@ -163,10 +164,12 @@ func (c *Client) listen(candySubscriptionEndpoint string, stop <-chan bool) {
 	defer conn.Close()
 
 	if err = subscribeToPaidInvoices(conn); err != nil {
-		log.Fatal("Subscription to paid invoices failed: ", err)
+		log.Println("Subscription to paid invoices failed: ", err)
 		c.error <- true
 		return
 	}
+
+	log.Println("Subscription established.")
 
 	go c.read(conn)
 	go c.write(conn)
@@ -180,7 +183,8 @@ func (c *Client) read(conn *websocket.Conn) {
 
 	for {
 		_, message, err := conn.ReadMessage()
-		if websocket.IsCloseError(err, 1006) {
+		if err != nil {
+			log.Println("Read Message: ", err)
 			c.error <- true
 			return
 		}
@@ -191,7 +195,7 @@ func (c *Client) read(conn *websocket.Conn) {
 
 		err = json.Unmarshal(message, &msg)
 		if err != nil {
-			log.Fatal("Incoming Unmarshal: ", err)
+			log.Println("Incoming Unmarshal: ", err)
 		}
 
 		log.Println("Got paid invoice", msg)
