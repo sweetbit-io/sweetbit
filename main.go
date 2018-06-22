@@ -28,12 +28,13 @@ func main() {
 	done := make(chan struct{})
 	transactions := make(chan UtxMessage)
 	invoices := make(chan Invoice)
+	stop:= make(chan bool)
 
 	if *bitcoinAddress != "" {
 		go listenForBlockchainTxns(*bitcoinAddress, transactions)
 	}
 	if *candyEndpoint != "" {
-		go listenForCandyPayments(*candyEndpoint, invoices)
+		go listenForCandyPayments(*candyEndpoint, invoices, stop)
 	}
 
 	firmataAdaptor := firmata.NewAdaptor(*device)

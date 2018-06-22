@@ -6,10 +6,10 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/matryer/try"
 	"time"
-	"encoding/json"
 	"net/http"
 	"bytes"
 	"github.com/go-errors/errors"
+	"encoding/json"
 )
 
 type InvoiceMessage struct {
@@ -114,64 +114,103 @@ func subscribeToPaidInvoices(conn *websocket.Conn) error {
 	return nil
 }
 
-func establishConnectionAndSubscribeToPaidInvoices(candySubscriptionEndpoint string) (*websocket.Conn, error) {
-	conn, err := establishConnection(candySubscriptionEndpoint)
-	if err != nil {
-		log.Fatal("Connection failed: ", err)
-		return nil, err
+func listenForCandyPayments(candySubscriptionEndpoint string, paidInvoices chan<- Invoice, stop <-chan bool) {
+	error := make(chan bool)
+
+	client := &Client{error:error, paidInvoices:paidInvoices}
+	go client.listen(candySubscriptionEndpoint, stop)
+
+	for {
+		select {
+		case <-error:
+			log.Println("Connection closed. Establishing a new one in 5s.")
+			time.Sleep(5 * time.Second)
+
+			client := &Client{error:error, paidInvoices:paidInvoices}
+			go client.listen(candySubscriptionEndpoint, stop)
+		case <-stop:
+			return
+		}
 	}
-
-	log.Println("Connected")
-
-	err = subscribeToPaidInvoices(conn)
-	if err != nil {
-		log.Fatal("Subscription: ", err)
-		return conn, err
-	}
-
-	log.Println("Subscribed to invoices")
-
-	return conn, nil
 }
 
-func listenForCandyPayments(candySubscriptionEndpoint string, paidInvoices chan<- Invoice) {
-	var conn *websocket.Conn
+const (
+	// Time allowed to write a message to the peer.
+	writeWait = 10 * time.Second
 
-	conn, err := establishConnectionAndSubscribeToPaidInvoices(candySubscriptionEndpoint)
-	if err != nil {
-		log.Fatal("Connection and subscription failed: ", err)
+	// Time allowed to read the next pong message from the peer.
+	pongWait = 60 * time.Second
+
+	// Send pings to peer with this period. Must be less than pongWait.
+	pingPeriod = (pongWait * 9) / 10
+)
+
+type Client struct {
+	paidInvoices chan<- Invoice
+	error chan bool
+}
+
+func (c *Client) listen(candySubscriptionEndpoint string, stop <-chan bool) {
+	var conn *websocket.Conn
+	var err error
+
+	if conn, err = establishConnection(candySubscriptionEndpoint); err != nil {
+		log.Fatal("Connection failed: ", err)
+		c.error <- true
 		return
 	}
 
 	defer conn.Close()
 
+	if err = subscribeToPaidInvoices(conn); err != nil {
+		log.Fatal("Subscription to paid invoices failed: ", err)
+		c.error <- true
+		return
+	}
+
+	go c.read(conn)
+	go c.write(conn)
+
+	<- stop
+}
+
+func (c *Client) read(conn *websocket.Conn) {
+	conn.SetReadDeadline(time.Now().Add(pongWait))
+	conn.SetPongHandler(func(string) error { conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
+
 	for {
-		// Read incoming message
 		_, message, err := conn.ReadMessage()
 		if websocket.IsCloseError(err, 1006) {
-			conn, err = establishConnectionAndSubscribeToPaidInvoices(candySubscriptionEndpoint)
-			if err != nil {
-				log.Fatal("Connection and subscription failed: ", err)
-				return
-			}
-
-			defer conn.Close()
-		} else if err != nil {
-			log.Fatal("Incoming ReadMessage: ", err)
+			c.error <- true
 			return
-		} else {
-			log.Println("Got a message", string(message))
+		}
 
-			var msg InvoiceMessage
+		log.Println("Got a message", string(message))
 
-			err = json.Unmarshal(message, &msg)
-			if err != nil {
-				log.Fatal("Incoming Unmarshal: ", err)
-			}
+		var msg InvoiceMessage
 
-			log.Println("Got paid invoice", msg)
+		err = json.Unmarshal(message, &msg)
+		if err != nil {
+			log.Fatal("Incoming Unmarshal: ", err)
+		}
 
-			paidInvoices <- msg.Payload.Data.InvoicesPaid
+		log.Println("Got paid invoice", msg)
+
+		c.paidInvoices <- msg.Payload.Data.InvoicesPaid
+	}
+}
+
+func (c *Client) write(conn *websocket.Conn) {
+	ticker := time.NewTicker(pingPeriod)
+
+	defer ticker.Stop()
+
+	for {
+		<-ticker.C
+		conn.SetWriteDeadline(time.Now().Add(writeWait))
+		if err := conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+			c.error <- true
+			return
 		}
 	}
 }
