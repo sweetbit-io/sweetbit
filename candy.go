@@ -64,7 +64,7 @@ func establishConnection(candySubscriptionEndpoint string) (*websocket.Conn, err
 	})
 
 	if err != nil {
-		log.Fatal("Dial failed 5 times: ", err)
+		log.Println("Dial failed 5 times: ", err)
 		return nil, errors.New("Dial failed 12 times")
 	}
 

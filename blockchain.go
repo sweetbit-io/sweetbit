@@ -35,14 +35,14 @@ func listenForBlockchainTxns(bitcoinAddr string, transactions chan<- UtxMessage)
 
 		conn, _, err = websocket.DefaultDialer.Dial(u.String(), nil)
 		if err != nil {
-			log.Fatal("Dial failed. Retrying in 5s: ", err)
+			log.Println("Dial failed. Retrying in 5s: ", err)
 			time.Sleep(5 * time.Second)
 		}
 		return attempt < 12, err
 	})
 
 	if err != nil {
-		log.Fatal("Dial failed 12 times: ", err)
+		log.Println("Dial failed 12 times: ", err)
 	}
 
 	// Close established web socket connection when done
@@ -51,13 +51,13 @@ func listenForBlockchainTxns(bitcoinAddr string, transactions chan<- UtxMessage)
 	// Create subscribe payload
 	payload, err := json.Marshal(AddrSubMessage{Op: "addr_sub", Addr: bitcoinAddr})
 	if err != nil {
-		log.Fatal("Marshal: ", err)
+		log.Println("Marshal: ", err)
 	}
 
 	// Start listening for incoming paid invoices
 	err = conn.WriteMessage(websocket.TextMessage, payload)
 	if err != nil {
-		log.Fatal("WriteMessage: ", err)
+		log.Println("WriteMessage: ", err)
 		return
 	}
 
@@ -65,7 +65,7 @@ func listenForBlockchainTxns(bitcoinAddr string, transactions chan<- UtxMessage)
 		// Read incoming message
 		_, message, err := conn.ReadMessage()
 		if err != nil {
-			log.Fatal("ReadMessage: ", err)
+			log.Println("ReadMessage: ", err)
 			return
 		}
 
@@ -74,7 +74,7 @@ func listenForBlockchainTxns(bitcoinAddr string, transactions chan<- UtxMessage)
 		// Parse message
 		err = json.Unmarshal(message, &msg)
 		if err != nil {
-			log.Fatal("Unmarshal: ", err)
+			log.Println("Unmarshal: ", err)
 		}
 
 		// Send incoming transaction to channel
