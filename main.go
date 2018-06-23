@@ -10,11 +10,16 @@ import (
 	"gobot.io/x/gobot"
 )
 
-var candyEndpoint = flag.String("lightning.subscription", "", "subscription endpoint to paid lightning invoices")
-var bitcoinAddress = flag.String("bitcoin.address", "", "receiving Bitcoin address")
-var device = flag.String("device.path", "/dev/tty.usbmodem1411", "path to the USB device")
-var devicePin = flag.String("device.pin", "3", "dispensing GPIO pin on device")
-var initialDispense = flag.Duration("debug.dispense", 0, "dispensing duration on startup")
+type arrayFlags []string
+
+func (i *arrayFlags) String() string {
+	return "my string representation"
+}
+
+func (i *arrayFlags) Set(value string) error {
+	*i = append(*i, value)
+	return nil
+}
 
 type Payment struct {
 	Type  string
@@ -22,6 +27,13 @@ type Payment struct {
 }
 
 func main() {
+	var candyEndpoints arrayFlags
+	flag.Var(&candyEndpoints, "lightning.subscription", "subscription endpoint to paid lightning invoices")
+	var bitcoinAddress = flag.String("bitcoin.address", "", "receiving Bitcoin address")
+	var device = flag.String("device.path", "/dev/tty.usbmodem1411", "path to the USB device")
+	var devicePin = flag.String("device.pin", "3", "dispensing GPIO pin on device")
+	var initialDispense = flag.Duration("debug.dispense", 0, "dispensing duration on startup")
+
 	flag.Parse()
 	log.SetFlags(0)
 
@@ -33,8 +45,9 @@ func main() {
 	if *bitcoinAddress != "" {
 		go listenForBlockchainTxns(*bitcoinAddress, transactions)
 	}
-	if *candyEndpoint != "" {
-		go listenForCandyPayments(*candyEndpoint, invoices, stop)
+
+	for _, endpoint := range candyEndpoints {
+		go listenForCandyPayments(endpoint, invoices, stop)
 	}
 
 	firmataAdaptor := firmata.NewAdaptor(*device)
