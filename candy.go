@@ -1,15 +1,15 @@
 package main
 
 import (
-	"text/template"
-	"log"
+	"bytes"
+	"encoding/json"
+	"github.com/go-errors/errors"
 	"github.com/gorilla/websocket"
 	"github.com/matryer/try"
-	"time"
+	"log"
 	"net/http"
-	"bytes"
-	"github.com/go-errors/errors"
-	"encoding/json"
+	"text/template"
+	"time"
 )
 
 type InvoiceMessage struct {
@@ -117,7 +117,7 @@ func subscribeToPaidInvoices(conn *websocket.Conn) error {
 func listenForCandyPayments(candySubscriptionEndpoint string, paidInvoices chan<- Invoice, stop <-chan bool) {
 	error := make(chan bool)
 
-	client := &Client{error:error, paidInvoices:paidInvoices}
+	client := &Client{error: error, paidInvoices: paidInvoices}
 	go client.listen(candySubscriptionEndpoint, stop)
 
 	for {
@@ -127,7 +127,7 @@ func listenForCandyPayments(candySubscriptionEndpoint string, paidInvoices chan<
 			log.Println("Connection closed. Establishing a new one in", retry)
 			time.Sleep(retry)
 
-			client := &Client{error:error, paidInvoices:paidInvoices}
+			client := &Client{error: error, paidInvoices: paidInvoices}
 			go client.listen(candySubscriptionEndpoint, stop)
 		case <-stop:
 			return
@@ -148,7 +148,7 @@ const (
 
 type Client struct {
 	paidInvoices chan<- Invoice
-	error chan bool
+	error        chan bool
 }
 
 func (c *Client) listen(candySubscriptionEndpoint string, stop <-chan bool) {
@@ -174,7 +174,7 @@ func (c *Client) listen(candySubscriptionEndpoint string, stop <-chan bool) {
 	go c.read(conn)
 	go c.write(conn)
 
-	<- stop
+	<-stop
 }
 
 func (c *Client) read(conn *websocket.Conn) {

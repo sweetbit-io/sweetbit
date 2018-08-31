@@ -1,12 +1,12 @@
 package main
 
 import (
-	"log"
+	"encoding/json"
 	"github.com/gorilla/websocket"
 	"github.com/matryer/try"
-	"time"
-	"encoding/json"
+	"log"
 	"net/url"
+	"time"
 )
 
 type AddrSubMessage struct {
@@ -15,8 +15,8 @@ type AddrSubMessage struct {
 }
 
 type UtxMessage struct {
-	Op   string `json:"op"`
-	X    struct {
+	Op string `json:"op"`
+	X  struct {
 		Out []struct {
 			Addr  string `json:"addr"`
 			Value int    `json:"value"`
