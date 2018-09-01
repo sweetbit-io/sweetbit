@@ -21,7 +21,7 @@ NAME=sweetbit
 DAEMON=/home/pi/go/bin/sweetbit
 PIDFILE=/var/run/sweetbit.pid
 SCRIPTNAME=/etc/init.d/"$NAME"
-EXTRA_OPTS="--device /dev/ttyACM0 --candyendpoint wss://the.testnet.lightning.land/candy/graphql --bitcoinaddress 35cqbbBap7trDfb18YExSBjaN8rTQ8CmhL"
+EXTRA_OPTS="--debug.dispense 1s --lightning.subscription wss://candy.lightning.land/graphql --bitcoin.address 35cqbbBap7trDfb18YExSBjaN8rTQ8CmhL"
 
 test -f $DAEMON || exit 0
 

@@ -49,16 +49,16 @@ func main() {
 	}
 
 	r := raspi.NewAdaptor()
-	motorPin := gpio.NewDirectPinDriver(r, "2")
-	vibratorPin := gpio.NewDirectPinDriver(r, "0")
+	motorPin := gpio.NewDirectPinDriver(r, "13")
+	vibratorPin := gpio.NewDirectPinDriver(r, "11")
 	touchSensor := gpio.NewButtonDriver(r, "7")
 
 	work := func() {
-		button.On(gpio.ButtonPush, func(data interface{}) {
+		touchSensor.On(gpio.ButtonPush, func(data interface{}) {
 			fmt.Println("button pressed")
 		})
 
-		button.On(gpio.ButtonRelease, func(data interface{}) {
+		touchSensor.On(gpio.ButtonRelease, func(data interface{}) {
 			fmt.Println("button released")
 		})
 
