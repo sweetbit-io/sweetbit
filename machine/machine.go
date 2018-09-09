@@ -1,93 +1,74 @@
 package machine
 
 import (
-	"gobot.io/x/gobot"
-	"gobot.io/x/gobot/platforms/raspi"
-	"gobot.io/x/gobot/drivers/gpio"
 	log "github.com/sirupsen/logrus"
+	"sync"
+	"periph.io/x/periph/host"
+	"periph.io/x/periph/conn/gpio/gpioreg"
+	"periph.io/x/periph/conn/gpio"
 )
 
 const (
-	motorPin    = "13"
-	vibratorPin = "11"
-	sensorPin   = "7"
+	touchPin  = "7"
+	motorPin  = "13"
+	buzzerPin = "11"
 )
 
 type Machine struct {
 	// Public receiving channel for touch events
 	TouchEvents <-chan bool
-	// Internal robot instance
-	robot *gobot.Robot
-	// Internal raw touch events channel
-	touchEvents chan bool
+	// Internal sending channel for touch events
+	touchEvents chan<- bool
 	// Internal motor events channel
 	motorEvents chan bool
-	// Internal vibrator events channel
-	vibratorEvents chan bool
+	// Internal buzzer events channel
+	buzzerEvents chan bool
+	// Internal done channel
+	done chan bool
+	// Internal goroutine WaitGroup
+	waitGroup sync.WaitGroup
 }
 
 func NewMachine() *Machine {
-	rpi := raspi.NewAdaptor()
-	motorPin := gpio.NewDirectPinDriver(rpi, motorPin)
-	vibratorPin := gpio.NewDirectPinDriver(rpi, vibratorPin)
-	touchSensor := gpio.NewButtonDriver(rpi, sensorPin)
-
 	touchEvents := make(chan bool)
 	motorEvents := make(chan bool)
-	vibratorEvents := make(chan bool)
+	buzzerEvents := make(chan bool)
+	done := make(chan bool)
 
-	robot := gobot.NewRobot("dispenser",
-		[]gobot.Connection{rpi},
-		[]gobot.Device{motorPin, vibratorPin, touchSensor},
-	)
-
-	robot.Work = func() {
-		defer touchSensor.DeleteEvent(gpio.ButtonPush)
-		touchSensor.On(gpio.ButtonPush, func(data interface{}) {
-			touchEvents <- true
-		})
-
-		defer touchSensor.DeleteEvent(gpio.ButtonRelease)
-		touchSensor.On(gpio.ButtonRelease, func(data interface{}) {
-			touchEvents <- false
-		})
-
-		for {
-			select {
-			case turnOn := <-motorEvents:
-				if turnOn {
-					motorPin.On()
-				} else {
-					motorPin.Off()
-				}
-			case turnOn := <-vibratorEvents:
-				if turnOn {
-					vibratorPin.On()
-				} else {
-					vibratorPin.Off()
-				}
-			}
-		}
-	}
+	var waitGroup sync.WaitGroup
 
 	m := &Machine{
-		TouchEvents:    touchEvents,
-		robot:          robot,
-		touchEvents:    touchEvents,
-		motorEvents:    motorEvents,
-		vibratorEvents: vibratorEvents,
+		TouchEvents:  touchEvents,
+		motorEvents:  motorEvents,
+		buzzerEvents: buzzerEvents,
+		done:         done,
+		waitGroup:    waitGroup,
 	}
 
 	return m
 }
 
 func (m *Machine) Start() {
-	log.Info("Starting robot")
-	m.robot.Start()
+	log.Info("Starting machine")
+
+	if _, err := host.Init(); err != nil {
+		log.Fatal(err)
+	}
+
+	go m.handleTouch()
+	go m.driveMotor()
+	go m.driveBuzzer()
 }
 
 func (m *Machine) Stop() {
-	m.robot.Stop()
+	log.Info("Stopping machine")
+
+	m.done <- true
+
+	// Blocking until all goroutines finished executing
+	m.waitGroup.Wait()
+
+	log.Info("Machine stopped")
 }
 
 func (m *Machine) ToggleMotor(on bool) {
@@ -96,6 +77,87 @@ func (m *Machine) ToggleMotor(on bool) {
 }
 
 func (m *Machine) ToggleBuzzer(on bool) {
-	log.Info("Toggling motor {}", on)
-	m.vibratorEvents <- on
+	log.Info("Toggling buzzer {}", on)
+	m.buzzerEvents <- on
+}
+
+func (m *Machine) handleTouch() {
+	log.Info("Starting to handle touch events")
+
+	m.waitGroup.Add(1)
+	defer m.waitGroup.Done()
+
+	p := gpioreg.ByName(touchPin)
+
+	// set as input, with an internal pull down resistor
+	if err := p.In(gpio.PullDown, gpio.BothEdges); err != nil {
+		log.Fatal(err)
+	}
+
+	// Turn blocking WaitForEdge() func into channel
+	edges := make(chan bool)
+	go func() {
+		m.waitGroup.Add(1)
+		defer m.waitGroup.Done()
+
+		for {
+			p.WaitForEdge(-1)
+			edges <- p.Read() == gpio.High
+		}
+	}()
+
+	for {
+		select {
+		case touch := <-edges:
+			m.touchEvents <- touch
+		case <-m.done:
+			return
+		}
+	}
+}
+
+func (m *Machine) driveMotor() {
+	log.Info("Starting to handle motor events")
+
+	m.waitGroup.Add(1)
+	defer m.waitGroup.Done()
+
+	p := gpioreg.ByName(motorPin)
+
+	for {
+		select {
+		case on := <-m.motorEvents:
+			if on {
+				p.Out(gpio.High)
+			} else {
+				p.Out(gpio.Low)
+			}
+		case <-m.done:
+			p.Out(gpio.Low)
+			return
+		}
+	}
+}
+
+func (m *Machine) driveBuzzer() {
+	log.Info("Starting to handle buzzer events")
+
+	m.waitGroup.Add(1)
+	defer m.waitGroup.Done()
+
+	p := gpioreg.ByName(buzzerPin)
+
+	for {
+		select {
+		case on := <-m.buzzerEvents:
+			if on {
+				p.Out(gpio.High)
+			} else {
+				p.Out(gpio.Low)
+			}
+		case <-m.done:
+			p.Out(gpio.Low)
+			return
+		}
+	}
 }
