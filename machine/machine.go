@@ -121,7 +121,7 @@ func (m *Machine) handleTouch() {
 					// make sure next high signal isn't sent anymore
 					hasSentHigh = true
 				}
-			} else {
+			} else if hasSentHigh {
 				// reset time for throttling
 				notifyAfterThrottledTime = time.Time{}
 
@@ -130,6 +130,9 @@ func (m *Machine) handleTouch() {
 
 				// make sure the next high is sent
 				hasSentHigh = false
+			} else {
+				// reset time for throttling
+				notifyAfterThrottledTime = time.Time{}
 			}
 		}
 	}()
