@@ -9,9 +9,9 @@ import (
 )
 
 const (
-	touchPin  = "7"
-	motorPin  = "13"
-	buzzerPin = "11"
+	touchPin  = "4"  // BCM 4 = #7
+	motorPin  = "27" // BCM 27 = #13
+	buzzerPin = "17" // BCM 17 = #11
 )
 
 type Machine struct {
