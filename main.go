@@ -4,7 +4,7 @@ import (
 	"os"
 	"os/signal"
 	"log"
-	"github.com/davidknezic/sweetd/machine"
+	"github.com/the-lightning-land/sweetd/machine"
 )
 
 type Dispenser struct {
