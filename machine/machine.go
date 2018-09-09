@@ -46,7 +46,7 @@ func NewMachine() *Machine {
 }
 
 func (m *Machine) Start() {
-	log.Info("Starting machine")
+	log.Info("Starting machine...")
 
 	if _, err := host.Init(); err != nil {
 		log.Fatal(err)
@@ -60,10 +60,12 @@ func (m *Machine) Start() {
 	go m.handleTouch()
 	go m.driveMotor()
 	go m.driveBuzzer()
+
+	log.Info("Machine started")
 }
 
 func (m *Machine) Stop() {
-	log.Info("Stopping machine")
+	log.Info("Stopping machine...")
 
 	close(m.done)
 
@@ -113,7 +115,7 @@ func (m *Machine) handleTouch() {
 			if p.Read() == gpio.High {
 				if notifyAfterThrottledTime.IsZero() {
 					// just save time for throttling
-					notifyAfterThrottledTime = time.Now().Add(20 * time.Millisecond)
+					notifyAfterThrottledTime = time.Now().Add(1000 * time.Millisecond)
 				} else if !hasSentHigh && time.Now().After(notifyAfterThrottledTime) {
 					// send throttled touch start
 					edges <- true
@@ -140,7 +142,7 @@ func (m *Machine) handleTouch() {
 	for {
 		select {
 		case touch := <-edges:
-			log.Info("Received touch event", touch)
+			log.WithField("pin", "touch").WithField("on", touch).Info("Received touch event")
 			m.touchEvents <- touch
 		case <-m.done:
 			log.Info("Got done event in handleTouch")
@@ -149,7 +151,7 @@ func (m *Machine) handleTouch() {
 		}
 	}
 
-	log.Info("Leaving handleTouch goroutine")
+	log.Debug("Leaving handleTouch goroutine")
 }
 
 func (m *Machine) driveMotor() {
@@ -163,7 +165,7 @@ func (m *Machine) driveMotor() {
 	for {
 		select {
 		case on := <-m.motorEvents:
-			log.Info("Driving motor", on)
+			log.WithField("pin", "motor").WithField("on", on).Info("Received motor event")
 
 			if on {
 				p.Out(gpio.High)
@@ -178,7 +180,7 @@ func (m *Machine) driveMotor() {
 		}
 	}
 
-	log.Info("Leaving driveMotor goroutine")
+	log.Debug("Leaving driveMotor goroutine")
 }
 
 func (m *Machine) driveBuzzer() {
@@ -192,7 +194,8 @@ func (m *Machine) driveBuzzer() {
 	for {
 		select {
 		case on := <-m.buzzerEvents:
-			log.Info("Driving buzzer", on)
+			log.WithField("pin", "buzzer").WithField("on", on).Info("Received buzzer event")
+
 			if on {
 				p.Out(gpio.High)
 			} else {
@@ -206,5 +209,5 @@ func (m *Machine) driveBuzzer() {
 		}
 	}
 
-	log.Info("Leaving driveBuzzer goroutine")
+	log.Debug("Leaving driveBuzzer goroutine")
 }
