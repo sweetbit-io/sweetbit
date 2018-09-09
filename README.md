@@ -14,3 +14,11 @@
 `go build`
 
 `./sweetd`
+
+## Releasing
+
+`git tag -a v0.1.0 -m "Release name"`
+
+`git push origin v0.1.0`
+
+`goreleaser --rm-dist`
