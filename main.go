@@ -3,8 +3,8 @@ package main
 import (
 	"os"
 	"os/signal"
-	"log"
 	"github.com/the-lightning-land/sweetd/machine"
+	log "github.com/sirupsen/logrus"
 )
 
 type Dispenser struct {
@@ -13,6 +13,8 @@ type Dispenser struct {
 }
 
 func main() {
+	log.SetOutput(os.Stdout)
+
 	dispenser := Dispenser{
 		shouldBuzzOnDispense:  true,
 		shouldDispenseOnTouch: true,
@@ -24,19 +26,21 @@ func main() {
 	machine.Start()
 
 	signals := make(chan os.Signal, 1)
-	done := make(chan struct{})
+	done := make(chan bool)
 	signal.Notify(signals, os.Interrupt)
 
 	go func() {
 		sig := <-signals
-		log.Println(sig)
-		log.Println("Received an interrupt, stopping services...")
-		close(done)
+		log.Info(sig)
+		log.Info("Received an interrupt, stopping services...")
+		done <- true
 	}()
 
 	for {
 		select {
 		case on := <-machine.TouchEvents:
+			log.Println("Touch event {}", on)
+
 			if dispenser.shouldDispenseOnTouch {
 				machine.ToggleMotor(on)
 

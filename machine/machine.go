@@ -4,6 +4,7 @@ import (
 	"gobot.io/x/gobot"
 	"gobot.io/x/gobot/platforms/raspi"
 	"gobot.io/x/gobot/drivers/gpio"
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -81,6 +82,7 @@ func NewMachine() *Machine {
 }
 
 func (m *Machine) Start() {
+	log.Info("Starting robot")
 	m.robot.Start()
 }
 
@@ -89,9 +91,11 @@ func (m *Machine) Stop() {
 }
 
 func (m *Machine) ToggleMotor(on bool) {
+	log.Info("Toggling motor {}", on)
 	m.motorEvents <- on
 }
 
 func (m *Machine) ToggleBuzzer(on bool) {
+	log.Info("Toggling motor {}", on)
 	m.vibratorEvents <- on
 }
