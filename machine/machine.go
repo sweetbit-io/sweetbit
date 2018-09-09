@@ -36,6 +36,7 @@ func NewMachine() *Machine {
 
 	m := &Machine{
 		TouchEvents:  touchEvents,
+		touchEvents:  touchEvents,
 		motorEvents:  motorEvents,
 		buzzerEvents: buzzerEvents,
 	}
@@ -103,11 +104,15 @@ func (m *Machine) handleTouch() {
 		// TODO: Stop this goroutine on done signal
 
 		for {
+			log.Info("Waiting for edge...")
+
 			p.WaitForEdge(-1)
 
 			log.Info("Got touch edge")
 
 			edges <- p.Read() == gpio.High
+
+			log.Info("Edge written")
 		}
 	}()
 
