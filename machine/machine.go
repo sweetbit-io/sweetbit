@@ -7,9 +7,9 @@ import (
 )
 
 const (
-	motorPin = "13"
+	motorPin    = "13"
 	vibratorPin = "11"
-	sensorPin = "7"
+	sensorPin   = "7"
 )
 
 type Machine struct {
@@ -70,10 +70,10 @@ func NewMachine() *Machine {
 	}
 
 	m := &Machine{
-		TouchEvents: touchEvents,
-		robot: robot,
-		touchEvents: touchEvents,
-		motorEvents: motorEvents,
+		TouchEvents:    touchEvents,
+		robot:          robot,
+		touchEvents:    touchEvents,
+		motorEvents:    motorEvents,
 		vibratorEvents: vibratorEvents,
 	}
 

@@ -7,7 +7,17 @@ import (
 	"github.com/davidknezic/sweetd/machine"
 )
 
+type Dispenser struct {
+	shouldBuzzOnDispense  bool
+	shouldDispenseOnTouch bool
+}
+
 func main() {
+	dispenser := Dispenser{
+		shouldBuzzOnDispense:  true,
+		shouldDispenseOnTouch: true,
+	}
+
 	machine := machine.NewMachine()
 
 	defer machine.Stop()
@@ -27,8 +37,16 @@ func main() {
 	for {
 		select {
 		case on := <-machine.TouchEvents:
-			machine.ToggleBuzzer(on)
-			machine.ToggleMotor(on)
+			if dispenser.shouldDispenseOnTouch {
+				machine.ToggleMotor(on)
+
+				if dispenser.shouldBuzzOnDispense {
+					machine.ToggleBuzzer(on)
+				}
+			} else if !on {
+				machine.ToggleBuzzer(false)
+				machine.ToggleMotor(false)
+			}
 		case <-done:
 			return
 		}
