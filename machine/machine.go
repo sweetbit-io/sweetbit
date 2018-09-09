@@ -33,16 +33,11 @@ func NewMachine() *Machine {
 	touchEvents := make(chan bool)
 	motorEvents := make(chan bool)
 	buzzerEvents := make(chan bool)
-	done := make(chan bool)
-
-	var waitGroup sync.WaitGroup
 
 	m := &Machine{
 		TouchEvents:  touchEvents,
 		motorEvents:  motorEvents,
 		buzzerEvents: buzzerEvents,
-		done:         done,
-		waitGroup:    waitGroup,
 	}
 
 	return m
@@ -54,6 +49,11 @@ func (m *Machine) Start() {
 	if _, err := host.Init(); err != nil {
 		log.Fatal(err)
 	}
+
+	m.done = make(chan bool)
+
+	var waitGroup sync.WaitGroup
+	m.waitGroup = waitGroup
 
 	go m.handleTouch()
 	go m.driveMotor()
@@ -104,6 +104,9 @@ func (m *Machine) handleTouch() {
 
 		for {
 			p.WaitForEdge(-1)
+
+			log.Info("Got touch edge")
+
 			edges <- p.Read() == gpio.High
 		}
 	}()
