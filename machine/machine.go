@@ -1,4 +1,4 @@
-package main
+package machine
 
 import (
 	"gobot.io/x/gobot"
@@ -15,9 +15,9 @@ const (
 type Machine struct {
 	// Public receiving channel for touch events
 	TouchEvents <-chan bool
-	// Internal gobot robot instance
+	// Internal robot instance
 	robot *gobot.Robot
-	// Internal touch events channel
+	// Internal raw touch events channel
 	touchEvents chan bool
 	// Internal motor events channel
 	motorEvents chan bool
@@ -88,18 +88,10 @@ func (m *Machine) Stop() {
 	m.robot.Stop()
 }
 
-func (m *Machine) StartMotor() {
-	m.motorEvents <- true
+func (m *Machine) ToggleMotor(on bool) {
+	m.motorEvents <- on
 }
 
-func (m *Machine) StopMotor() {
-	m.motorEvents <- false
-}
-
-func (m *Machine) StartVibration() {
-	m.vibratorEvents <- true
-}
-
-func (m *Machine) StopVibration() {
-	m.vibratorEvents <- false
+func (m *Machine) ToggleBuzzer(on bool) {
+	m.vibratorEvents <- on
 }

@@ -4,10 +4,11 @@ import (
 	"os"
 	"os/signal"
 	"log"
+	"github.com/davidknezic/sweetd/machine"
 )
 
 func main() {
-	machine := NewMachine()
+	machine := machine.NewMachine()
 
 	defer machine.Stop()
 	machine.Start()
@@ -23,5 +24,13 @@ func main() {
 		close(done)
 	}()
 
-	<-done
+	for {
+		select {
+		case on := <-machine.TouchEvents:
+			machine.ToggleBuzzer(on)
+			machine.ToggleMotor(on)
+		case <-done:
+			return
+		}
+	}
 }
