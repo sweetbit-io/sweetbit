@@ -15,7 +15,7 @@
 
 `./sweetd`
 
-## Releasing
+## Releasing using [`goreleaser`](https://goreleaser.com)
 
 `git tag -a v0.1.0 -m "Release name"`
 
