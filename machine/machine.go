@@ -115,7 +115,7 @@ func (m *Machine) handleTouch() {
 			if p.Read() == gpio.High {
 				if notifyAfterThrottledTime.IsZero() {
 					// just save time for throttling
-					notifyAfterThrottledTime = time.Now().Add(1000 * time.Millisecond)
+					notifyAfterThrottledTime = time.Now().Add(2 * time.Millisecond)
 				} else if !hasSentHigh && time.Now().After(notifyAfterThrottledTime) {
 					// send throttled touch start
 					edges <- true
