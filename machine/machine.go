@@ -63,7 +63,7 @@ func (m *Machine) Start() {
 func (m *Machine) Stop() {
 	log.Info("Stopping machine")
 
-	m.done <- true
+	close(m.done)
 
 	// Blocking until all goroutines finished executing
 	m.waitGroup.Wait()
@@ -115,7 +115,7 @@ func (m *Machine) handleTouch() {
 			m.touchEvents <- touch
 		case <-m.done:
 			log.Info("Got done event in handleTouch")
-		
+
 			return
 		}
 	}
