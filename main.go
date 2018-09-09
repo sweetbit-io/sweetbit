@@ -39,7 +39,7 @@ func main() {
 	for {
 		select {
 		case on := <-machine.TouchEvents:
-			log.Println("Touch event {}", on)
+			log.Info("Touch event {}", on)
 
 			if dispenser.shouldDispenseOnTouch {
 				machine.ToggleMotor(on)
