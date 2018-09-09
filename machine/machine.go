@@ -6,6 +6,7 @@ import (
 	"periph.io/x/periph/host"
 	"periph.io/x/periph/conn/gpio/gpioreg"
 	"periph.io/x/periph/conn/gpio"
+	"time"
 )
 
 const (
@@ -103,16 +104,33 @@ func (m *Machine) handleTouch() {
 
 		// TODO: Stop this goroutine on done signal
 
-		for {
-			log.Info("Waiting for edge...")
+		var notifyAfterThrottledTime = time.Time{}
+		var hasSentHigh = false
 
+		for {
 			p.WaitForEdge(-1)
 
-			log.Info("Got touch edge")
+			if p.Read() == gpio.High {
+				if notifyAfterThrottledTime.IsZero() {
+					// just save time for throttling
+					notifyAfterThrottledTime = time.Now().Add(20 * time.Millisecond)
+				} else if !hasSentHigh && time.Now().After(notifyAfterThrottledTime) {
+					// send throttled touch start
+					edges <- true
 
-			edges <- p.Read() == gpio.High
+					// make sure next high signal isn't sent anymore
+					hasSentHigh = true
+				}
+			} else {
+				// reset time for throttling
+				notifyAfterThrottledTime = time.Time{}
 
-			log.Info("Edge written")
+				// send touch stop
+				edges <- false
+
+				// make sure the next high is sent
+				hasSentHigh = false
+			}
 		}
 	}()
 

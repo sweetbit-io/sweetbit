@@ -16,7 +16,7 @@ func main() {
 	log.SetOutput(os.Stdout)
 
 	dispenser := Dispenser{
-		shouldBuzzOnDispense:  true,
+		shouldBuzzOnDispense:  false,
 		shouldDispenseOnTouch: true,
 	}
 
