@@ -5,13 +5,5 @@ builds:
       - 6
 archive:
   wrap_in_directory: true
-checksum:
-  name_template: 'checksums.txt'
-changelog:
-  sort: asc
-  filters:
-    exclude:
-    - '^docs:'
-    - '^test:'
-release:
-  draft: true
+sign:
+   artifacts: checksum
