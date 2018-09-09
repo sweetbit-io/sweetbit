@@ -111,9 +111,11 @@ func (m *Machine) handleTouch() {
 	for {
 		select {
 		case touch := <-edges:
-			log.Info("Received touch event {}", touch)
+			log.Info("Received touch event", touch)
 			m.touchEvents <- touch
 		case <-m.done:
+			log.Info("Got done event in handleTouch")
+		
 			return
 		}
 	}
@@ -132,7 +134,7 @@ func (m *Machine) driveMotor() {
 	for {
 		select {
 		case on := <-m.motorEvents:
-			log.Info("Driving motor {}", on)
+			log.Info("Driving motor", on)
 
 			if on {
 				p.Out(gpio.High)
@@ -140,6 +142,8 @@ func (m *Machine) driveMotor() {
 				p.Out(gpio.Low)
 			}
 		case <-m.done:
+			log.Info("Got done event in driveMotor")
+
 			p.Out(gpio.Low)
 			return
 		}
@@ -159,13 +163,15 @@ func (m *Machine) driveBuzzer() {
 	for {
 		select {
 		case on := <-m.buzzerEvents:
-			log.Info("Driving buzzer {}", on)
+			log.Info("Driving buzzer", on)
 			if on {
 				p.Out(gpio.High)
 			} else {
 				p.Out(gpio.Low)
 			}
 		case <-m.done:
+			log.Info("Got done event in driveBuzzer")
+
 			p.Out(gpio.Low)
 			return
 		}
