@@ -97,8 +97,10 @@ func (m *Machine) handleTouch() {
 	// Turn blocking WaitForEdge() func into channel
 	edges := make(chan bool)
 	go func() {
-		m.waitGroup.Add(1)
-		defer m.waitGroup.Done()
+		// m.waitGroup.Add(1)
+		// defer m.waitGroup.Done()
+
+		// TODO: Stop this goroutine on done signal
 
 		for {
 			p.WaitForEdge(-1)
