@@ -3,9 +3,18 @@
 > 🔌 Daemon for pairing and control of the candy dispenser
 
 * [x] Control of touch sensor, motor and buzzer
+* [ ] Start pairing mode
 * [ ] Bluetooth pairing
 * [ ] WiFi pairing
 * [ ] Setup and configuration of `lnd` node
+* [ ] Bundle lnd in future
+* [ ] Update procedure
+
+## Dependencies
+
+```
+bridge hostapd wireless-tools wpa_supplicant dnsmasq iw
+```
 
 ## Usage
 
