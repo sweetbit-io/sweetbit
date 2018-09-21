@@ -1,0 +1,51 @@
+#!/bin/sh
+
+# kFreeBSD do not accept scripts as interpreters, using #!/bin/sh and sourcing.
+if [ true != "$INIT_D_SCRIPT_SOURCED" ] ; then
+  set "$0" "$@"; INIT_D_SCRIPT_SOURCED=true . /lib/init/init-d-script
+fi
+
+### BEGIN INIT INFO
+# Provides:          sweetd
+# Required-Start:    $all
+# Required-Stop:     $all
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Controller for Bitcoin-enabled candy dispenser
+# Description:       sweetd is a utility that listens for Bitcoin transactions
+#                    and controls a candy dispenser when one is made.
+### END INIT INFO
+
+DESC="sweetd"
+NAME=sweetd
+DAEMON=/home/pi/go/bin/sweetd
+PIDFILE=/var/run/sweetd.pid
+SCRIPTNAME=/etc/init.d/"$NAME"
+EXTRA_OPTS=""
+
+test -f $DAEMON || exit 0
+
+. /lib/lsb/init-functions
+
+case "$1" in
+start)  log_daemon_msg "Starting sweetd" "sweetd"
+        start-stop-daemon --start -b -C --oknodo --exec $DAEMON --pidfile $PIDFILE --make-pidfile -- $EXTRA_OPTS
+        log_end_msg $?
+        ;;
+stop)   log_daemon_msg "Stopping sweetd" "sweetd"
+        start-stop-daemon --stop --oknodo --pidfile $PIDFILE --name "sweetd"
+        log_end_msg $?
+        rm -f $PIDFILE
+        ;;
+restart) log_daemon_msg "Restarting sweetd" "sweetd"
+        $0 stop
+        $0 start
+        ;;
+status)
+        status_of_proc -p $PIDFILE $DAEMON $NAME && exit 0 || exit $?
+        ;;
+*)      log_action_msg "Usage: /etc/init.d/sweetd {start|stop|status|restart}"
+        exit 2
+        ;;
+esac
+exit 0

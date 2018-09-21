@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+package sweetrpc;
+
+service Sweet {
+    rpc ConnectWpaNetwork (ConnectWpaNetworkRequest) returns (stream WpaConnectionUpdate) {
+    }
+    rpc GetWpaConnectionInfo (GetWpaConnectionInfo) returns (GetWpaConnectionInfoResponse) {
+    }
+    rpc SubscribeWpaNetworkScanUpdates (SubscribeWpaNetworkScanUpdatesRequest) returns (stream WpaNetworkScanUpdate) {
+    }
+}
+
+message GetWpaConnectionInfo {
+}
+
+message TestResponse {
+    int32 one = 1;
+}
+
+message WpaNetwork {
+    string bssid = 1;
+    string frequency = 2;
+    string signal_level = 3;
+    string flags = 4;
+    string ssid = 5;
+}
+
+message ConnectWpaNetworkRequest {
+    string ssid = 1;
+    string psk = 2;
+}
+
+message GetWpaConnectionInfoResponse {
+    string ssid = 1;
+    string state = 2;
+    string ip = 3;
+    string message = 4;
+}
+
+message SubscribeWpaNetworkScanUpdatesRequest {
+}
+
+message WpaNetworkScanUpdate {
+    oneof update {
+        WpaNetwork appeared = 1;
+        WpaNetwork changed = 2;
+        WpaNetwork gone = 3;
+    }
+}
+
+message WpaConnectionUpdate {
+    enum WpaConnectionUpdateState {
+        CONNECTING = 0;
+        CONNECTED = 1;
+        FAILED = 2;
+    }
+
+    WpaConnectionUpdateState status = 1;
+}
