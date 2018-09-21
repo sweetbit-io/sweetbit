@@ -3,8 +3,8 @@ package main
 import "os/exec"
 
 // removeApInterface removes the AP interface.
-func removeApInterface() error {
-	cmd := exec.Command("iw", "dev", "uap0", "del")
+func removeApInterface(iface string) error {
+	cmd := exec.Command("iw", "dev", iface, "del")
 
 	if err := cmd.Start(); err != nil {
 		return err
@@ -18,8 +18,8 @@ func removeApInterface() error {
 }
 
 // configureApInterface configured the AP interface.
-func configureApInterface(ip string) error {
-	cmd := exec.Command("ifconfig", "uap0", ip)
+func configureApInterface(ip string, iface string) error {
+	cmd := exec.Command("ip", "addr", "add", ip, "dev", iface)
 
 	if err := cmd.Start(); err != nil {
 		return err
@@ -33,8 +33,8 @@ func configureApInterface(ip string) error {
 }
 
 // upApInterface ups the AP Interface.
-func upApInterface() error {
-	cmd := exec.Command("ifconfig", "uap0", "up")
+func upApInterface(iface string) error {
+	cmd := exec.Command("ip", "link", "set", iface, "up")
 
 	if err := cmd.Start(); err != nil {
 		return err
@@ -48,8 +48,8 @@ func upApInterface() error {
 }
 
 // addApInterface adds the AP interface.
-func addApInterface() error {
-	cmd := exec.Command("iw", "phy", "phy0", "interface", "add", "uap0", "type", "__ap")
+func addApInterface(iface string) error {
+	cmd := exec.Command("iw", "phy", "phy0", "interface", "add", iface, "type", "__ap")
 
 	if err := cmd.Start(); err != nil {
 		return err

@@ -17,11 +17,12 @@ type dnsmasqConfig struct {
 
 type wpaSupplicantConfig struct {
 	ConfPath  string `long:"confpath" description:"Path to the wpa_supplicant.conf file."`
-	Interface string `long:"interface" description:"Name of the interface ."`
+	Interface string `long:"interface" description:"Name of the interface."`
 }
 
 type apConfig struct {
-	Ip string `long:"ip" description:"IP address of device on access point interface."`
+	Ip        string `long:"ip" description:"IP address of device on access point interface."`
+	Interface string `long:"interface" description:"Name of the access point interface."`
 }
 
 type raspberryConfig struct {
@@ -57,7 +58,8 @@ func loadConfig() (*config, error) {
 			BuzzerPin: "17",
 		},
 		Ap: &apConfig{
-			Ip: "192.168.27.1",
+			Ip:        "192.168.27.1/24",
+			Interface: "uap0",
 		},
 		RunWpaSupplicant: false,
 		WpaSupplicant: &wpaSupplicantConfig{

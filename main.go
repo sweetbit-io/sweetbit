@@ -43,19 +43,19 @@ func main() {
 
 	log.Infof("Version %s", Version)
 
-	if err := removeApInterface(); err != nil {
+	if err := removeApInterface(cfg.Ap.Interface); err != nil {
 		log.WithError(err).Fatal("Could not remove AP interface.")
 	}
 
-	if err := addApInterface(); err != nil {
+	if err := addApInterface(cfg.Ap.Interface); err != nil {
 		log.WithError(err).Fatal("Could not add AP interface.")
 	}
 
-	if err := upApInterface(); err != nil {
+	if err := upApInterface(cfg.Ap.Interface); err != nil {
 		log.WithError(err).Fatal("Could not up AP interface.")
 	}
 
-	if err := configureApInterface(cfg.Ap.Ip); err != nil {
+	if err := configureApInterface(cfg.Ap.Ip, cfg.Ap.Interface); err != nil {
 		log.WithError(err).Fatal("Could not configure AP interface.")
 	}
 
