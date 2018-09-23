@@ -3,22 +3,28 @@ package dnsmasq
 import (
 	"os/exec"
 	"bufio"
-	"strings"
 	"sync/atomic"
-	"github.com/mgutz/logxi/v1"
 	"github.com/pkg/errors"
+	"strings"
 )
 
 type Config struct {
 	Address   string
 	DhcpRange string
+	Log       func(string) ()
 }
 
+type DnsmasqState int
+
+const (
+	STARTED DnsmasqState = iota
+)
+
 type Dnsmasq struct {
-	started  int32 // atomic
-	config   *Config
-	cmd      *exec.Cmd
-	messages chan string
+	started int32 // atomic
+	config  *Config
+	cmd     *exec.Cmd
+	states  chan DnsmasqState
 }
 
 func New(config *Config) *Dnsmasq {
@@ -32,60 +38,62 @@ func New(config *Config) *Dnsmasq {
 		"--dhcp-vendorclass=set:device,IoT",
 		"--dhcp-authoritative",
 		"--log-facility=-",
+		"--interface=uap0",
 	}
 
 	return &Dnsmasq{
-		config:   config,
-		cmd:      exec.Command("dnsmasq", args...),
-		messages: make(chan string),
+		config: config,
+		cmd:    exec.Command("dnsmasq", args...),
+		states: make(chan DnsmasqState),
 	}
 }
 
-func (h *Dnsmasq) Start() error {
+func (d *Dnsmasq) Start() error {
 	// Already running?
-	if !atomic.CompareAndSwapInt32(&h.started, 0, 1) {
+	if !atomic.CompareAndSwapInt32(&d.started, 0, 1) {
 		return errors.New("dnsmasq already started")
 	}
 
-	cmdStdoutReader, err := h.cmd.StdoutPipe()
+	cmdStderrReader, err := d.cmd.StderrPipe()
 	if err != nil {
 		return err
 	}
 
-	stdOutScanner := bufio.NewScanner(cmdStdoutReader)
+	stdErrScanner := bufio.NewScanner(cmdStderrReader)
 	go func() {
 		// Goroutine will finish on process end
-		for stdOutScanner.Scan() {
-			log.Info(stdOutScanner.Text())
-			h.messages <- stdOutScanner.Text()
+		for stdErrScanner.Scan() {
+			text := stdErrScanner.Text()
+
+			if d.config.Log != nil {
+				d.config.Log(text)
+			}
+
+			if strings.Contains(text, "started, version") {
+				d.states <- STARTED
+			}
 		}
 	}()
 
-	if err := h.cmd.Start(); err != nil {
+	if err := d.cmd.Start(); err != nil {
 		return err
 	}
 
 	// Block until the process has started
 	for {
-		out := <-h.messages
-		if strings.Contains(out, "AP-ENABLED") {
+		state := <-d.states
+		if state == STARTED {
 			return nil
 		}
 	}
 }
 
-func (h *Dnsmasq) Stop() error {
-	if atomic.LoadInt32(&h.started) != 1 {
+func (d *Dnsmasq) Stop() error {
+	if atomic.LoadInt32(&d.started) != 1 {
 		return errors.New("dnsmasq not started yet")
 	}
 
-	h.cmd.Process.Kill()
+	d.cmd.Process.Kill()
 
-	// Block until the process has finished
-	for {
-		out := <-h.messages
-		if strings.Contains(out, "AP-DISABLED") {
-			return nil
-		}
-	}
+	return nil
 }

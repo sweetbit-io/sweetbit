@@ -6,14 +6,13 @@ import (
 	"bufio"
 	"strings"
 	"sync/atomic"
-	"github.com/mgutz/logxi/v1"
 	"github.com/pkg/errors"
 )
 
 var configTemplString = `interface=uap0
 ssid={{.Ssid}}
 hw_mode=g
-channel=6
+channel=11
 macaddr_acl=0
 auth_algs=1
 ignore_broadcast_ssid=0
@@ -27,21 +26,34 @@ rsn_pairwise=CCMP
 type Config struct {
 	Ssid       string
 	Passphrase string
+	Log        func(string) ()
 }
+
+type HostapdState int
+
+const (
+	ENABLED  HostapdState = iota
+	DISABLED
+)
 
 type Hostapd struct {
-	started  int32 // atomic
-	config   *Config
-	cmd      *exec.Cmd
-	messages chan string
+	started int32 // atomic
+	config  *Config
+	cmd     *exec.Cmd
+	states  chan HostapdState // Signals ENABLED OR DISABLED from the log
 }
 
-func New(config *Config) *Hostapd {
-	return &Hostapd{
-		config:   config,
-		cmd:      exec.Command("hostapd", "-d", "/dev/stdin"),
-		messages: make(chan string),
+func New(config *Config) (*Hostapd, error) {
+	passphraseLen := len(config.Passphrase)
+	if passphraseLen < 8 || passphraseLen > 63 {
+		return nil, errors.New("Invalid WPA passphrase length (expected 8..63)")
 	}
+
+	return &Hostapd{
+		config: config,
+		cmd:    exec.Command("hostapd", "-d", "/dev/stdin"),
+		states: make(chan HostapdState),
+	}, nil
 }
 
 func (h *Hostapd) Start() error {
@@ -66,8 +78,17 @@ func (h *Hostapd) Start() error {
 	go func() {
 		// Goroutine will finish on process end
 		for stdOutScanner.Scan() {
-			log.Info(stdOutScanner.Text())
-			h.messages <- stdOutScanner.Text()
+			text := stdOutScanner.Text()
+
+			if h.config.Log != nil {
+				h.config.Log(text)
+			}
+
+			if strings.Contains(text, "AP-ENABLED") {
+				h.states <- ENABLED
+			} else if strings.Contains(text, "AP-DISABLED") {
+				h.states <- DISABLED
+			}
 		}
 	}()
 
@@ -86,8 +107,8 @@ func (h *Hostapd) Start() error {
 
 	// Block until the process has started
 	for {
-		out := <-h.messages
-		if strings.Contains(out, "AP-ENABLED") {
+		state := <-h.states
+		if state == ENABLED {
 			return nil
 		}
 	}
@@ -102,8 +123,8 @@ func (h *Hostapd) Stop() error {
 
 	// Block until the process has finished
 	for {
-		out := <-h.messages
-		if strings.Contains(out, "AP-DISABLED") {
+		state := <-h.states
+		if state == DISABLED {
 			return nil
 		}
 	}

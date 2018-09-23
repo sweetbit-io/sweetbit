@@ -8,8 +8,9 @@ import (
 	"google.golang.org/grpc"
 	"github.com/the-lightning-land/sweetd/sweetrpc"
 	"net"
-	"github.com/the-lightning-land/sweetd/hostapd"
 	"github.com/the-lightning-land/sweetd/dnsmasq"
+	"github.com/the-lightning-land/sweetd/hostapd"
+	"time"
 )
 
 var (
@@ -21,14 +22,16 @@ var (
 	cfg *config
 )
 
-// Todo: remove me
+// TODO: remove me
 type Dispenser struct {
 	shouldBuzzOnDispense  bool
 	shouldDispenseOnTouch bool
 }
 
+// TODO: Nest contents in another func so the defers will properly be executed in the case of a graceful shutdown.
 func main() {
 	log.SetOutput(os.Stdout)
+	log.SetLevel(log.DebugLevel)
 
 	log.Info("Starting sweetd...")
 
@@ -43,36 +46,56 @@ func main() {
 
 	log.Infof("Version %s", Version)
 
-	if err := removeApInterface(cfg.Ap.Interface); err != nil {
-		log.WithError(err).Fatal("Could not remove AP interface.")
+	if cfg.RunAp {
+		log.Infof("Setting up %s interface as access point...", cfg.Ap.Interface)
+
+		if err := removeApInterface(cfg.Ap.Interface); err != nil {
+			log.WithError(err).Fatal("Could not remove AP interface.")
+		}
+
+		if err := addApInterface(cfg.Ap.Interface); err != nil {
+			log.WithError(err).Fatal("Could not add AP interface.")
+		}
+
+		if err := upApInterface(cfg.Ap.Interface); err != nil {
+			log.WithError(err).Fatal("Could not up AP interface.")
+		}
+
+		if err := configureApInterface(cfg.Ap.Ip, cfg.Ap.Interface); err != nil {
+			log.WithError(err).Fatal("Could not configure AP interface.")
+		}
+
+		log.Info("Starting hostapd for access point management...")
+
+		h, err := hostapd.New(&hostapd.Config{
+			Ssid:       cfg.Ap.Ssid,
+			Passphrase: cfg.Ap.Passphrase,
+			Log: func(s string) {
+				log.WithField("service", "hostapd").Debug(s)
+			},
+		})
+		if err != nil {
+			log.WithError(err).Fatal("Could not create hostapd service.")
+		}
+
+		if err := h.Start(); err != nil {
+			log.WithError(err).Fatal("Could not start hostapd.")
+		}
+
+		defer h.Stop()
+
+		log.Info("Started hostapd.")
+
+		log.Info("Restarting dhcpd in order to reestablish previous connection...")
+
+		if err := restartDhcp(); err != nil {
+			log.WithError(err).Fatal("Could not restart dhcpd.")
+		}
+
+		log.Info("Restarted dhcpd.")
+	} else {
+		log.Info("Will not start access point according to configuration.")
 	}
-
-	if err := addApInterface(cfg.Ap.Interface); err != nil {
-		log.WithError(err).Fatal("Could not add AP interface.")
-	}
-
-	if err := upApInterface(cfg.Ap.Interface); err != nil {
-		log.WithError(err).Fatal("Could not up AP interface.")
-	}
-
-	if err := configureApInterface(cfg.Ap.Ip, cfg.Ap.Interface); err != nil {
-		log.WithError(err).Fatal("Could not configure AP interface.")
-	}
-
-	log.Info("Starting hostapd for access point management...")
-
-	h := hostapd.New(&hostapd.Config{
-		Ssid:       "hello",
-		Passphrase: "world",
-	})
-
-	if err := h.Start(); err != nil {
-		log.WithError(err).Fatal("Could not start hostapd.")
-	}
-
-	defer h.Stop()
-
-	log.Info("Started hostapd.")
 
 	if cfg.RunDnsmasq {
 		log.Info("Starting dnsmasq for DNS and DHCP management...")
@@ -80,6 +103,9 @@ func main() {
 		d := dnsmasq.New(&dnsmasq.Config{
 			Address:   cfg.Dnsmasq.Address,
 			DhcpRange: cfg.Dnsmasq.DhcpRange,
+			Log: func(s string) {
+				log.WithField("service", "dnsmasq").Debug(s)
+			},
 		})
 
 		if err := d.Start(); err != nil {
@@ -127,7 +153,10 @@ func main() {
 	}()
 
 	grpcServer := grpc.NewServer()
-	sweetrpc.RegisterSweetServer(grpcServer, newRPCServer(m.TouchEvents()))
+	sweetrpc.RegisterSweetServer(grpcServer, newRPCServer(&rpcServerConfig{
+		version: Version,
+		commit:  Commit,
+	}))
 
 	// Next, Start the gRPC server listening for HTTP/2 connections.
 	for _, listener := range cfg.Listeners {
@@ -144,6 +173,15 @@ func main() {
 	}
 
 	log.Info("sweetd started.")
+
+	// Signal successful startup with two short buzzer noises
+	m.ToggleBuzzer(true)
+	time.Sleep(200 * time.Millisecond)
+	m.ToggleBuzzer(false)
+	time.Sleep(200 * time.Millisecond)
+	m.ToggleBuzzer(true)
+	time.Sleep(200 * time.Millisecond)
+	m.ToggleBuzzer(false)
 
 	for {
 		select {

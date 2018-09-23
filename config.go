@@ -21,8 +21,10 @@ type wpaSupplicantConfig struct {
 }
 
 type apConfig struct {
-	Ip        string `long:"ip" description:"IP address of device on access point interface."`
-	Interface string `long:"interface" description:"Name of the access point interface."`
+	Ip         string `long:"ip" description:"IP address of device on access point interface."`
+	Interface  string `long:"interface" description:"Name of the access point interface."`
+	Ssid       string `long:"ssid" description:"Name of the access point."`
+	Passphrase string `long:"passphrase" description:"WPA Passphrase (expected 8..63)."`
 }
 
 type raspberryConfig struct {
@@ -42,6 +44,7 @@ type config struct {
 	Machine          string               `long:"machine" description:"The machine controller to use." choice:"raspberry" choice:"mock"`
 	Raspberry        *raspberryConfig     `group:"Raspberry" namespace:"raspberry"`
 	Mock             *mockConfig          `group:"Mock" namespace:"mock"`
+	RunAp            bool                 `long:"ap" description:"Run the access point service."`
 	Ap               *apConfig            `group:"Access point" namespace:"ap"`
 	RunWpaSupplicant bool                 `long:"wpasupplicant" description:"Run the WPA supplicant service."`
 	WpaSupplicant    *wpaSupplicantConfig `group:"WPA supplicant" namespace:"wpasupplicant"`
@@ -57,16 +60,19 @@ func loadConfig() (*config, error) {
 			MotorPin:  "27",
 			BuzzerPin: "17",
 		},
+		RunAp: false,
 		Ap: &apConfig{
-			Ip:        "192.168.27.1/24",
-			Interface: "uap0",
+			Ip:         "192.168.27.1/24",
+			Interface:  "uap0",
+			Ssid:       "candy",
+			Passphrase: "reckless",
 		},
 		RunWpaSupplicant: false,
 		WpaSupplicant: &wpaSupplicantConfig{
 			ConfPath:  "/etc/wpa_supplicant/wpa_supplicant.conf",
 			Interface: "wlan0",
 		},
-		RunDnsmasq: true,
+		RunDnsmasq: false,
 		Dnsmasq: &dnsmasqConfig{
 			Address:   "/#/192.168.27.1",
 			DhcpRange: "192.168.27.100,192.168.27.150,1h",

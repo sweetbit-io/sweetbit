@@ -61,3 +61,18 @@ func addApInterface(iface string) error {
 
 	return nil
 }
+
+// restartDhcp restarts the DHCP daemon.
+func restartDhcp() error {
+	cmd := exec.Command("/etc/init.d/dhcpcd", "restart")
+
+	if err := cmd.Start(); err != nil {
+		return err
+	}
+
+	if err := cmd.Wait(); err != nil {
+		return nil
+	}
+
+	return nil
+}
