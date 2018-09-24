@@ -30,8 +30,8 @@ func Scan(iface string) error {
 }
 
 // Results returns an array of WpaNetwork data structures.
-func Results(iface string) ([]Network, error) {
-	wpaNetworks := make([]Network, 0)
+func Results(iface string) ([]*Network, error) {
+	wpaNetworks := make([]*Network, 0)
 
 	networkListOut, err := exec.Command("wpa_cli", "-i", iface, "scan_results").Output()
 	if err != nil {
@@ -48,7 +48,7 @@ func Results(iface string) ([]Network, error) {
 
 		if len(fields) > 4 {
 			ssid := strings.Join(fields[4:], " ")
-			wpaNetworks = append(wpaNetworks, Network{
+			wpaNetworks = append(wpaNetworks, &Network{
 				Bssid:       fields[0],
 				Frequency:   fields[1],
 				SignalLevel: fields[2],

@@ -21,7 +21,7 @@ NAME=sweetd
 DAEMON=/home/pi/go/bin/sweetd
 PIDFILE=/var/run/sweetd.pid
 SCRIPTNAME=/etc/init.d/"$NAME"
-EXTRA_OPTS=""
+EXTRA_OPTS="--ap"
 
 test -f $DAEMON || exit 0
 

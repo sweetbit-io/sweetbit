@@ -14,5 +14,9 @@ func Save(iface string) error {
 
 	status := strings.TrimSpace(string(result))
 
-	return errors.Errorf("Got %s", status)
+	if status != "OK" {
+		return errors.Errorf("Got %s", status)
+	}
+
+	return nil
 }

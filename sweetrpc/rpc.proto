@@ -7,9 +7,9 @@ service Sweet {
     }
     rpc GetWpaConnectionInfo (GetWpaConnectionInfoRequest) returns (GetWpaConnectionInfoResponse) {
     }
-    rpc ConnectWpaNetwork (ConnectWpaNetworkRequest) returns (stream WpaConnectionUpdate) {
+    rpc ConnectWpaNetwork (ConnectWpaNetworkRequest) returns (ConnectWpaNetworkResponse) {
     }
-    rpc SubscribeWpaNetworkScanUpdates (SubscribeWpaNetworkScanUpdatesRequest) returns (stream WpaNetworkScanUpdate) {
+    rpc GetWpaNetworks (GetWpaNetworksRequest) returns (GetWpaNetworksResponse) {
     }
     rpc Update (UpdateRequest) returns (UpdateResponse) {
     }
@@ -39,7 +39,7 @@ message ConnectWpaNetworkRequest {
     string psk = 2;
 }
 
-message WpaConnectionUpdate {
+message ConnectWpaNetworkResponse {
     enum WpaConnectionUpdateState {
         CONNECTING = 0;
         CONNECTED = 1;
@@ -47,9 +47,6 @@ message WpaConnectionUpdate {
     }
 
     WpaConnectionUpdateState status = 1;
-}
-
-message SubscribeWpaNetworkScanUpdatesRequest {
 }
 
 message WpaNetwork {
@@ -60,12 +57,11 @@ message WpaNetwork {
     string ssid = 5;
 }
 
-message WpaNetworkScanUpdate {
-    oneof update {
-        WpaNetwork appeared = 1;
-        WpaNetwork changed = 2;
-        WpaNetwork gone = 3;
-    }
+message GetWpaNetworksRequest {
+}
+
+message GetWpaNetworksResponse {
+    repeated WpaNetwork networks = 1;
 }
 
 message UpdateRequest {

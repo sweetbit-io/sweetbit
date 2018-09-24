@@ -10,21 +10,12 @@ const (
 	defaultRPCPort = 9000
 )
 
-type dnsmasqConfig struct {
-	Address   string `long:"address" description:"IP address of device on access point interface."`
-	DhcpRange string `long:"dhcprange" description:"IP range of the DHCP service."`
-}
-
-type wpaSupplicantConfig struct {
-	ConfPath  string `long:"confpath" description:"Path to the wpa_supplicant.conf file."`
-	Interface string `long:"interface" description:"Name of the interface."`
-}
-
 type apConfig struct {
 	Ip         string `long:"ip" description:"IP address of device on access point interface."`
 	Interface  string `long:"interface" description:"Name of the access point interface."`
 	Ssid       string `long:"ssid" description:"Name of the access point."`
 	Passphrase string `long:"passphrase" description:"WPA Passphrase (expected 8..63)."`
+	DhcpRange  string `long:"dhcprange" description:"IP range of the DHCP service."`
 }
 
 type raspberryConfig struct {
@@ -38,18 +29,14 @@ type mockConfig struct {
 }
 
 type config struct {
-	ShowVersion      bool                 `short:"v" long:"version" description:"Display version information and exit."`
-	RawListeners     []string             `long:"listen" description:"Add an interface/port/socket to listen for RPC connections"`
-	Listeners        []net.Addr
-	Machine          string               `long:"machine" description:"The machine controller to use." choice:"raspberry" choice:"mock"`
-	Raspberry        *raspberryConfig     `group:"Raspberry" namespace:"raspberry"`
-	Mock             *mockConfig          `group:"Mock" namespace:"mock"`
-	RunAp            bool                 `long:"ap" description:"Run the access point service."`
-	Ap               *apConfig            `group:"Access point" namespace:"ap"`
-	RunWpaSupplicant bool                 `long:"wpasupplicant" description:"Run the WPA supplicant service."`
-	WpaSupplicant    *wpaSupplicantConfig `group:"WPA supplicant" namespace:"wpasupplicant"`
-	RunDnsmasq       bool                 `long:"dnsmasq" description:"Run the Dnsmasq service."`
-	Dnsmasq          *dnsmasqConfig       `group:"Dnsmasq" namespace:"dnsmasq"`
+	ShowVersion  bool             `short:"v" long:"version" description:"Display version information and exit."`
+	RawListeners []string         `long:"listen" description:"Add an interface/port/socket to listen for RPC connections"`
+	Listeners    []net.Addr
+	Machine      string           `long:"machine" description:"The machine controller to use." choice:"raspberry" choice:"mock"`
+	Raspberry    *raspberryConfig `group:"Raspberry" namespace:"raspberry"`
+	Mock         *mockConfig      `group:"Mock" namespace:"mock"`
+	RunAp        bool             `long:"ap" description:"Run the access point service."`
+	Ap           *apConfig        `group:"Access point" namespace:"ap"`
 }
 
 func loadConfig() (*config, error) {
@@ -66,16 +53,7 @@ func loadConfig() (*config, error) {
 			Interface:  "uap0",
 			Ssid:       "candy",
 			Passphrase: "reckless",
-		},
-		RunWpaSupplicant: false,
-		WpaSupplicant: &wpaSupplicantConfig{
-			ConfPath:  "/etc/wpa_supplicant/wpa_supplicant.conf",
-			Interface: "wlan0",
-		},
-		RunDnsmasq: false,
-		Dnsmasq: &dnsmasqConfig{
-			Address:   "/#/192.168.27.1",
-			DhcpRange: "192.168.27.100,192.168.27.150,1h",
+			DhcpRange:  "192.168.27.100,192.168.27.150,1h",
 		},
 	}
 

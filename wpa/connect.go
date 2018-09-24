@@ -34,7 +34,11 @@ func SetNetwork(iface string, net NetworkId, key AddNetworkKey, value string) er
 
 	status := strings.TrimSpace(string(result))
 
-	return errors.Errorf("Got %s", status)
+	if status != "OK" {
+		return errors.Errorf("Got %s", status)
+	}
+
+	return nil
 }
 
 func EnableNetwork(iface string, net NetworkId) error {
@@ -45,5 +49,9 @@ func EnableNetwork(iface string, net NetworkId) error {
 
 	status := strings.TrimSpace(string(result))
 
-	return errors.Errorf("Got %s", status)
+	if status != "OK" {
+		return errors.Errorf("Got %s", status)
+	}
+
+	return nil
 }

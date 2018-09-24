@@ -8,9 +8,10 @@ import (
 	"google.golang.org/grpc"
 	"github.com/the-lightning-land/sweetd/sweetrpc"
 	"net"
-	"github.com/the-lightning-land/sweetd/dnsmasq"
 	"github.com/the-lightning-land/sweetd/hostapd"
 	"time"
+	"github.com/the-lightning-land/sweetd/dnsmasq"
+	"strings"
 )
 
 var (
@@ -93,16 +94,12 @@ func main() {
 		}
 
 		log.Info("Restarted dhcpd.")
-	} else {
-		log.Info("Will not start access point according to configuration.")
-	}
 
-	if cfg.RunDnsmasq {
 		log.Info("Starting dnsmasq for DNS and DHCP management...")
 
 		d := dnsmasq.New(&dnsmasq.Config{
-			Address:   cfg.Dnsmasq.Address,
-			DhcpRange: cfg.Dnsmasq.DhcpRange,
+			Address:   "/#/" + strings.Split(cfg.Ap.Ip, "/")[0],
+			DhcpRange: cfg.Ap.DhcpRange,
 			Log: func(s string) {
 				log.WithField("service", "dnsmasq").Debug(s)
 			},
@@ -116,7 +113,7 @@ func main() {
 
 		log.Info("Started dnsmasq.")
 	} else {
-		log.Info("Will not start dnsmasq according to configuration.")
+		log.Info("Will not start access point according to configuration.")
 	}
 
 	// TODO: remove me
