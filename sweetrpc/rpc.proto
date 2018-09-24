@@ -11,6 +11,8 @@ service Sweet {
     }
     rpc SubscribeWpaNetworkScanUpdates (SubscribeWpaNetworkScanUpdatesRequest) returns (stream WpaNetworkScanUpdate) {
     }
+    rpc Update (UpdateRequest) returns (UpdateResponse) {
+    }
 }
 
 message GetInfoRequest {
@@ -64,4 +66,11 @@ message WpaNetworkScanUpdate {
         WpaNetwork changed = 2;
         WpaNetwork gone = 3;
     }
+}
+
+message UpdateRequest {
+    string url = 1;
+}
+
+message UpdateResponse {
 }
