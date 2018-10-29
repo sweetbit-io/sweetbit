@@ -13,6 +13,8 @@ service Sweet {
     }
     rpc Update (UpdateRequest) returns (UpdateResponse) {
     }
+    rpc ConnectToRemoteNode (ConnectToRemoteNodeRequest) returns (ConnectToRemoteNodeResponse) {
+    }
 }
 
 message GetInfoRequest {
@@ -69,4 +71,13 @@ message UpdateRequest {
 }
 
 message UpdateResponse {
+}
+
+message ConnectToRemoteNodeRequest {
+    string uri = 1;
+    bytes cert = 2;
+    bytes macaroon = 3;
+}
+
+message ConnectToRemoteNodeResponse {
 }

@@ -6,6 +6,7 @@ import (
 	"sync/atomic"
 	"github.com/pkg/errors"
 	"strings"
+	"time"
 )
 
 type Config struct {
@@ -79,8 +80,12 @@ func (d *Dnsmasq) Start() error {
 		return err
 	}
 
+	timer := time.NewTimer(60 * time.Second)
+
 	// Block until the process has started
 	for {
+		<-timer.C
+		return errors.New("Timed out")
 		state := <-d.states
 		if state == STARTED {
 			return nil

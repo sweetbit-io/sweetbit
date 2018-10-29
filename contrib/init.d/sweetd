@@ -17,7 +17,7 @@ fi
 
 DESC="Manages pairing and control of the Bitcoin candy dispenser"
 NAME=sweetd
-DAEMON=/home/pi/go/bin/sweetd
+DAEMON=/usr/local/bin/sweetd
 DEFAULTS=/etc/default/sweetd
 PIDFILE=/var/run/sweetd.pid
 SCRIPTNAME=/etc/init.d/$NAME

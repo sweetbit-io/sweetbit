@@ -6,4 +6,5 @@ type Machine interface {
 	TouchEvents() <-chan bool
 	ToggleMotor(on bool)
 	ToggleBuzzer(on bool)
+	DiagnosticNoise()
 }

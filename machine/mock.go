@@ -11,7 +11,7 @@ type MockMachine struct {
 	touchEvents chan bool
 }
 
-func NewMockMachine(listen string) Machine {
+func NewMockMachine(listen string) *MockMachine {
 	touchEvents := make(chan bool)
 
 	return &MockMachine{
@@ -39,6 +39,7 @@ func (m *MockMachine) Start() error {
 }
 
 func (m *MockMachine) Stop() {
+	// nothing
 }
 
 func (m *MockMachine) TouchEvents() <-chan bool {
@@ -46,7 +47,13 @@ func (m *MockMachine) TouchEvents() <-chan bool {
 }
 
 func (m *MockMachine) ToggleMotor(on bool) {
+	// nothing
 }
 
 func (m *MockMachine) ToggleBuzzer(on bool) {
+	// nothing
+}
+
+func (m *MockMachine) DiagnosticNoise() {
+	// nothing
 }

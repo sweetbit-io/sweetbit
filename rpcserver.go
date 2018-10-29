@@ -1,18 +1,19 @@
 package main
 
 import (
-	"golang.org/x/net/context"
+	"github.com/go-errors/errors"
+	log "github.com/sirupsen/logrus"
 	"github.com/the-lightning-land/sweetd/sweetrpc"
 	"github.com/the-lightning-land/sweetd/sysid"
-	log "github.com/sirupsen/logrus"
-	"github.com/go-errors/errors"
 	"github.com/the-lightning-land/sweetd/wpa"
+	"golang.org/x/net/context"
 	"time"
 )
 
 type rpcServerConfig struct {
-	version string
-	commit  string
+	version   string
+	commit    string
+	dispenser *dispenser
 }
 
 type rpcServer struct {
@@ -190,4 +191,22 @@ func (s *rpcServer) Update(ctx context.Context, req *sweetrpc.UpdateRequest) (*s
 	}
 
 	return &sweetrpc.UpdateResponse{}, nil
+}
+
+func (s *rpcServer) ConnectToRemoteNode(ctx context.Context,
+	req *sweetrpc.ConnectToRemoteNodeRequest) (*sweetrpc.ConnectToRemoteNodeResponse, error) {
+	log.Infof("Connecting to lightning node %s", req.Uri)
+
+	err := s.config.dispenser.connectLndNode(req.Uri, req.Cert, req.Macaroon)
+	if err != nil {
+		log.Errorf("Connection failed: %s", err.Error())
+		return nil, errors.New("Connection failed")
+	}
+
+	err = s.config.dispenser.saveLndNode(req.Uri, req.Cert, req.Macaroon)
+	if err != nil {
+		log.Errorf("Could not save remote lightning connection: %s", err)
+	}
+
+	return &sweetrpc.ConnectToRemoteNodeResponse{}, nil
 }

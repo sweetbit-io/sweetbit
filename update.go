@@ -1,12 +1,12 @@
 package main
 
 import (
-	"github.com/inconshreveable/go-update"
-	"net/http"
-	"compress/gzip"
 	"archive/tar"
-	"io"
+	"compress/gzip"
+	"github.com/inconshreveable/go-update"
 	"github.com/pkg/errors"
+	"io"
+	"net/http"
 	"path/filepath"
 )
 

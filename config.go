@@ -1,9 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"github.com/jessevdk/go-flags"
 	"net"
-	"fmt"
 )
 
 const (
@@ -28,20 +28,27 @@ type mockConfig struct {
 	Listen string `long:"listen" description:"Add an interface/port to listen for mock touches."`
 }
 
+type lndConfig struct {
+}
+
 type config struct {
-	ShowVersion  bool             `short:"v" long:"version" description:"Display version information and exit."`
-	RawListeners []string         `long:"listen" description:"Add an interface/port/socket to listen for RPC connections"`
+	ShowVersion  bool     `short:"v" long:"version" description:"Display version information and exit."`
+	Debug        bool     `long:"debug" description:"Start in debug mode."`
+	RawListeners []string `long:"listen" description:"Add an interface/port/socket to listen for RPC connections"`
 	Listeners    []net.Addr
 	Machine      string           `long:"machine" description:"The machine controller to use." choice:"raspberry" choice:"mock"`
 	Raspberry    *raspberryConfig `group:"Raspberry" namespace:"raspberry"`
 	Mock         *mockConfig      `group:"Mock" namespace:"mock"`
 	RunAp        bool             `long:"ap" description:"Run the access point service."`
 	Ap           *apConfig        `group:"Access point" namespace:"ap"`
+	Lnd          *lndConfig       `group:"lnd" namespace:"lnd"`
+	DataDir      string           `long:"datadir" description:"The directory to store sweetd's data within.'"`
 }
 
 func loadConfig() (*config, error) {
 	defaultCfg := config{
 		Machine: "raspberry",
+		Debug:   false,
 		Raspberry: &raspberryConfig{
 			TouchPin:  "4",
 			MotorPin:  "27",
@@ -55,6 +62,9 @@ func loadConfig() (*config, error) {
 			Passphrase: "reckless",
 			DhcpRange:  "192.168.27.100,192.168.27.150,1h",
 		},
+		Lnd: &lndConfig{
+		},
+		DataDir: "./data",
 	}
 
 	preCfg := defaultCfg

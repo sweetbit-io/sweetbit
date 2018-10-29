@@ -2,10 +2,10 @@ package machine
 
 import (
 	log "github.com/sirupsen/logrus"
-	"sync"
-	"periph.io/x/periph/host"
-	"periph.io/x/periph/conn/gpio/gpioreg"
 	"periph.io/x/periph/conn/gpio"
+	"periph.io/x/periph/conn/gpio/gpioreg"
+	"periph.io/x/periph/host"
+	"sync"
 	"time"
 )
 
@@ -28,7 +28,7 @@ type DispenserMachine struct {
 	waitGroup sync.WaitGroup
 }
 
-func NewDispenserMachine() Machine {
+func NewDispenserMachine() *DispenserMachine {
 	touchEvents := make(chan bool)
 	motorEvents := make(chan bool)
 	buzzerEvents := make(chan bool)
@@ -209,4 +209,14 @@ func (m *DispenserMachine) driveBuzzer() {
 	}
 
 	log.Debug("Leaving driveBuzzer goroutine")
+}
+
+func (m *DispenserMachine) DiagnosticNoise() {
+	m.ToggleBuzzer(true)
+	time.Sleep(200 * time.Millisecond)
+	m.ToggleBuzzer(false)
+	time.Sleep(200 * time.Millisecond)
+	m.ToggleBuzzer(true)
+	time.Sleep(200 * time.Millisecond)
+	m.ToggleBuzzer(false)
 }

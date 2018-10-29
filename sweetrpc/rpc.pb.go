@@ -3,13 +3,12 @@
 
 package sweetrpc
 
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
-
 import (
+	fmt "fmt"
+	proto "github.com/golang/protobuf/proto"
 	context "golang.org/x/net/context"
 	grpc "google.golang.org/grpc"
+	math "math"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -63,14 +62,15 @@ func (*GetInfoRequest) ProtoMessage()    {}
 func (*GetInfoRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_77a6da22d6a3feb1, []int{0}
 }
+
 func (m *GetInfoRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetInfoRequest.Unmarshal(m, b)
 }
 func (m *GetInfoRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_GetInfoRequest.Marshal(b, m, deterministic)
 }
-func (dst *GetInfoRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetInfoRequest.Merge(dst, src)
+func (m *GetInfoRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetInfoRequest.Merge(m, src)
 }
 func (m *GetInfoRequest) XXX_Size() int {
 	return xxx_messageInfo_GetInfoRequest.Size(m)
@@ -96,14 +96,15 @@ func (*GetInfoResponse) ProtoMessage()    {}
 func (*GetInfoResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_77a6da22d6a3feb1, []int{1}
 }
+
 func (m *GetInfoResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetInfoResponse.Unmarshal(m, b)
 }
 func (m *GetInfoResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_GetInfoResponse.Marshal(b, m, deterministic)
 }
-func (dst *GetInfoResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetInfoResponse.Merge(dst, src)
+func (m *GetInfoResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetInfoResponse.Merge(m, src)
 }
 func (m *GetInfoResponse) XXX_Size() int {
 	return xxx_messageInfo_GetInfoResponse.Size(m)
@@ -147,14 +148,15 @@ func (*GetWpaConnectionInfoRequest) ProtoMessage()    {}
 func (*GetWpaConnectionInfoRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_77a6da22d6a3feb1, []int{2}
 }
+
 func (m *GetWpaConnectionInfoRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetWpaConnectionInfoRequest.Unmarshal(m, b)
 }
 func (m *GetWpaConnectionInfoRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_GetWpaConnectionInfoRequest.Marshal(b, m, deterministic)
 }
-func (dst *GetWpaConnectionInfoRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetWpaConnectionInfoRequest.Merge(dst, src)
+func (m *GetWpaConnectionInfoRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetWpaConnectionInfoRequest.Merge(m, src)
 }
 func (m *GetWpaConnectionInfoRequest) XXX_Size() int {
 	return xxx_messageInfo_GetWpaConnectionInfoRequest.Size(m)
@@ -181,14 +183,15 @@ func (*GetWpaConnectionInfoResponse) ProtoMessage()    {}
 func (*GetWpaConnectionInfoResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_77a6da22d6a3feb1, []int{3}
 }
+
 func (m *GetWpaConnectionInfoResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetWpaConnectionInfoResponse.Unmarshal(m, b)
 }
 func (m *GetWpaConnectionInfoResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_GetWpaConnectionInfoResponse.Marshal(b, m, deterministic)
 }
-func (dst *GetWpaConnectionInfoResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetWpaConnectionInfoResponse.Merge(dst, src)
+func (m *GetWpaConnectionInfoResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetWpaConnectionInfoResponse.Merge(m, src)
 }
 func (m *GetWpaConnectionInfoResponse) XXX_Size() int {
 	return xxx_messageInfo_GetWpaConnectionInfoResponse.Size(m)
@@ -241,14 +244,15 @@ func (*ConnectWpaNetworkRequest) ProtoMessage()    {}
 func (*ConnectWpaNetworkRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_77a6da22d6a3feb1, []int{4}
 }
+
 func (m *ConnectWpaNetworkRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ConnectWpaNetworkRequest.Unmarshal(m, b)
 }
 func (m *ConnectWpaNetworkRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ConnectWpaNetworkRequest.Marshal(b, m, deterministic)
 }
-func (dst *ConnectWpaNetworkRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ConnectWpaNetworkRequest.Merge(dst, src)
+func (m *ConnectWpaNetworkRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ConnectWpaNetworkRequest.Merge(m, src)
 }
 func (m *ConnectWpaNetworkRequest) XXX_Size() int {
 	return xxx_messageInfo_ConnectWpaNetworkRequest.Size(m)
@@ -286,14 +290,15 @@ func (*ConnectWpaNetworkResponse) ProtoMessage()    {}
 func (*ConnectWpaNetworkResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_77a6da22d6a3feb1, []int{5}
 }
+
 func (m *ConnectWpaNetworkResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ConnectWpaNetworkResponse.Unmarshal(m, b)
 }
 func (m *ConnectWpaNetworkResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ConnectWpaNetworkResponse.Marshal(b, m, deterministic)
 }
-func (dst *ConnectWpaNetworkResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ConnectWpaNetworkResponse.Merge(dst, src)
+func (m *ConnectWpaNetworkResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ConnectWpaNetworkResponse.Merge(m, src)
 }
 func (m *ConnectWpaNetworkResponse) XXX_Size() int {
 	return xxx_messageInfo_ConnectWpaNetworkResponse.Size(m)
@@ -328,14 +333,15 @@ func (*WpaNetwork) ProtoMessage()    {}
 func (*WpaNetwork) Descriptor() ([]byte, []int) {
 	return fileDescriptor_77a6da22d6a3feb1, []int{6}
 }
+
 func (m *WpaNetwork) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_WpaNetwork.Unmarshal(m, b)
 }
 func (m *WpaNetwork) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_WpaNetwork.Marshal(b, m, deterministic)
 }
-func (dst *WpaNetwork) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_WpaNetwork.Merge(dst, src)
+func (m *WpaNetwork) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_WpaNetwork.Merge(m, src)
 }
 func (m *WpaNetwork) XXX_Size() int {
 	return xxx_messageInfo_WpaNetwork.Size(m)
@@ -393,14 +399,15 @@ func (*GetWpaNetworksRequest) ProtoMessage()    {}
 func (*GetWpaNetworksRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_77a6da22d6a3feb1, []int{7}
 }
+
 func (m *GetWpaNetworksRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetWpaNetworksRequest.Unmarshal(m, b)
 }
 func (m *GetWpaNetworksRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_GetWpaNetworksRequest.Marshal(b, m, deterministic)
 }
-func (dst *GetWpaNetworksRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetWpaNetworksRequest.Merge(dst, src)
+func (m *GetWpaNetworksRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetWpaNetworksRequest.Merge(m, src)
 }
 func (m *GetWpaNetworksRequest) XXX_Size() int {
 	return xxx_messageInfo_GetWpaNetworksRequest.Size(m)
@@ -424,14 +431,15 @@ func (*GetWpaNetworksResponse) ProtoMessage()    {}
 func (*GetWpaNetworksResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_77a6da22d6a3feb1, []int{8}
 }
+
 func (m *GetWpaNetworksResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetWpaNetworksResponse.Unmarshal(m, b)
 }
 func (m *GetWpaNetworksResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_GetWpaNetworksResponse.Marshal(b, m, deterministic)
 }
-func (dst *GetWpaNetworksResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetWpaNetworksResponse.Merge(dst, src)
+func (m *GetWpaNetworksResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetWpaNetworksResponse.Merge(m, src)
 }
 func (m *GetWpaNetworksResponse) XXX_Size() int {
 	return xxx_messageInfo_GetWpaNetworksResponse.Size(m)
@@ -462,14 +470,15 @@ func (*UpdateRequest) ProtoMessage()    {}
 func (*UpdateRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_77a6da22d6a3feb1, []int{9}
 }
+
 func (m *UpdateRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpdateRequest.Unmarshal(m, b)
 }
 func (m *UpdateRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_UpdateRequest.Marshal(b, m, deterministic)
 }
-func (dst *UpdateRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UpdateRequest.Merge(dst, src)
+func (m *UpdateRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateRequest.Merge(m, src)
 }
 func (m *UpdateRequest) XXX_Size() int {
 	return xxx_messageInfo_UpdateRequest.Size(m)
@@ -499,14 +508,15 @@ func (*UpdateResponse) ProtoMessage()    {}
 func (*UpdateResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_77a6da22d6a3feb1, []int{10}
 }
+
 func (m *UpdateResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpdateResponse.Unmarshal(m, b)
 }
 func (m *UpdateResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_UpdateResponse.Marshal(b, m, deterministic)
 }
-func (dst *UpdateResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UpdateResponse.Merge(dst, src)
+func (m *UpdateResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateResponse.Merge(m, src)
 }
 func (m *UpdateResponse) XXX_Size() int {
 	return xxx_messageInfo_UpdateResponse.Size(m)
@@ -517,7 +527,94 @@ func (m *UpdateResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_UpdateResponse proto.InternalMessageInfo
 
+type ConnectToRemoteNodeRequest struct {
+	Uri                  string   `protobuf:"bytes,1,opt,name=uri,proto3" json:"uri,omitempty"`
+	Cert                 []byte   `protobuf:"bytes,2,opt,name=cert,proto3" json:"cert,omitempty"`
+	Macaroon             []byte   `protobuf:"bytes,3,opt,name=macaroon,proto3" json:"macaroon,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ConnectToRemoteNodeRequest) Reset()         { *m = ConnectToRemoteNodeRequest{} }
+func (m *ConnectToRemoteNodeRequest) String() string { return proto.CompactTextString(m) }
+func (*ConnectToRemoteNodeRequest) ProtoMessage()    {}
+func (*ConnectToRemoteNodeRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_77a6da22d6a3feb1, []int{11}
+}
+
+func (m *ConnectToRemoteNodeRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ConnectToRemoteNodeRequest.Unmarshal(m, b)
+}
+func (m *ConnectToRemoteNodeRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ConnectToRemoteNodeRequest.Marshal(b, m, deterministic)
+}
+func (m *ConnectToRemoteNodeRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ConnectToRemoteNodeRequest.Merge(m, src)
+}
+func (m *ConnectToRemoteNodeRequest) XXX_Size() int {
+	return xxx_messageInfo_ConnectToRemoteNodeRequest.Size(m)
+}
+func (m *ConnectToRemoteNodeRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ConnectToRemoteNodeRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ConnectToRemoteNodeRequest proto.InternalMessageInfo
+
+func (m *ConnectToRemoteNodeRequest) GetUri() string {
+	if m != nil {
+		return m.Uri
+	}
+	return ""
+}
+
+func (m *ConnectToRemoteNodeRequest) GetCert() []byte {
+	if m != nil {
+		return m.Cert
+	}
+	return nil
+}
+
+func (m *ConnectToRemoteNodeRequest) GetMacaroon() []byte {
+	if m != nil {
+		return m.Macaroon
+	}
+	return nil
+}
+
+type ConnectToRemoteNodeResponse struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ConnectToRemoteNodeResponse) Reset()         { *m = ConnectToRemoteNodeResponse{} }
+func (m *ConnectToRemoteNodeResponse) String() string { return proto.CompactTextString(m) }
+func (*ConnectToRemoteNodeResponse) ProtoMessage()    {}
+func (*ConnectToRemoteNodeResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_77a6da22d6a3feb1, []int{12}
+}
+
+func (m *ConnectToRemoteNodeResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ConnectToRemoteNodeResponse.Unmarshal(m, b)
+}
+func (m *ConnectToRemoteNodeResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ConnectToRemoteNodeResponse.Marshal(b, m, deterministic)
+}
+func (m *ConnectToRemoteNodeResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ConnectToRemoteNodeResponse.Merge(m, src)
+}
+func (m *ConnectToRemoteNodeResponse) XXX_Size() int {
+	return xxx_messageInfo_ConnectToRemoteNodeResponse.Size(m)
+}
+func (m *ConnectToRemoteNodeResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_ConnectToRemoteNodeResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ConnectToRemoteNodeResponse proto.InternalMessageInfo
+
 func init() {
+	proto.RegisterEnum("sweetrpc.ConnectWpaNetworkResponse_WpaConnectionUpdateState", ConnectWpaNetworkResponse_WpaConnectionUpdateState_name, ConnectWpaNetworkResponse_WpaConnectionUpdateState_value)
 	proto.RegisterType((*GetInfoRequest)(nil), "sweetrpc.GetInfoRequest")
 	proto.RegisterType((*GetInfoResponse)(nil), "sweetrpc.GetInfoResponse")
 	proto.RegisterType((*GetWpaConnectionInfoRequest)(nil), "sweetrpc.GetWpaConnectionInfoRequest")
@@ -529,7 +626,52 @@ func init() {
 	proto.RegisterType((*GetWpaNetworksResponse)(nil), "sweetrpc.GetWpaNetworksResponse")
 	proto.RegisterType((*UpdateRequest)(nil), "sweetrpc.UpdateRequest")
 	proto.RegisterType((*UpdateResponse)(nil), "sweetrpc.UpdateResponse")
-	proto.RegisterEnum("sweetrpc.ConnectWpaNetworkResponse_WpaConnectionUpdateState", ConnectWpaNetworkResponse_WpaConnectionUpdateState_name, ConnectWpaNetworkResponse_WpaConnectionUpdateState_value)
+	proto.RegisterType((*ConnectToRemoteNodeRequest)(nil), "sweetrpc.ConnectToRemoteNodeRequest")
+	proto.RegisterType((*ConnectToRemoteNodeResponse)(nil), "sweetrpc.ConnectToRemoteNodeResponse")
+}
+
+func init() { proto.RegisterFile("rpc.proto", fileDescriptor_77a6da22d6a3feb1) }
+
+var fileDescriptor_77a6da22d6a3feb1 = []byte{
+	// 597 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x54, 0xdd, 0x6e, 0xd3, 0x30,
+	0x14, 0x6e, 0xfa, 0xb7, 0xf6, 0xac, 0x2b, 0xc1, 0x94, 0x2d, 0x0b, 0x43, 0x74, 0x86, 0xa1, 0x5d,
+	0x55, 0xa8, 0xdc, 0x82, 0x34, 0xd4, 0x95, 0xaa, 0x68, 0x2a, 0x52, 0xd6, 0x69, 0x17, 0x48, 0x43,
+	0x59, 0xea, 0x56, 0xd1, 0xda, 0x38, 0xd8, 0xee, 0x26, 0x1e, 0x02, 0x9e, 0x87, 0xc7, 0x43, 0x8e,
+	0x9d, 0xa4, 0x69, 0x53, 0xc6, 0x9d, 0xcf, 0xef, 0xf7, 0x9d, 0x2f, 0xe7, 0x04, 0xea, 0x2c, 0xf4,
+	0x3a, 0x21, 0xa3, 0x82, 0xa2, 0x1a, 0x7f, 0x20, 0x44, 0xb0, 0xd0, 0xc3, 0x26, 0x34, 0x07, 0x44,
+	0x0c, 0x83, 0x29, 0x75, 0xc8, 0x8f, 0x25, 0xe1, 0x02, 0x7f, 0x83, 0x27, 0x89, 0x87, 0x87, 0x34,
+	0xe0, 0x04, 0xed, 0x43, 0x95, 0x13, 0xe6, 0xbb, 0x73, 0xcb, 0x68, 0x1b, 0xa7, 0x75, 0x47, 0x5b,
+	0xc8, 0x82, 0x9d, 0x7b, 0xc2, 0xb8, 0x4f, 0x03, 0xab, 0x18, 0x05, 0x62, 0x53, 0x56, 0x78, 0x74,
+	0xb1, 0xf0, 0x85, 0x55, 0x52, 0x15, 0xca, 0xc2, 0x2f, 0xe1, 0xc5, 0x80, 0x88, 0xeb, 0xd0, 0xed,
+	0xd1, 0x20, 0x20, 0x9e, 0xf0, 0x69, 0xb0, 0x8a, 0xcd, 0xe0, 0x28, 0x3f, 0xac, 0x89, 0x20, 0x28,
+	0x73, 0xee, 0x4f, 0x34, 0x8d, 0xe8, 0x8d, 0x5a, 0x50, 0xe1, 0xc2, 0x15, 0x44, 0x53, 0x50, 0x06,
+	0x6a, 0x42, 0xd1, 0x0f, 0x35, 0x78, 0xd1, 0x0f, 0x25, 0xd5, 0x05, 0xe1, 0xdc, 0x9d, 0x11, 0xab,
+	0xac, 0xa8, 0x6a, 0x13, 0x9f, 0x81, 0xa5, 0xd1, 0xae, 0x43, 0x77, 0x44, 0xc4, 0x03, 0x65, 0x77,
+	0x9a, 0x4f, 0x2e, 0x9e, 0x09, 0xa5, 0x90, 0xdf, 0x69, 0x34, 0xf9, 0xc4, 0x7f, 0x0c, 0x38, 0xcc,
+	0x69, 0xa1, 0x39, 0x8f, 0xa1, 0x2a, 0x29, 0x2d, 0x79, 0xd4, 0xa5, 0xd9, 0xfd, 0xd0, 0x89, 0xc5,
+	0xef, 0x6c, 0x2d, 0xea, 0x64, 0x24, 0xb8, 0x0a, 0x27, 0xae, 0x20, 0x97, 0x72, 0x2e, 0x47, 0xf7,
+	0xc2, 0x7d, 0xb0, 0xb6, 0xe5, 0xa0, 0x26, 0x40, 0xef, 0xeb, 0x68, 0xd4, 0xef, 0x8d, 0x87, 0xa3,
+	0x81, 0x59, 0x40, 0x7b, 0x50, 0xd7, 0x76, 0xff, 0xdc, 0x34, 0x10, 0x40, 0xf5, 0xf3, 0xa7, 0xe1,
+	0x45, 0xff, 0xdc, 0x2c, 0xe2, 0x5f, 0x06, 0x40, 0x0a, 0x2f, 0xb5, 0xbc, 0x5d, 0x19, 0x58, 0x19,
+	0xe8, 0x08, 0xea, 0x53, 0x26, 0x15, 0x09, 0xbc, 0x9f, 0x7a, 0xee, 0xd4, 0x81, 0x8e, 0xa1, 0xc1,
+	0xfd, 0x59, 0xe0, 0xce, 0xbf, 0xcf, 0xc9, 0x3d, 0x99, 0x6b, 0xcd, 0x77, 0x95, 0xef, 0x42, 0xba,
+	0x64, 0xdb, 0xe9, 0xdc, 0x9d, 0x71, 0x2d, 0xbd, 0x32, 0x12, 0x71, 0x2b, 0xa9, 0xb8, 0xf8, 0x00,
+	0x9e, 0xab, 0x05, 0xd0, 0x8c, 0x78, 0xbc, 0x19, 0x5f, 0x60, 0x7f, 0x3d, 0xa0, 0xf5, 0x7d, 0x07,
+	0xb5, 0x40, 0xfb, 0x2c, 0xa3, 0x5d, 0x3a, 0xdd, 0xed, 0xb6, 0x52, 0x85, 0x57, 0xa4, 0x4d, 0xb2,
+	0xf0, 0x31, 0xec, 0x29, 0xb9, 0xe2, 0xcf, 0x6c, 0x42, 0x69, 0xc9, 0xe2, 0xe5, 0x96, 0x4f, 0x79,
+	0x16, 0x71, 0x8a, 0x82, 0xc1, 0x37, 0x60, 0x6b, 0xb5, 0xc7, 0xd4, 0x21, 0x0b, 0x2a, 0xc8, 0x88,
+	0x4e, 0xb2, 0x1d, 0xfc, 0xb4, 0x83, 0x2f, 0xa7, 0xf3, 0x08, 0x13, 0x91, 0x5e, 0x0d, 0x27, 0x7a,
+	0x23, 0x1b, 0x6a, 0x0b, 0xd7, 0x73, 0x19, 0xa5, 0x41, 0x24, 0x53, 0xc3, 0x49, 0x6c, 0x79, 0x19,
+	0xb9, 0xfd, 0x15, 0x7c, 0xf7, 0x77, 0x19, 0x2a, 0x97, 0x72, 0x2a, 0x74, 0x06, 0x3b, 0xfa, 0x3e,
+	0x91, 0x95, 0x0e, 0x9a, 0x3d, 0x62, 0xfb, 0x30, 0x27, 0xa2, 0x07, 0x29, 0xa0, 0x19, 0xb4, 0xf2,
+	0xae, 0x0c, 0x9d, 0x64, 0x8a, 0xb6, 0x1d, 0xa9, 0xfd, 0xf6, 0xb1, 0xb4, 0x04, 0xe8, 0x06, 0x9e,
+	0x6e, 0xac, 0x38, 0xc2, 0xff, 0xdc, 0x7f, 0x05, 0xf1, 0xfa, 0x3f, 0x6e, 0x04, 0x17, 0xd0, 0x55,
+	0xf4, 0xf3, 0x5a, 0x59, 0x0a, 0xf4, 0x6a, 0x9d, 0xdb, 0xda, 0x1e, 0xd9, 0xed, 0xed, 0x09, 0x49,
+	0xdb, 0x8f, 0x50, 0x55, 0x1f, 0x1f, 0x1d, 0xa4, 0xd9, 0x99, 0x8d, 0xb1, 0xad, 0xcd, 0x40, 0x52,
+	0x3e, 0x81, 0x67, 0x39, 0x5f, 0x12, 0xbd, 0xd9, 0x98, 0x29, 0x67, 0x91, 0xec, 0x93, 0x47, 0xb2,
+	0x62, 0x94, 0xdb, 0x6a, 0xf4, 0x27, 0x7f, 0xff, 0x37, 0x00, 0x00, 0xff, 0xff, 0x44, 0xd2, 0x91,
+	0x62, 0xd6, 0x05, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -549,6 +691,7 @@ type SweetClient interface {
 	ConnectWpaNetwork(ctx context.Context, in *ConnectWpaNetworkRequest, opts ...grpc.CallOption) (*ConnectWpaNetworkResponse, error)
 	GetWpaNetworks(ctx context.Context, in *GetWpaNetworksRequest, opts ...grpc.CallOption) (*GetWpaNetworksResponse, error)
 	Update(ctx context.Context, in *UpdateRequest, opts ...grpc.CallOption) (*UpdateResponse, error)
+	ConnectToRemoteNode(ctx context.Context, in *ConnectToRemoteNodeRequest, opts ...grpc.CallOption) (*ConnectToRemoteNodeResponse, error)
 }
 
 type sweetClient struct {
@@ -604,6 +747,15 @@ func (c *sweetClient) Update(ctx context.Context, in *UpdateRequest, opts ...grp
 	return out, nil
 }
 
+func (c *sweetClient) ConnectToRemoteNode(ctx context.Context, in *ConnectToRemoteNodeRequest, opts ...grpc.CallOption) (*ConnectToRemoteNodeResponse, error) {
+	out := new(ConnectToRemoteNodeResponse)
+	err := c.cc.Invoke(ctx, "/sweetrpc.Sweet/ConnectToRemoteNode", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SweetServer is the server API for Sweet service.
 type SweetServer interface {
 	GetInfo(context.Context, *GetInfoRequest) (*GetInfoResponse, error)
@@ -611,6 +763,7 @@ type SweetServer interface {
 	ConnectWpaNetwork(context.Context, *ConnectWpaNetworkRequest) (*ConnectWpaNetworkResponse, error)
 	GetWpaNetworks(context.Context, *GetWpaNetworksRequest) (*GetWpaNetworksResponse, error)
 	Update(context.Context, *UpdateRequest) (*UpdateResponse, error)
+	ConnectToRemoteNode(context.Context, *ConnectToRemoteNodeRequest) (*ConnectToRemoteNodeResponse, error)
 }
 
 func RegisterSweetServer(s *grpc.Server, srv SweetServer) {
@@ -707,6 +860,24 @@ func _Sweet_Update_Handler(srv interface{}, ctx context.Context, dec func(interf
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Sweet_ConnectToRemoteNode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ConnectToRemoteNodeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SweetServer).ConnectToRemoteNode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/sweetrpc.Sweet/ConnectToRemoteNode",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SweetServer).ConnectToRemoteNode(ctx, req.(*ConnectToRemoteNodeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Sweet_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "sweetrpc.Sweet",
 	HandlerType: (*SweetServer)(nil),
@@ -731,47 +902,11 @@ var _Sweet_serviceDesc = grpc.ServiceDesc{
 			MethodName: "Update",
 			Handler:    _Sweet_Update_Handler,
 		},
+		{
+			MethodName: "ConnectToRemoteNode",
+			Handler:    _Sweet_ConnectToRemoteNode_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "rpc.proto",
-}
-
-func init() { proto.RegisterFile("rpc.proto", fileDescriptor_77a6da22d6a3feb1) }
-
-var fileDescriptor_77a6da22d6a3feb1 = []byte{
-	// 533 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x54, 0xdd, 0x6e, 0xd3, 0x30,
-	0x14, 0x6e, 0x9a, 0x35, 0x5b, 0xcf, 0x58, 0x09, 0x56, 0xd9, 0xbc, 0x32, 0x44, 0x67, 0x04, 0xda,
-	0x55, 0x85, 0xca, 0x2d, 0x48, 0x43, 0x5d, 0xa9, 0x8a, 0xa6, 0x22, 0x75, 0x9b, 0x76, 0x81, 0x04,
-	0xca, 0x32, 0xb7, 0x8a, 0x96, 0x26, 0x26, 0x76, 0x37, 0xf1, 0x10, 0xbc, 0x07, 0x8f, 0xc0, 0xe3,
-	0x21, 0xc7, 0x27, 0x49, 0x7f, 0x52, 0xe0, 0xce, 0xe7, 0xf7, 0xfb, 0xfc, 0xf9, 0x1c, 0x43, 0x3d,
-	0x11, 0x7e, 0x47, 0x24, 0xb1, 0x8a, 0xc9, 0x8e, 0x7c, 0xe0, 0x5c, 0x25, 0xc2, 0x67, 0x2e, 0x34,
-	0x06, 0x5c, 0x0d, 0xa3, 0x49, 0x3c, 0xe6, 0xdf, 0xe7, 0x5c, 0x2a, 0xf6, 0x05, 0x1e, 0xe7, 0x1e,
-	0x29, 0xe2, 0x48, 0x72, 0xb2, 0x0f, 0x8e, 0xe4, 0x49, 0xe0, 0x85, 0xd4, 0x6a, 0x5b, 0x27, 0xf5,
-	0x31, 0x5a, 0x84, 0xc2, 0xf6, 0x3d, 0x4f, 0x64, 0x10, 0x47, 0xb4, 0x9a, 0x06, 0x32, 0x53, 0x57,
-	0xf8, 0xf1, 0x6c, 0x16, 0x28, 0x6a, 0x9b, 0x0a, 0x63, 0xb1, 0xe7, 0xf0, 0x6c, 0xc0, 0xd5, 0xb5,
-	0xf0, 0x7a, 0x71, 0x14, 0x71, 0x5f, 0x05, 0x71, 0xb4, 0x88, 0x9d, 0xc0, 0x51, 0x79, 0x18, 0x89,
-	0x10, 0xd8, 0x92, 0x32, 0xb8, 0x45, 0x1a, 0xe9, 0x99, 0x34, 0xa1, 0x26, 0x95, 0xa7, 0x38, 0x52,
-	0x30, 0x06, 0x69, 0x40, 0x35, 0x10, 0x08, 0x5e, 0x0d, 0x84, 0xa6, 0x3a, 0xe3, 0x52, 0x7a, 0x53,
-	0x4e, 0xb7, 0x0c, 0x55, 0x34, 0xd9, 0x29, 0x50, 0x44, 0xbb, 0x16, 0xde, 0x88, 0xab, 0x87, 0x38,
-	0xb9, 0x43, 0x3e, 0xa5, 0x78, 0x2e, 0xd8, 0x42, 0xde, 0x21, 0x9a, 0x3e, 0xb2, 0xdf, 0x16, 0x1c,
-	0x96, 0xb4, 0x40, 0xce, 0x97, 0xe0, 0x68, 0x4a, 0x73, 0x99, 0x76, 0x69, 0x74, 0xdf, 0x75, 0x32,
-	0xf1, 0x3b, 0x1b, 0x8b, 0x3a, 0x4b, 0x12, 0x5c, 0x89, 0x5b, 0x4f, 0xf1, 0x0b, 0x7d, 0xaf, 0x31,
-	0xf6, 0x62, 0x7d, 0xa0, 0x9b, 0x72, 0x48, 0x03, 0xa0, 0xf7, 0x79, 0x34, 0xea, 0xf7, 0x2e, 0x87,
-	0xa3, 0x81, 0x5b, 0x21, 0x7b, 0x50, 0x47, 0xbb, 0x7f, 0xe6, 0x5a, 0x04, 0xc0, 0xf9, 0xf8, 0x61,
-	0x78, 0xde, 0x3f, 0x73, 0xab, 0xec, 0xa7, 0x05, 0x50, 0xc0, 0x6b, 0x2d, 0x6f, 0x16, 0x2e, 0x6c,
-	0x0c, 0x72, 0x04, 0xf5, 0x49, 0xa2, 0x15, 0x89, 0xfc, 0x1f, 0x78, 0xef, 0xc2, 0x41, 0x8e, 0xe1,
-	0x91, 0x0c, 0xa6, 0x91, 0x17, 0x7e, 0x0b, 0xf9, 0x3d, 0x0f, 0x51, 0xf3, 0x5d, 0xe3, 0x3b, 0xd7,
-	0x2e, 0xdd, 0x76, 0x12, 0x7a, 0x53, 0x89, 0xd2, 0x1b, 0x23, 0x17, 0xb7, 0x56, 0x88, 0xcb, 0x0e,
-	0xe0, 0xa9, 0x19, 0x00, 0x64, 0x24, 0xb3, 0xc9, 0xf8, 0x04, 0xfb, 0xab, 0x01, 0xd4, 0xf7, 0x0d,
-	0xec, 0x44, 0xe8, 0xa3, 0x56, 0xdb, 0x3e, 0xd9, 0xed, 0x36, 0x0b, 0x85, 0x17, 0xa4, 0xcd, 0xb3,
-	0xd8, 0x31, 0xec, 0x19, 0xb9, 0xb2, 0x67, 0x76, 0xc1, 0x9e, 0x27, 0xd9, 0x70, 0xeb, 0xa3, 0x5e,
-	0x8b, 0x2c, 0xc5, 0xc0, 0x74, 0x7f, 0xd9, 0x50, 0xbb, 0xd0, 0x6d, 0xc9, 0x29, 0x6c, 0xe3, 0x82,
-	0x10, 0x5a, 0x20, 0x2d, 0x6f, 0x51, 0xeb, 0xb0, 0x24, 0x62, 0x3a, 0xb1, 0x0a, 0x99, 0x42, 0xb3,
-	0x6c, 0xcc, 0xc9, 0xab, 0xa5, 0xa2, 0x4d, 0x5b, 0xd2, 0x7a, 0xfd, 0xaf, 0xb4, 0x1c, 0xe8, 0x2b,
-	0x3c, 0x59, 0x9b, 0x31, 0xc2, 0xfe, 0x3a, 0x80, 0x06, 0xe2, 0xe5, 0x7f, 0x0c, 0x29, 0xab, 0x90,
-	0xab, 0xf4, 0xf7, 0x58, 0x78, 0x15, 0xf2, 0x62, 0x95, 0xdb, 0xca, 0x43, 0xb6, 0xda, 0x9b, 0x13,
-	0xf2, 0xb6, 0xef, 0xc1, 0x31, 0xea, 0x93, 0x83, 0x22, 0x7b, 0xe9, 0xc9, 0x5a, 0x74, 0x3d, 0x90,
-	0x95, 0xdf, 0x38, 0xe9, 0x27, 0xf7, 0xf6, 0x4f, 0x00, 0x00, 0x00, 0xff, 0xff, 0xbd, 0x35, 0x68,
-	0x5f, 0xf1, 0x04, 0x00, 0x00,
 }
