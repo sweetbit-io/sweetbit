@@ -44,6 +44,11 @@ type Hostapd struct {
 }
 
 func New(config *Config) (*Hostapd, error) {
+	_, err := exec.LookPath("hostapd")
+	if err != nil {
+		return nil, errors.New("hostapd is not installed or missing in $PATH")
+	}
+
 	passphraseLen := len(config.Passphrase)
 	if passphraseLen < 8 || passphraseLen > 63 {
 		return nil, errors.New("Invalid WPA passphrase length (expected 8..63)")
