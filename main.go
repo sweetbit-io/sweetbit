@@ -192,13 +192,17 @@ func setUpAccessPoint(cfg *config) (*hostapd.Hostapd, *dnsmasq.Dnsmasq, error) {
 
 	log.Info("Starting dnsmasq for DNS and DHCP management...")
 
-	d := dnsmasq.New(&dnsmasq.Config{
+	d, err := dnsmasq.New(&dnsmasq.Config{
 		Address:   "/#/" + strings.Split(cfg.Ap.Ip, "/")[0],
 		DhcpRange: cfg.Ap.DhcpRange,
 		Log: func(s string) {
 			log.WithField("service", "dnsmasq").Debug(s)
 		},
 	})
+
+	if err != nil {
+		return h, nil, errors.Errorf("Could not create dnsmasq service: %v", err)
+	}
 
 	if err := d.Start(); err != nil {
 		return h, nil, errors.Errorf("Could not start dnsmasq: %v", err)

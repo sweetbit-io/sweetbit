@@ -28,7 +28,12 @@ type Dnsmasq struct {
 	states  chan DnsmasqState
 }
 
-func New(config *Config) *Dnsmasq {
+func New(config *Config) (*Dnsmasq, error) {
+	_, err := exec.LookPath("dnsmasq")
+	if err != nil {
+		return nil, errors.New("dnsmasq is not installed or missing in $PATH")
+	}
+
 	args := []string{
 		"--no-hosts", // Don't read the hostnames in /etc/hosts.
 		"--keep-in-foreground",
@@ -46,7 +51,7 @@ func New(config *Config) *Dnsmasq {
 		config: config,
 		cmd:    exec.Command("dnsmasq", args...),
 		states: make(chan DnsmasqState),
-	}
+	}, nil
 }
 
 func (d *Dnsmasq) Start() error {
