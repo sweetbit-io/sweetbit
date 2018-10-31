@@ -15,6 +15,8 @@ service Sweet {
     }
     rpc ConnectToRemoteNode (ConnectToRemoteNodeRequest) returns (ConnectToRemoteNodeResponse) {
     }
+    rpc Reboot (RebootRequest) returns (RebootResponse) {
+    }
 }
 
 message GetInfoRequest {
@@ -80,4 +82,10 @@ message ConnectToRemoteNodeRequest {
 }
 
 message ConnectToRemoteNodeResponse {
+}
+
+message RebootRequest {
+}
+
+message RebootResponse {
 }

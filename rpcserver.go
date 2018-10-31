@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/go-errors/errors"
 	log "github.com/sirupsen/logrus"
+	"github.com/the-lightning-land/sweetd/reboot"
 	"github.com/the-lightning-land/sweetd/sweetrpc"
 	"github.com/the-lightning-land/sweetd/sysid"
 	"github.com/the-lightning-land/sweetd/wpa"
@@ -49,7 +50,7 @@ func (s *rpcServer) GetWpaConnectionInfo(ctx context.Context,
 
 	status, err := wpa.GetStatus("wlan0")
 	if err != nil {
-		log.Errorf("Getting WPA status failed: %s", err.Error())
+		log.Errorf("Getting WPA status failed: %v", err)
 		return nil, errors.New("Getting WPA status failed")
 	}
 
@@ -91,7 +92,7 @@ func (s *rpcServer) ConnectWpaNetwork(ctx context.Context,
 
 	err = wpa.EnableNetwork("wlan0", net)
 	if err != nil {
-		log.Errorf("Enabling network failed: %s", err.Error())
+		log.Errorf("Enabling network failed: %v", err)
 		return nil, errors.New("Connection failed")
 	}
 
@@ -118,7 +119,7 @@ func (s *rpcServer) ConnectWpaNetwork(ctx context.Context,
 
 			err := wpa.Save("wlan0")
 			if err != nil {
-				log.Errorf("Saving config failed: %s", err.Error())
+				log.Errorf("Saving config failed: %v", err)
 			}
 
 			log.Info("Confirming successful connection")
@@ -147,7 +148,7 @@ func (s *rpcServer) GetWpaNetworks(ctx context.Context,
 
 	err := wpa.Scan("wlan0")
 	if err != nil {
-		log.Errorf("Scan failed: %s", err.Error())
+		log.Errorf("Scan failed: %v", err)
 		return nil, errors.New("Scan failed")
 	}
 
@@ -158,7 +159,7 @@ func (s *rpcServer) GetWpaNetworks(ctx context.Context,
 
 	results, err := wpa.Results("wlan0")
 	if err != nil {
-		log.Errorf("Scan failed: %s", err.Error())
+		log.Errorf("Scan failed: %v", err)
 		return nil, errors.New("Scan failed")
 	}
 
@@ -186,7 +187,7 @@ func (s *rpcServer) Update(ctx context.Context, req *sweetrpc.UpdateRequest) (*s
 
 	err := doUpdate(req.Url)
 	if err != nil {
-		log.Errorf("Update failed: %s", err.Error())
+		log.Errorf("Update failed: %v", err)
 		return nil, errors.New("Update failed")
 	}
 
@@ -199,7 +200,7 @@ func (s *rpcServer) ConnectToRemoteNode(ctx context.Context,
 
 	err := s.config.dispenser.connectLndNode(req.Uri, req.Cert, req.Macaroon)
 	if err != nil {
-		log.Errorf("Connection failed: %s", err.Error())
+		log.Errorf("Connection failed: %v")
 		return nil, errors.New("Connection failed")
 	}
 
@@ -209,4 +210,17 @@ func (s *rpcServer) ConnectToRemoteNode(ctx context.Context,
 	}
 
 	return &sweetrpc.ConnectToRemoteNodeResponse{}, nil
+}
+
+func (s *rpcServer) Reboot(ctx context.Context,
+	req *sweetrpc.RebootRequest) (*sweetrpc.RebootResponse, error) {
+	log.Infof("Rebooting dispenser...")
+
+	err := reboot.Reboot()
+	if err != nil {
+		log.Errorf("Reboot failed: %v", err)
+		return nil, errors.New("Reboot failed")
+	}
+
+	return &sweetrpc.RebootResponse{}, nil
 }
