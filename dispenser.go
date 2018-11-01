@@ -18,14 +18,14 @@ import (
 )
 
 type dispenser struct {
-	machine         machine.Machine
-	db              *sweetdb.DB
-	dispenseOnTouch bool
-	buzzOnDispense  bool
-	done            chan struct{}
-	payments        chan *lnrpc.Invoice
-	grpcConn        *grpc.ClientConn
-	lightningNode   *sweetdb.LightningNode
+	machine          machine.Machine
+	db               *sweetdb.DB
+	dispenseOnTouch  bool
+	buzzOnDispense   bool
+	done             chan struct{}
+	payments         chan *lnrpc.Invoice
+	grpcConn         *grpc.ClientConn
+	lightningNodeUri string
 	// add bluetooth pairing
 }
 
@@ -120,6 +120,16 @@ func (d *dispenser) saveLndNode(uri string, certBytes []byte, macaroonBytes []by
 	return nil
 }
 
+func (d *dispenser) deleteLndNode() error {
+	err := d.db.SetLightningNode(nil)
+
+	if err != nil {
+		return errors.Errorf("Couldn not delete lnd node connection: %v", err)
+	}
+
+	return nil
+}
+
 var (
 	beginCertificateBlock = []byte("-----BEGIN CERTIFICATE-----\n")
 	endCertificateBlock   = []byte("\n-----END CERTIFICATE-----")
@@ -168,6 +178,9 @@ func (d *dispenser) connectLndNode(uri string, certBytes []byte, macaroonBytes [
 	// assign new connection
 	d.grpcConn = conn
 
+	// save currently connected node uri
+	d.lightningNodeUri = uri
+
 	go func() {
 		log.Info("Listening to paid invoices...")
 
@@ -193,6 +206,20 @@ func (d *dispenser) connectLndNode(uri string, certBytes []byte, macaroonBytes [
 			}
 		}
 	}()
+
+	return nil
+}
+
+func (d *dispenser) disconnectLndNode() error {
+	log.Infof("Disconnecting from remote lightning node")
+
+	// close open connection
+	if d.grpcConn != nil {
+		d.grpcConn.Close()
+	}
+
+	// remove currently connected node uri
+	d.lightningNodeUri = ""
 
 	return nil
 }

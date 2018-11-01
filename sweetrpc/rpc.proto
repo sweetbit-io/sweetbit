@@ -15,6 +15,8 @@ service Sweet {
     }
     rpc ConnectToRemoteNode (ConnectToRemoteNodeRequest) returns (ConnectToRemoteNodeResponse) {
     }
+    rpc DisconnectFromRemoteNode (DisconnectFromRemoteNodeRequest) returns (DisconnectFromRemoteNodeResponse) {
+    }
     rpc Reboot (RebootRequest) returns (RebootResponse) {
     }
 }
@@ -26,6 +28,11 @@ message GetInfoResponse {
     string serial = 1;
     string version = 2;
     string commit = 3;
+    RemoteNode remoteNode = 4;
+}
+
+message RemoteNode {
+    string uri = 1;
 }
 
 message GetWpaConnectionInfoRequest {
@@ -82,6 +89,12 @@ message ConnectToRemoteNodeRequest {
 }
 
 message ConnectToRemoteNodeResponse {
+}
+
+message DisconnectFromRemoteNodeRequest {
+}
+
+message DisconnectFromRemoteNodeResponse {
 }
 
 message RebootRequest {

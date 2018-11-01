@@ -38,10 +38,19 @@ func (s *rpcServer) GetInfo(ctx context.Context,
 		return nil, err
 	}
 
+	var remoteNode *sweetrpc.RemoteNode = nil
+
+	if s.config.dispenser.lightningNodeUri != "" {
+		remoteNode = &sweetrpc.RemoteNode{
+			Uri: s.config.dispenser.lightningNodeUri,
+		}
+	}
+
 	return &sweetrpc.GetInfoResponse{
-		Serial:  id,
-		Version: s.config.version,
-		Commit:  s.config.commit,
+		Serial:     id,
+		Version:    s.config.version,
+		Commit:     s.config.commit,
+		RemoteNode: remoteNode,
 	}, nil
 }
 
@@ -200,16 +209,34 @@ func (s *rpcServer) ConnectToRemoteNode(ctx context.Context,
 
 	err := s.config.dispenser.connectLndNode(req.Uri, req.Cert, req.Macaroon)
 	if err != nil {
-		log.Errorf("Connection failed: %v")
+		log.Errorf("Connection failed: %v", err)
 		return nil, errors.New("Connection failed")
 	}
 
 	err = s.config.dispenser.saveLndNode(req.Uri, req.Cert, req.Macaroon)
 	if err != nil {
-		log.Errorf("Could not save remote lightning connection: %s", err)
+		log.Errorf("Could not save remote lightning connection: %v", err)
 	}
 
 	return &sweetrpc.ConnectToRemoteNodeResponse{}, nil
+}
+
+func (s *rpcServer) DisconnectFromRemoteNode(ctx context.Context,
+	req *sweetrpc.DisconnectFromRemoteNodeRequest) (*sweetrpc.DisconnectFromRemoteNodeResponse, error) {
+	log.Infof("Disconnecting fromlightning node")
+
+	err := s.config.dispenser.disconnectLndNode()
+	if err != nil {
+		log.Errorf("Disconnect failed: %v", err)
+		return nil, errors.New("Disconnect failed")
+	}
+
+	err = s.config.dispenser.deleteLndNode()
+	if err != nil {
+		log.Errorf("Could not delete remote lightning connection: %v", err)
+	}
+
+	return &sweetrpc.DisconnectFromRemoteNodeResponse{}, nil
 }
 
 func (s *rpcServer) Reboot(ctx context.Context,

@@ -1,6 +1,7 @@
 package sweetdb
 
 import (
+	"bytes"
 	"encoding/json"
 	"github.com/go-errors/errors"
 	bolt "go.etcd.io/bbolt"
@@ -40,7 +41,7 @@ func (db *DB) SetLightningNode(lightningNode *LightningNode) error {
 }
 
 func (db *DB) GetLightningNode() (*LightningNode, error) {
-	var lightningNode LightningNode
+	var lightningNode = &LightningNode{}
 
 	err := db.View(func(tx *bolt.Tx) error {
 		// First fetch the bucket
@@ -50,7 +51,8 @@ func (db *DB) GetLightningNode() (*LightningNode, error) {
 		}
 
 		lightningNodeBytes := bucket.Get(lightningNodeKey)
-		if lightningNodeBytes == nil {
+		if lightningNodeBytes == nil || bytes.Equal(lightningNodeBytes, []byte("null")) {
+			lightningNode = nil
 			return nil
 		}
 
@@ -66,5 +68,5 @@ func (db *DB) GetLightningNode() (*LightningNode, error) {
 		return nil, err
 	}
 
-	return &lightningNode, nil
+	return lightningNode, nil
 }
