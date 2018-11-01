@@ -18,9 +18,11 @@ import (
 
 var (
 	// Commit stores the current commit hash of this build. This should be set using -ldflags during compilation.
-	Commit string
+	commit string
 	// Version stores the version string of this build. This should be set using -ldflags during compilation.
-	Version = "1.0.0"
+	version string
+	// Stores the date of this build. This should be set using -ldflags during compilation.
+	date string
 )
 
 // sweetdMain is the true entry point for sweetd. This is required since defers
@@ -29,9 +31,9 @@ func sweetdMain() error {
 	log.SetOutput(os.Stdout)
 	log.SetLevel(log.InfoLevel)
 
-	log.Info("Starting sweetd...")
+	log.Debug("Starting sweetd...")
 
-	log.Info("Loading config...")
+	log.Debug("Loading config...")
 
 	// Load CLI configuration and defaults
 	cfg, err := loadConfig()
@@ -47,10 +49,16 @@ func sweetdMain() error {
 		log.Info("Setting debug mode.")
 	}
 
-	log.Info("Loaded config.")
+	log.Debug("Loaded config.")
 
 	// Print version of the daemon
-	log.Infof("Version %s", Version)
+	log.Infof("Version %s (commit %s)", version, commit)
+	log.Infof("Built on %s", date)
+
+	// Stop here if only version was requested
+	if cfg.ShowVersion {
+		return nil
+	}
 
 	// Should run access point, so that the dispenser can be paired to
 	// and controlled through an app?
@@ -113,8 +121,8 @@ func sweetdMain() error {
 		grpcServer := grpc.NewServer()
 
 		sweetrpc.RegisterSweetServer(grpcServer, newRPCServer(&rpcServerConfig{
-			version:   Version,
-			commit:    Commit,
+			version:   version,
+			commit:    commit,
 			dispenser: dispenser,
 		}))
 
