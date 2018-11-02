@@ -32,6 +32,7 @@ func newRPCServer(config *rpcServerConfig) *rpcServer {
 
 func (s *rpcServer) GetInfo(ctx context.Context,
 	req *sweetrpc.GetInfoRequest) (*sweetrpc.GetInfoResponse, error) {
+	log.Info("Retrieving info...")
 
 	id, err := sysid.GetId()
 	if err != nil {
@@ -46,16 +47,41 @@ func (s *rpcServer) GetInfo(ctx context.Context,
 		}
 	}
 
+	name, err := s.config.dispenser.getName()
+	if err != nil {
+		log.Errorf("Failed getting info: %v", err)
+		return nil, errors.New("Failed getting info")
+	}
+
+	if name == "" {
+		name = "Candy Dispenser"
+		// name = fmt.Sprintf("Candy %v", id)
+	}
+
 	return &sweetrpc.GetInfoResponse{
 		Serial:     id,
 		Version:    s.config.version,
 		Commit:     s.config.commit,
 		RemoteNode: remoteNode,
+		Name:       name,
 	}, nil
+}
+
+func (s *rpcServer) SetName(ctx context.Context, req *sweetrpc.SetNameRequest) (*sweetrpc.SetNameResponse, error) {
+	log.Infof("Setting name to '%v'...", req.Name)
+
+	err := s.config.dispenser.setName(req.Name)
+	if err != nil {
+		log.Errorf("Failed setting name: %v", err)
+		return nil, errors.New("Failed setting name")
+	}
+
+	return &sweetrpc.SetNameResponse{}, nil
 }
 
 func (s *rpcServer) GetWpaConnectionInfo(ctx context.Context,
 	req *sweetrpc.GetWpaConnectionInfoRequest) (*sweetrpc.GetWpaConnectionInfoResponse, error) {
+	log.Info("Getting wpa connection info...")
 
 	status, err := wpa.GetStatus("wlan0")
 	if err != nil {
@@ -154,6 +180,7 @@ func (s *rpcServer) ConnectWpaNetwork(ctx context.Context,
 
 func (s *rpcServer) GetWpaNetworks(ctx context.Context,
 	req *sweetrpc.GetWpaNetworksRequest) (*sweetrpc.GetWpaNetworksResponse, error) {
+	log.Info("Getting wpa networks...")
 
 	err := wpa.Scan("wlan0")
 	if err != nil {

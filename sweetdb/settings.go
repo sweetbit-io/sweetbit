@@ -10,6 +10,7 @@ import (
 var (
 	settingsBucket   = []byte("settings")
 	lightningNodeKey = []byte("lightningNode")
+	nameKey          = []byte("name")
 )
 
 type LightningNode struct {
@@ -26,13 +27,13 @@ func (db *DB) SetLightningNode(lightningNode *LightningNode) error {
 
 	return db.Update(func(tx *bolt.Tx) error {
 		// First grab the settings bucket
-		nodes, err := tx.CreateBucketIfNotExists(settingsBucket)
+		bucket, err := tx.CreateBucketIfNotExists(settingsBucket)
 		if err != nil {
 			return err
 		}
 
 		// Set the lightning node
-		if err := nodes.Put(lightningNodeKey, payload); err != nil {
+		if err := bucket.Put(lightningNodeKey, payload); err != nil {
 			return err
 		}
 
@@ -69,4 +70,44 @@ func (db *DB) GetLightningNode() (*LightningNode, error) {
 	}
 
 	return lightningNode, nil
+}
+
+func (db *DB) SetName(name string) error {
+	return db.Update(func(tx *bolt.Tx) error {
+		// First grab the settings bucket
+		bucket, err := tx.CreateBucketIfNotExists(settingsBucket)
+		if err != nil {
+			return err
+		}
+
+		// Set the name
+		if err := bucket.Put(nameKey, []byte(name)); err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+
+func (db *DB) GetName() (string, error) {
+	var name string
+
+	err := db.View(func(tx *bolt.Tx) error {
+		// First fetch the bucket
+		bucket := tx.Bucket(settingsBucket)
+		if bucket == nil {
+			return nil
+		}
+
+		nameBytes := bucket.Get(nameKey)
+		name = string(nameBytes)
+
+		return nil
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	return name, nil
 }

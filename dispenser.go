@@ -224,6 +224,28 @@ func (d *dispenser) disconnectLndNode() error {
 	return nil
 }
 
+func (d *dispenser) setName(name string) error {
+	log.Infof("Setting name")
+
+	err := d.db.SetName(name)
+	if err != nil {
+		return errors.Errorf("Failed setting name: %v", err)
+	}
+
+	return nil
+}
+
+func (d *dispenser) getName() (string, error) {
+	log.Infof("Getting name")
+
+	name, err := d.db.GetName()
+	if err != nil {
+		return "", errors.Errorf("Failed getting name: %v", err)
+	}
+
+	return name, nil
+}
+
 func (d *dispenser) shutdown() {
 	d.machine.Stop()
 
