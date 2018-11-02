@@ -5,6 +5,12 @@ package sweetrpc;
 service Sweet {
     rpc GetInfo (GetInfoRequest) returns (GetInfoResponse) {
     }
+    rpc SetName (SetNameRequest) returns (SetNameResponse) {
+    }
+    rpc SetDispenseOnTouch (SetDispenseOnTouchRequest) returns (SetDispenseOnTouchResponse) {
+    }
+    rpc SetBuzzOnDispense (SetBuzzOnDispenseRequest) returns (SetBuzzOnDispenseResponse) {
+    }
     rpc GetWpaConnectionInfo (GetWpaConnectionInfoRequest) returns (GetWpaConnectionInfoResponse) {
     }
     rpc ConnectWpaNetwork (ConnectWpaNetworkRequest) returns (ConnectWpaNetworkResponse) {
@@ -29,10 +35,34 @@ message GetInfoResponse {
     string version = 2;
     string commit = 3;
     RemoteNode remoteNode = 4;
+    string name = 5;
+    bool dispenseOnTouch = 6;
+    bool buzzOnDispense = 7;
 }
 
 message RemoteNode {
     string uri = 1;
+}
+
+message SetNameRequest {
+    string name = 1;
+}
+
+message SetNameResponse {
+}
+
+message SetDispenseOnTouchRequest {
+    bool dispenseOnTouch = 1;
+}
+
+message SetDispenseOnTouchResponse {
+}
+
+message SetBuzzOnDispenseRequest {
+    bool buzzOnDispense = 1;
+}
+
+message SetBuzzOnDispenseResponse {
 }
 
 message GetWpaConnectionInfoRequest {

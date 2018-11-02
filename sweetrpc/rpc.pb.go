@@ -47,7 +47,7 @@ func (x ConnectWpaNetworkResponse_WpaConnectionUpdateState) String() string {
 }
 
 func (ConnectWpaNetworkResponse_WpaConnectionUpdateState) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_77a6da22d6a3feb1, []int{6, 0}
+	return fileDescriptor_77a6da22d6a3feb1, []int{12, 0}
 }
 
 type GetInfoRequest struct {
@@ -86,6 +86,9 @@ type GetInfoResponse struct {
 	Version              string      `protobuf:"bytes,2,opt,name=version,proto3" json:"version,omitempty"`
 	Commit               string      `protobuf:"bytes,3,opt,name=commit,proto3" json:"commit,omitempty"`
 	RemoteNode           *RemoteNode `protobuf:"bytes,4,opt,name=remoteNode,proto3" json:"remoteNode,omitempty"`
+	Name                 string      `protobuf:"bytes,5,opt,name=name,proto3" json:"name,omitempty"`
+	DispenseOnTouch      bool        `protobuf:"varint,6,opt,name=dispenseOnTouch,proto3" json:"dispenseOnTouch,omitempty"`
+	BuzzOnDispense       bool        `protobuf:"varint,7,opt,name=buzzOnDispense,proto3" json:"buzzOnDispense,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
 	XXX_unrecognized     []byte      `json:"-"`
 	XXX_sizecache        int32       `json:"-"`
@@ -144,6 +147,27 @@ func (m *GetInfoResponse) GetRemoteNode() *RemoteNode {
 	return nil
 }
 
+func (m *GetInfoResponse) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *GetInfoResponse) GetDispenseOnTouch() bool {
+	if m != nil {
+		return m.DispenseOnTouch
+	}
+	return false
+}
+
+func (m *GetInfoResponse) GetBuzzOnDispense() bool {
+	if m != nil {
+		return m.BuzzOnDispense
+	}
+	return false
+}
+
 type RemoteNode struct {
 	Uri                  string   `protobuf:"bytes,1,opt,name=uri,proto3" json:"uri,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -183,6 +207,216 @@ func (m *RemoteNode) GetUri() string {
 	return ""
 }
 
+type SetNameRequest struct {
+	Name                 string   `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SetNameRequest) Reset()         { *m = SetNameRequest{} }
+func (m *SetNameRequest) String() string { return proto.CompactTextString(m) }
+func (*SetNameRequest) ProtoMessage()    {}
+func (*SetNameRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_77a6da22d6a3feb1, []int{3}
+}
+
+func (m *SetNameRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SetNameRequest.Unmarshal(m, b)
+}
+func (m *SetNameRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SetNameRequest.Marshal(b, m, deterministic)
+}
+func (m *SetNameRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SetNameRequest.Merge(m, src)
+}
+func (m *SetNameRequest) XXX_Size() int {
+	return xxx_messageInfo_SetNameRequest.Size(m)
+}
+func (m *SetNameRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_SetNameRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SetNameRequest proto.InternalMessageInfo
+
+func (m *SetNameRequest) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+type SetNameResponse struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SetNameResponse) Reset()         { *m = SetNameResponse{} }
+func (m *SetNameResponse) String() string { return proto.CompactTextString(m) }
+func (*SetNameResponse) ProtoMessage()    {}
+func (*SetNameResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_77a6da22d6a3feb1, []int{4}
+}
+
+func (m *SetNameResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SetNameResponse.Unmarshal(m, b)
+}
+func (m *SetNameResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SetNameResponse.Marshal(b, m, deterministic)
+}
+func (m *SetNameResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SetNameResponse.Merge(m, src)
+}
+func (m *SetNameResponse) XXX_Size() int {
+	return xxx_messageInfo_SetNameResponse.Size(m)
+}
+func (m *SetNameResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_SetNameResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SetNameResponse proto.InternalMessageInfo
+
+type SetDispenseOnTouchRequest struct {
+	DispenseOnTouch      bool     `protobuf:"varint,1,opt,name=dispenseOnTouch,proto3" json:"dispenseOnTouch,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SetDispenseOnTouchRequest) Reset()         { *m = SetDispenseOnTouchRequest{} }
+func (m *SetDispenseOnTouchRequest) String() string { return proto.CompactTextString(m) }
+func (*SetDispenseOnTouchRequest) ProtoMessage()    {}
+func (*SetDispenseOnTouchRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_77a6da22d6a3feb1, []int{5}
+}
+
+func (m *SetDispenseOnTouchRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SetDispenseOnTouchRequest.Unmarshal(m, b)
+}
+func (m *SetDispenseOnTouchRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SetDispenseOnTouchRequest.Marshal(b, m, deterministic)
+}
+func (m *SetDispenseOnTouchRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SetDispenseOnTouchRequest.Merge(m, src)
+}
+func (m *SetDispenseOnTouchRequest) XXX_Size() int {
+	return xxx_messageInfo_SetDispenseOnTouchRequest.Size(m)
+}
+func (m *SetDispenseOnTouchRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_SetDispenseOnTouchRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SetDispenseOnTouchRequest proto.InternalMessageInfo
+
+func (m *SetDispenseOnTouchRequest) GetDispenseOnTouch() bool {
+	if m != nil {
+		return m.DispenseOnTouch
+	}
+	return false
+}
+
+type SetDispenseOnTouchResponse struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SetDispenseOnTouchResponse) Reset()         { *m = SetDispenseOnTouchResponse{} }
+func (m *SetDispenseOnTouchResponse) String() string { return proto.CompactTextString(m) }
+func (*SetDispenseOnTouchResponse) ProtoMessage()    {}
+func (*SetDispenseOnTouchResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_77a6da22d6a3feb1, []int{6}
+}
+
+func (m *SetDispenseOnTouchResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SetDispenseOnTouchResponse.Unmarshal(m, b)
+}
+func (m *SetDispenseOnTouchResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SetDispenseOnTouchResponse.Marshal(b, m, deterministic)
+}
+func (m *SetDispenseOnTouchResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SetDispenseOnTouchResponse.Merge(m, src)
+}
+func (m *SetDispenseOnTouchResponse) XXX_Size() int {
+	return xxx_messageInfo_SetDispenseOnTouchResponse.Size(m)
+}
+func (m *SetDispenseOnTouchResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_SetDispenseOnTouchResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SetDispenseOnTouchResponse proto.InternalMessageInfo
+
+type SetBuzzOnDispenseRequest struct {
+	BuzzOnDispense       bool     `protobuf:"varint,1,opt,name=buzzOnDispense,proto3" json:"buzzOnDispense,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SetBuzzOnDispenseRequest) Reset()         { *m = SetBuzzOnDispenseRequest{} }
+func (m *SetBuzzOnDispenseRequest) String() string { return proto.CompactTextString(m) }
+func (*SetBuzzOnDispenseRequest) ProtoMessage()    {}
+func (*SetBuzzOnDispenseRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_77a6da22d6a3feb1, []int{7}
+}
+
+func (m *SetBuzzOnDispenseRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SetBuzzOnDispenseRequest.Unmarshal(m, b)
+}
+func (m *SetBuzzOnDispenseRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SetBuzzOnDispenseRequest.Marshal(b, m, deterministic)
+}
+func (m *SetBuzzOnDispenseRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SetBuzzOnDispenseRequest.Merge(m, src)
+}
+func (m *SetBuzzOnDispenseRequest) XXX_Size() int {
+	return xxx_messageInfo_SetBuzzOnDispenseRequest.Size(m)
+}
+func (m *SetBuzzOnDispenseRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_SetBuzzOnDispenseRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SetBuzzOnDispenseRequest proto.InternalMessageInfo
+
+func (m *SetBuzzOnDispenseRequest) GetBuzzOnDispense() bool {
+	if m != nil {
+		return m.BuzzOnDispense
+	}
+	return false
+}
+
+type SetBuzzOnDispenseResponse struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SetBuzzOnDispenseResponse) Reset()         { *m = SetBuzzOnDispenseResponse{} }
+func (m *SetBuzzOnDispenseResponse) String() string { return proto.CompactTextString(m) }
+func (*SetBuzzOnDispenseResponse) ProtoMessage()    {}
+func (*SetBuzzOnDispenseResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_77a6da22d6a3feb1, []int{8}
+}
+
+func (m *SetBuzzOnDispenseResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SetBuzzOnDispenseResponse.Unmarshal(m, b)
+}
+func (m *SetBuzzOnDispenseResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SetBuzzOnDispenseResponse.Marshal(b, m, deterministic)
+}
+func (m *SetBuzzOnDispenseResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SetBuzzOnDispenseResponse.Merge(m, src)
+}
+func (m *SetBuzzOnDispenseResponse) XXX_Size() int {
+	return xxx_messageInfo_SetBuzzOnDispenseResponse.Size(m)
+}
+func (m *SetBuzzOnDispenseResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_SetBuzzOnDispenseResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SetBuzzOnDispenseResponse proto.InternalMessageInfo
+
 type GetWpaConnectionInfoRequest struct {
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
@@ -193,7 +427,7 @@ func (m *GetWpaConnectionInfoRequest) Reset()         { *m = GetWpaConnectionInf
 func (m *GetWpaConnectionInfoRequest) String() string { return proto.CompactTextString(m) }
 func (*GetWpaConnectionInfoRequest) ProtoMessage()    {}
 func (*GetWpaConnectionInfoRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_77a6da22d6a3feb1, []int{3}
+	return fileDescriptor_77a6da22d6a3feb1, []int{9}
 }
 
 func (m *GetWpaConnectionInfoRequest) XXX_Unmarshal(b []byte) error {
@@ -228,7 +462,7 @@ func (m *GetWpaConnectionInfoResponse) Reset()         { *m = GetWpaConnectionIn
 func (m *GetWpaConnectionInfoResponse) String() string { return proto.CompactTextString(m) }
 func (*GetWpaConnectionInfoResponse) ProtoMessage()    {}
 func (*GetWpaConnectionInfoResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_77a6da22d6a3feb1, []int{4}
+	return fileDescriptor_77a6da22d6a3feb1, []int{10}
 }
 
 func (m *GetWpaConnectionInfoResponse) XXX_Unmarshal(b []byte) error {
@@ -289,7 +523,7 @@ func (m *ConnectWpaNetworkRequest) Reset()         { *m = ConnectWpaNetworkReque
 func (m *ConnectWpaNetworkRequest) String() string { return proto.CompactTextString(m) }
 func (*ConnectWpaNetworkRequest) ProtoMessage()    {}
 func (*ConnectWpaNetworkRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_77a6da22d6a3feb1, []int{5}
+	return fileDescriptor_77a6da22d6a3feb1, []int{11}
 }
 
 func (m *ConnectWpaNetworkRequest) XXX_Unmarshal(b []byte) error {
@@ -335,7 +569,7 @@ func (m *ConnectWpaNetworkResponse) Reset()         { *m = ConnectWpaNetworkResp
 func (m *ConnectWpaNetworkResponse) String() string { return proto.CompactTextString(m) }
 func (*ConnectWpaNetworkResponse) ProtoMessage()    {}
 func (*ConnectWpaNetworkResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_77a6da22d6a3feb1, []int{6}
+	return fileDescriptor_77a6da22d6a3feb1, []int{12}
 }
 
 func (m *ConnectWpaNetworkResponse) XXX_Unmarshal(b []byte) error {
@@ -378,7 +612,7 @@ func (m *WpaNetwork) Reset()         { *m = WpaNetwork{} }
 func (m *WpaNetwork) String() string { return proto.CompactTextString(m) }
 func (*WpaNetwork) ProtoMessage()    {}
 func (*WpaNetwork) Descriptor() ([]byte, []int) {
-	return fileDescriptor_77a6da22d6a3feb1, []int{7}
+	return fileDescriptor_77a6da22d6a3feb1, []int{13}
 }
 
 func (m *WpaNetwork) XXX_Unmarshal(b []byte) error {
@@ -444,7 +678,7 @@ func (m *GetWpaNetworksRequest) Reset()         { *m = GetWpaNetworksRequest{} }
 func (m *GetWpaNetworksRequest) String() string { return proto.CompactTextString(m) }
 func (*GetWpaNetworksRequest) ProtoMessage()    {}
 func (*GetWpaNetworksRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_77a6da22d6a3feb1, []int{8}
+	return fileDescriptor_77a6da22d6a3feb1, []int{14}
 }
 
 func (m *GetWpaNetworksRequest) XXX_Unmarshal(b []byte) error {
@@ -476,7 +710,7 @@ func (m *GetWpaNetworksResponse) Reset()         { *m = GetWpaNetworksResponse{}
 func (m *GetWpaNetworksResponse) String() string { return proto.CompactTextString(m) }
 func (*GetWpaNetworksResponse) ProtoMessage()    {}
 func (*GetWpaNetworksResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_77a6da22d6a3feb1, []int{9}
+	return fileDescriptor_77a6da22d6a3feb1, []int{15}
 }
 
 func (m *GetWpaNetworksResponse) XXX_Unmarshal(b []byte) error {
@@ -515,7 +749,7 @@ func (m *UpdateRequest) Reset()         { *m = UpdateRequest{} }
 func (m *UpdateRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateRequest) ProtoMessage()    {}
 func (*UpdateRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_77a6da22d6a3feb1, []int{10}
+	return fileDescriptor_77a6da22d6a3feb1, []int{16}
 }
 
 func (m *UpdateRequest) XXX_Unmarshal(b []byte) error {
@@ -553,7 +787,7 @@ func (m *UpdateResponse) Reset()         { *m = UpdateResponse{} }
 func (m *UpdateResponse) String() string { return proto.CompactTextString(m) }
 func (*UpdateResponse) ProtoMessage()    {}
 func (*UpdateResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_77a6da22d6a3feb1, []int{11}
+	return fileDescriptor_77a6da22d6a3feb1, []int{17}
 }
 
 func (m *UpdateResponse) XXX_Unmarshal(b []byte) error {
@@ -587,7 +821,7 @@ func (m *ConnectToRemoteNodeRequest) Reset()         { *m = ConnectToRemoteNodeR
 func (m *ConnectToRemoteNodeRequest) String() string { return proto.CompactTextString(m) }
 func (*ConnectToRemoteNodeRequest) ProtoMessage()    {}
 func (*ConnectToRemoteNodeRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_77a6da22d6a3feb1, []int{12}
+	return fileDescriptor_77a6da22d6a3feb1, []int{18}
 }
 
 func (m *ConnectToRemoteNodeRequest) XXX_Unmarshal(b []byte) error {
@@ -639,7 +873,7 @@ func (m *ConnectToRemoteNodeResponse) Reset()         { *m = ConnectToRemoteNode
 func (m *ConnectToRemoteNodeResponse) String() string { return proto.CompactTextString(m) }
 func (*ConnectToRemoteNodeResponse) ProtoMessage()    {}
 func (*ConnectToRemoteNodeResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_77a6da22d6a3feb1, []int{13}
+	return fileDescriptor_77a6da22d6a3feb1, []int{19}
 }
 
 func (m *ConnectToRemoteNodeResponse) XXX_Unmarshal(b []byte) error {
@@ -670,7 +904,7 @@ func (m *DisconnectFromRemoteNodeRequest) Reset()         { *m = DisconnectFromR
 func (m *DisconnectFromRemoteNodeRequest) String() string { return proto.CompactTextString(m) }
 func (*DisconnectFromRemoteNodeRequest) ProtoMessage()    {}
 func (*DisconnectFromRemoteNodeRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_77a6da22d6a3feb1, []int{14}
+	return fileDescriptor_77a6da22d6a3feb1, []int{20}
 }
 
 func (m *DisconnectFromRemoteNodeRequest) XXX_Unmarshal(b []byte) error {
@@ -701,7 +935,7 @@ func (m *DisconnectFromRemoteNodeResponse) Reset()         { *m = DisconnectFrom
 func (m *DisconnectFromRemoteNodeResponse) String() string { return proto.CompactTextString(m) }
 func (*DisconnectFromRemoteNodeResponse) ProtoMessage()    {}
 func (*DisconnectFromRemoteNodeResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_77a6da22d6a3feb1, []int{15}
+	return fileDescriptor_77a6da22d6a3feb1, []int{21}
 }
 
 func (m *DisconnectFromRemoteNodeResponse) XXX_Unmarshal(b []byte) error {
@@ -732,7 +966,7 @@ func (m *RebootRequest) Reset()         { *m = RebootRequest{} }
 func (m *RebootRequest) String() string { return proto.CompactTextString(m) }
 func (*RebootRequest) ProtoMessage()    {}
 func (*RebootRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_77a6da22d6a3feb1, []int{16}
+	return fileDescriptor_77a6da22d6a3feb1, []int{22}
 }
 
 func (m *RebootRequest) XXX_Unmarshal(b []byte) error {
@@ -763,7 +997,7 @@ func (m *RebootResponse) Reset()         { *m = RebootResponse{} }
 func (m *RebootResponse) String() string { return proto.CompactTextString(m) }
 func (*RebootResponse) ProtoMessage()    {}
 func (*RebootResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_77a6da22d6a3feb1, []int{17}
+	return fileDescriptor_77a6da22d6a3feb1, []int{23}
 }
 
 func (m *RebootResponse) XXX_Unmarshal(b []byte) error {
@@ -789,6 +1023,12 @@ func init() {
 	proto.RegisterType((*GetInfoRequest)(nil), "sweetrpc.GetInfoRequest")
 	proto.RegisterType((*GetInfoResponse)(nil), "sweetrpc.GetInfoResponse")
 	proto.RegisterType((*RemoteNode)(nil), "sweetrpc.RemoteNode")
+	proto.RegisterType((*SetNameRequest)(nil), "sweetrpc.SetNameRequest")
+	proto.RegisterType((*SetNameResponse)(nil), "sweetrpc.SetNameResponse")
+	proto.RegisterType((*SetDispenseOnTouchRequest)(nil), "sweetrpc.SetDispenseOnTouchRequest")
+	proto.RegisterType((*SetDispenseOnTouchResponse)(nil), "sweetrpc.SetDispenseOnTouchResponse")
+	proto.RegisterType((*SetBuzzOnDispenseRequest)(nil), "sweetrpc.SetBuzzOnDispenseRequest")
+	proto.RegisterType((*SetBuzzOnDispenseResponse)(nil), "sweetrpc.SetBuzzOnDispenseResponse")
 	proto.RegisterType((*GetWpaConnectionInfoRequest)(nil), "sweetrpc.GetWpaConnectionInfoRequest")
 	proto.RegisterType((*GetWpaConnectionInfoResponse)(nil), "sweetrpc.GetWpaConnectionInfoResponse")
 	proto.RegisterType((*ConnectWpaNetworkRequest)(nil), "sweetrpc.ConnectWpaNetworkRequest")
@@ -809,51 +1049,61 @@ func init() {
 func init() { proto.RegisterFile("rpc.proto", fileDescriptor_77a6da22d6a3feb1) }
 
 var fileDescriptor_77a6da22d6a3feb1 = []byte{
-	// 690 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x55, 0xdd, 0x4e, 0xd4, 0x40,
-	0x14, 0xde, 0xee, 0xb2, 0x0b, 0x7b, 0x80, 0xa5, 0x8e, 0x08, 0xa5, 0xa2, 0x2c, 0xa3, 0x18, 0xf4,
-	0x62, 0x63, 0xd0, 0x4b, 0x4d, 0x30, 0xb0, 0x10, 0x0c, 0x59, 0x93, 0x02, 0xe1, 0x0e, 0x53, 0xba,
-	0xc3, 0xa6, 0xa1, 0xed, 0xd4, 0x99, 0x01, 0xe2, 0x43, 0x78, 0xe1, 0xdb, 0x78, 0xed, 0x93, 0x99,
-	0xe9, 0x4c, 0xff, 0xd8, 0x56, 0xb8, 0xeb, 0x39, 0xe7, 0x3b, 0x7f, 0xdf, 0x7e, 0x67, 0x16, 0xba,
-	0x2c, 0xf6, 0x06, 0x31, 0xa3, 0x82, 0xa2, 0x39, 0x7e, 0x47, 0x88, 0x60, 0xb1, 0x87, 0x4d, 0xe8,
-	0x1d, 0x12, 0x71, 0x14, 0x5d, 0x51, 0x87, 0xfc, 0xb8, 0x21, 0x5c, 0xe0, 0xdf, 0x06, 0x2c, 0x65,
-	0x2e, 0x1e, 0xd3, 0x88, 0x13, 0xb4, 0x02, 0x1d, 0x4e, 0x98, 0xef, 0x06, 0x96, 0xd1, 0x37, 0xb6,
-	0xbb, 0x8e, 0xb6, 0x90, 0x05, 0xb3, 0xb7, 0x84, 0x71, 0x9f, 0x46, 0x56, 0x33, 0x09, 0xa4, 0xa6,
-	0xcc, 0xf0, 0x68, 0x18, 0xfa, 0xc2, 0x6a, 0xa9, 0x0c, 0x65, 0xa1, 0x8f, 0x00, 0x8c, 0x84, 0x54,
-	0x90, 0x11, 0x1d, 0x13, 0x6b, 0xa6, 0x6f, 0x6c, 0xcf, 0xef, 0x2c, 0x0f, 0xd2, 0x71, 0x06, 0x4e,
-	0x16, 0x73, 0x0a, 0x38, 0xfc, 0x12, 0x20, 0x8f, 0x20, 0x13, 0x5a, 0x37, 0xcc, 0xd7, 0xa3, 0xc8,
-	0x4f, 0xfc, 0x02, 0x9e, 0x1f, 0x12, 0x71, 0x1e, 0xbb, 0x7b, 0x34, 0x8a, 0x88, 0x27, 0x7c, 0x1a,
-	0x15, 0x57, 0x62, 0xb0, 0x5e, 0x1d, 0xd6, 0xeb, 0x21, 0x98, 0xe1, 0xdc, 0x1f, 0xeb, 0x8a, 0xc9,
-	0x37, 0x5a, 0x86, 0x36, 0x17, 0xae, 0x20, 0x7a, 0x31, 0x65, 0xa0, 0x1e, 0x34, 0xfd, 0x58, 0xaf,
-	0xd4, 0xf4, 0x63, 0x49, 0x40, 0x48, 0x38, 0x77, 0x27, 0x6a, 0x97, 0xae, 0x93, 0x9a, 0x78, 0x17,
-	0x2c, 0xdd, 0xed, 0x3c, 0x76, 0x47, 0x44, 0xdc, 0x51, 0x76, 0xad, 0xe7, 0xa9, 0xec, 0x67, 0x42,
-	0x2b, 0xe6, 0xd7, 0xba, 0x9b, 0xfc, 0xc4, 0x7f, 0x0c, 0x58, 0xab, 0x28, 0xa1, 0x67, 0x3e, 0x85,
-	0x8e, 0x1c, 0xe9, 0x86, 0x27, 0x55, 0x7a, 0x3b, 0x9f, 0x72, 0x12, 0x6b, 0x93, 0x06, 0x25, 0x0a,
-	0xce, 0xe2, 0xb1, 0x2b, 0xc8, 0x89, 0xdc, 0xcb, 0xd1, 0xb5, 0xf0, 0x10, 0xac, 0x3a, 0x0c, 0xea,
-	0x01, 0xec, 0x7d, 0x1b, 0x8d, 0x86, 0x7b, 0xa7, 0x47, 0xa3, 0x43, 0xb3, 0x81, 0x16, 0xa1, 0xab,
-	0xed, 0xe1, 0xbe, 0x69, 0x20, 0x80, 0xce, 0xc1, 0x97, 0xa3, 0xe3, 0xe1, 0xbe, 0xd9, 0xc4, 0xbf,
-	0x0c, 0x80, 0xbc, 0xbd, 0xe4, 0xf2, 0xb2, 0xb0, 0xb0, 0x32, 0xd0, 0x3a, 0x74, 0xaf, 0x98, 0x64,
-	0x24, 0xf2, 0x7e, 0xea, 0xbd, 0x73, 0x07, 0xda, 0x84, 0x05, 0xee, 0x4f, 0x22, 0x37, 0xf8, 0x1e,
-	0x90, 0x5b, 0x12, 0x68, 0xce, 0xe7, 0x95, 0xef, 0x58, 0xba, 0x64, 0xd9, 0xab, 0xc0, 0x9d, 0x70,
-	0x4d, 0xbd, 0x32, 0x32, 0x72, 0xdb, 0x39, 0xb9, 0x78, 0x15, 0x9e, 0x29, 0x01, 0xe8, 0x89, 0x78,
-	0xaa, 0x8c, 0xaf, 0xb0, 0x72, 0x3f, 0xa0, 0xf9, 0x7d, 0x0f, 0x73, 0x91, 0xf6, 0x59, 0x46, 0xbf,
-	0x55, 0x96, 0x69, 0x81, 0xda, 0x0c, 0x85, 0x37, 0x61, 0x51, 0xd1, 0x95, 0xfe, 0xcc, 0x89, 0x4e,
-	0x83, 0x5c, 0xa7, 0x81, 0xbc, 0xb6, 0x14, 0xa2, 0xda, 0xe0, 0x0b, 0xb0, 0x35, 0xdb, 0xa7, 0xb4,
-	0x20, 0xfe, 0x62, 0x85, 0xa2, 0xd2, 0xe5, 0x76, 0x1e, 0x61, 0x22, 0xe1, 0x6b, 0xc1, 0x49, 0xbe,
-	0x91, 0x0d, 0x73, 0xa1, 0xeb, 0xb9, 0x8c, 0xd2, 0x28, 0xa1, 0x69, 0xc1, 0xc9, 0x6c, 0x79, 0x19,
-	0x95, 0xf5, 0x75, 0xfb, 0x4d, 0xd8, 0xd8, 0xf7, 0xb9, 0xa7, 0x10, 0x07, 0x8c, 0x86, 0x53, 0x33,
-	0x60, 0x0c, 0xfd, 0x7a, 0x88, 0x2e, 0xb3, 0x04, 0x8b, 0x0e, 0xb9, 0xa4, 0x54, 0xa4, 0x49, 0x26,
-	0xf4, 0x52, 0x87, 0x82, 0xec, 0xfc, 0x6d, 0x43, 0xfb, 0x44, 0xf2, 0x87, 0x76, 0x61, 0x56, 0xbf,
-	0x2f, 0xc8, 0xca, 0x29, 0x2d, 0xbf, 0x42, 0xf6, 0x5a, 0x45, 0x44, 0x37, 0x6b, 0xa0, 0x09, 0x2c,
-	0x57, 0xdd, 0x33, 0xda, 0x2a, 0x25, 0xd5, 0x3d, 0x07, 0xf6, 0x9b, 0x87, 0x60, 0x59, 0xa3, 0x0b,
-	0x78, 0x32, 0x75, 0x4c, 0x08, 0xff, 0xf7, 0xd2, 0x54, 0x8b, 0x57, 0x8f, 0xb8, 0x46, 0xdc, 0x40,
-	0x67, 0xc9, 0xeb, 0x5b, 0x90, 0x1f, 0xda, 0xb8, 0x3f, 0xdb, 0x3d, 0xc5, 0xda, 0xfd, 0x7a, 0x40,
-	0x56, 0xf6, 0x33, 0x74, 0x94, 0xcc, 0xd0, 0x6a, 0x8e, 0x2e, 0x69, 0xd3, 0xb6, 0xa6, 0x03, 0x59,
-	0xfa, 0x18, 0x9e, 0x56, 0x68, 0x06, 0xbd, 0x9e, 0xda, 0xa9, 0x42, 0xb2, 0xf6, 0xd6, 0x03, 0xa8,
-	0xac, 0x0b, 0x07, 0xab, 0x4e, 0x57, 0xe8, 0x6d, 0x5e, 0xe4, 0x01, 0x79, 0xda, 0xef, 0x1e, 0x03,
-	0x2d, 0x32, 0xa3, 0x74, 0x59, 0x64, 0xa6, 0x24, 0xdd, 0x22, 0x33, 0x65, 0x09, 0xe3, 0xc6, 0x65,
-	0x27, 0xf9, 0xfb, 0xfc, 0xf0, 0x2f, 0x00, 0x00, 0xff, 0xff, 0x69, 0xba, 0xd1, 0x5a, 0x4b, 0x07,
-	0x00, 0x00,
+	// 862 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x56, 0x5f, 0x4f, 0xe3, 0x46,
+	0x10, 0x8f, 0x13, 0xf2, 0x6f, 0x0e, 0x92, 0xdc, 0x96, 0xde, 0x19, 0x1f, 0xed, 0x85, 0x3d, 0x0e,
+	0xa5, 0x7d, 0x88, 0x2a, 0xda, 0xc7, 0x56, 0xa2, 0x90, 0x80, 0xa8, 0x50, 0x90, 0x9c, 0x20, 0xde,
+	0xa8, 0x1c, 0x67, 0x49, 0x2d, 0x62, 0xaf, 0xeb, 0xdd, 0x80, 0xca, 0x77, 0xe8, 0xf7, 0xe9, 0x37,
+	0xe8, 0x47, 0xea, 0x6b, 0xb5, 0xf6, 0xda, 0x5e, 0xc7, 0x36, 0xdc, 0xdb, 0xce, 0xec, 0xec, 0x6f,
+	0x66, 0x7e, 0x9e, 0xf9, 0x25, 0xd0, 0x0e, 0x7c, 0x7b, 0xe8, 0x07, 0x94, 0x53, 0xd4, 0x62, 0x4f,
+	0x84, 0xf0, 0xc0, 0xb7, 0x71, 0x0f, 0x3a, 0x17, 0x84, 0x5f, 0x7a, 0xf7, 0xd4, 0x24, 0x7f, 0xae,
+	0x09, 0xe3, 0xf8, 0x3f, 0x0d, 0xba, 0x89, 0x8b, 0xf9, 0xd4, 0x63, 0x04, 0xbd, 0x83, 0x06, 0x23,
+	0x81, 0x63, 0xad, 0x74, 0xad, 0xaf, 0x0d, 0xda, 0xa6, 0xb4, 0x90, 0x0e, 0xcd, 0x47, 0x12, 0x30,
+	0x87, 0x7a, 0x7a, 0x35, 0xbc, 0x88, 0x4d, 0xf1, 0xc2, 0xa6, 0xae, 0xeb, 0x70, 0xbd, 0x16, 0xbd,
+	0x88, 0x2c, 0xf4, 0x13, 0x40, 0x40, 0x5c, 0xca, 0xc9, 0x84, 0x2e, 0x88, 0xbe, 0xd5, 0xd7, 0x06,
+	0x6f, 0x8e, 0x77, 0x87, 0x71, 0x39, 0x43, 0x33, 0xb9, 0x33, 0x95, 0x38, 0x84, 0x60, 0xcb, 0xb3,
+	0x5c, 0xa2, 0xd7, 0x43, 0xac, 0xf0, 0x8c, 0x06, 0xd0, 0x5d, 0x38, 0xcc, 0x27, 0x1e, 0x23, 0xd7,
+	0xde, 0x8c, 0xae, 0xed, 0x3f, 0xf4, 0x46, 0x5f, 0x1b, 0xb4, 0xcc, 0x4d, 0x37, 0x3a, 0x82, 0xce,
+	0x7c, 0xfd, 0xfc, 0x7c, 0xed, 0x8d, 0xe4, 0x85, 0xde, 0x0c, 0x03, 0x37, 0xbc, 0xf8, 0x5b, 0x80,
+	0x34, 0x3f, 0xea, 0x41, 0x6d, 0x1d, 0x38, 0xb2, 0x61, 0x71, 0xc4, 0x87, 0xd0, 0x99, 0x12, 0x3e,
+	0xb1, 0x5c, 0x22, 0xb9, 0x4a, 0xea, 0xd2, 0xd2, 0xba, 0xf0, 0x5b, 0xe8, 0x26, 0x51, 0x11, 0x7d,
+	0x78, 0x0c, 0x7b, 0x53, 0xc2, 0x47, 0xd9, 0xb2, 0x62, 0x8c, 0x82, 0x3e, 0xb4, 0xc2, 0x3e, 0xf0,
+	0x3e, 0x18, 0x45, 0x30, 0x32, 0xc9, 0x29, 0xe8, 0x53, 0xc2, 0x4f, 0x33, 0x2d, 0xc5, 0x39, 0xf2,
+	0x0c, 0x68, 0x85, 0x0c, 0x7c, 0x08, 0x0b, 0xdd, 0xc4, 0x90, 0x09, 0xbe, 0x81, 0x0f, 0x17, 0x84,
+	0xdf, 0xfa, 0xd6, 0x19, 0xf5, 0x3c, 0x62, 0x73, 0x87, 0x7a, 0xea, 0xdc, 0x04, 0xb0, 0x5f, 0x7c,
+	0x2d, 0x67, 0x08, 0xc1, 0x16, 0x63, 0xce, 0x22, 0xe6, 0x4a, 0x9c, 0xd1, 0x2e, 0xd4, 0x19, 0xb7,
+	0x38, 0x91, 0xd3, 0x13, 0x19, 0xa8, 0x03, 0x55, 0xc7, 0x97, 0x73, 0x53, 0x75, 0x7c, 0x31, 0x65,
+	0x2e, 0x61, 0xcc, 0x5a, 0x46, 0x03, 0xd3, 0x36, 0x63, 0x13, 0x9f, 0x80, 0x2e, 0xb3, 0xdd, 0xfa,
+	0xd6, 0x84, 0xf0, 0x27, 0x1a, 0x3c, 0x28, 0xdf, 0x26, 0x97, 0xaf, 0x07, 0x35, 0x9f, 0x3d, 0xc8,
+	0x6c, 0xe2, 0x88, 0xff, 0xd1, 0x60, 0xaf, 0x00, 0x42, 0xd6, 0x3c, 0x83, 0x86, 0x28, 0x69, 0xcd,
+	0x42, 0x94, 0xce, 0xf1, 0xcf, 0xe9, 0xa4, 0x96, 0x3e, 0x1a, 0x66, 0x28, 0xb8, 0xf1, 0x17, 0x16,
+	0x27, 0x53, 0xd1, 0x97, 0x29, 0xb1, 0xf0, 0x18, 0xf4, 0xb2, 0x18, 0xd4, 0x01, 0x38, 0xbb, 0x9e,
+	0x4c, 0xc6, 0x67, 0xb3, 0xcb, 0xc9, 0x45, 0xaf, 0x82, 0x76, 0xa0, 0x2d, 0xed, 0xf1, 0xa8, 0xa7,
+	0x21, 0x80, 0xc6, 0xf9, 0xaf, 0x97, 0x57, 0xe3, 0x51, 0xaf, 0x8a, 0xff, 0xd6, 0x00, 0xd2, 0xf4,
+	0x82, 0xcb, 0xb9, 0xd2, 0x70, 0x64, 0xa0, 0x7d, 0x68, 0xdf, 0x07, 0x82, 0x11, 0xcf, 0xfe, 0x4b,
+	0xf6, 0x9d, 0x3a, 0xd0, 0x01, 0x6c, 0x33, 0x67, 0xe9, 0x59, 0xab, 0xdf, 0x57, 0xe4, 0x91, 0xac,
+	0x24, 0xe7, 0x6f, 0x22, 0xdf, 0x95, 0x70, 0x09, 0xd8, 0xfb, 0x95, 0xb5, 0x64, 0x92, 0xfa, 0xc8,
+	0x48, 0xc8, 0xad, 0xa7, 0xe4, 0xe2, 0xf7, 0xf0, 0x75, 0x34, 0x00, 0xb2, 0x22, 0x16, 0x4f, 0xc6,
+	0x6f, 0xf0, 0x6e, 0xf3, 0x42, 0xf2, 0xfb, 0x03, 0xb4, 0x3c, 0xe9, 0xd3, 0xb5, 0x7e, 0x2d, 0xab,
+	0x05, 0x0a, 0xb5, 0x49, 0x14, 0x3e, 0x80, 0x9d, 0x88, 0xae, 0xf8, 0x33, 0x87, 0x6b, 0xba, 0x4a,
+	0xd7, 0x74, 0x25, 0x24, 0x2d, 0x0e, 0x91, 0x93, 0x7b, 0x07, 0x86, 0x64, 0x7b, 0x46, 0x15, 0x85,
+	0x51, 0x11, 0xd4, 0x45, 0x17, 0xdd, 0xd9, 0x24, 0xe0, 0x21, 0x5f, 0xdb, 0x66, 0x78, 0x46, 0x06,
+	0xb4, 0x5c, 0xcb, 0xb6, 0x02, 0x4a, 0xbd, 0x90, 0xa6, 0x6d, 0x33, 0xb1, 0xc5, 0x66, 0x14, 0xe2,
+	0xcb, 0xf4, 0x07, 0xf0, 0x71, 0xe4, 0x30, 0x3b, 0x8a, 0x38, 0x0f, 0xa8, 0x9b, 0xab, 0x01, 0x63,
+	0xe8, 0x97, 0x87, 0x48, 0x98, 0x2e, 0xec, 0x98, 0x64, 0x4e, 0x29, 0x8f, 0x1f, 0xf5, 0xa0, 0x13,
+	0x3b, 0xa2, 0x90, 0xe3, 0x7f, 0x9b, 0x50, 0x9f, 0x0a, 0xfe, 0xd0, 0x09, 0x34, 0xa5, 0x88, 0x23,
+	0x3d, 0xa5, 0x34, 0x2b, 0xf5, 0xc6, 0x5e, 0xc1, 0x8d, 0x4c, 0x56, 0x11, 0x08, 0x52, 0xc7, 0x54,
+	0x84, 0xac, 0x00, 0xaa, 0x08, 0x9b, 0xa2, 0x57, 0x41, 0x16, 0xa0, 0xbc, 0x5e, 0xa1, 0x4f, 0x99,
+	0x27, 0xc5, 0xa2, 0x68, 0x1c, 0xbe, 0x1c, 0x94, 0xa4, 0xb8, 0x83, 0xb7, 0x39, 0xc1, 0x42, 0x38,
+	0xf3, 0xb8, 0x50, 0x11, 0x8d, 0x4f, 0x2f, 0xc6, 0x24, 0xf8, 0x4b, 0xd8, 0x2d, 0x12, 0x35, 0xf4,
+	0x39, 0xc3, 0x5c, 0x99, 0x26, 0x1a, 0x47, 0xaf, 0x85, 0xa9, 0x8d, 0xe4, 0x14, 0x45, 0x6d, 0xa4,
+	0x4c, 0xe6, 0xd4, 0x46, 0x4a, 0x25, 0x09, 0x57, 0xd0, 0x4d, 0xf8, 0x3b, 0xaf, 0xec, 0x20, 0xfa,
+	0xb8, 0x59, 0xdb, 0xc6, 0xda, 0x1a, 0xfd, 0xf2, 0x80, 0x04, 0xf6, 0x17, 0x68, 0x44, 0xbb, 0x86,
+	0xde, 0xa7, 0xd1, 0x99, 0x05, 0x35, 0xf4, 0xfc, 0x45, 0xf2, 0x7c, 0x01, 0x5f, 0x15, 0x2c, 0x0e,
+	0x3a, 0xcc, 0xf5, 0x54, 0xb0, 0xb7, 0xc6, 0xe7, 0x57, 0xa2, 0x92, 0x2c, 0x0c, 0xf4, 0xb2, 0xe5,
+	0x42, 0xdf, 0xa5, 0x20, 0xaf, 0xec, 0xa8, 0xf1, 0xfd, 0x97, 0x84, 0xaa, 0xcc, 0x44, 0xcb, 0xa9,
+	0x32, 0x93, 0xd9, 0x5f, 0x95, 0x99, 0xec, 0x1e, 0xe3, 0xca, 0xbc, 0x11, 0xfe, 0x51, 0xfb, 0xf1,
+	0xff, 0x00, 0x00, 0x00, 0xff, 0xff, 0xb8, 0x36, 0x63, 0x7a, 0xb5, 0x09, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -869,6 +1119,9 @@ const _ = grpc.SupportPackageIsVersion4
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type SweetClient interface {
 	GetInfo(ctx context.Context, in *GetInfoRequest, opts ...grpc.CallOption) (*GetInfoResponse, error)
+	SetName(ctx context.Context, in *SetNameRequest, opts ...grpc.CallOption) (*SetNameResponse, error)
+	SetDispenseOnTouch(ctx context.Context, in *SetDispenseOnTouchRequest, opts ...grpc.CallOption) (*SetDispenseOnTouchResponse, error)
+	SetBuzzOnDispense(ctx context.Context, in *SetBuzzOnDispenseRequest, opts ...grpc.CallOption) (*SetBuzzOnDispenseResponse, error)
 	GetWpaConnectionInfo(ctx context.Context, in *GetWpaConnectionInfoRequest, opts ...grpc.CallOption) (*GetWpaConnectionInfoResponse, error)
 	ConnectWpaNetwork(ctx context.Context, in *ConnectWpaNetworkRequest, opts ...grpc.CallOption) (*ConnectWpaNetworkResponse, error)
 	GetWpaNetworks(ctx context.Context, in *GetWpaNetworksRequest, opts ...grpc.CallOption) (*GetWpaNetworksResponse, error)
@@ -889,6 +1142,33 @@ func NewSweetClient(cc *grpc.ClientConn) SweetClient {
 func (c *sweetClient) GetInfo(ctx context.Context, in *GetInfoRequest, opts ...grpc.CallOption) (*GetInfoResponse, error) {
 	out := new(GetInfoResponse)
 	err := c.cc.Invoke(ctx, "/sweetrpc.Sweet/GetInfo", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *sweetClient) SetName(ctx context.Context, in *SetNameRequest, opts ...grpc.CallOption) (*SetNameResponse, error) {
+	out := new(SetNameResponse)
+	err := c.cc.Invoke(ctx, "/sweetrpc.Sweet/SetName", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *sweetClient) SetDispenseOnTouch(ctx context.Context, in *SetDispenseOnTouchRequest, opts ...grpc.CallOption) (*SetDispenseOnTouchResponse, error) {
+	out := new(SetDispenseOnTouchResponse)
+	err := c.cc.Invoke(ctx, "/sweetrpc.Sweet/SetDispenseOnTouch", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *sweetClient) SetBuzzOnDispense(ctx context.Context, in *SetBuzzOnDispenseRequest, opts ...grpc.CallOption) (*SetBuzzOnDispenseResponse, error) {
+	out := new(SetBuzzOnDispenseResponse)
+	err := c.cc.Invoke(ctx, "/sweetrpc.Sweet/SetBuzzOnDispense", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -961,6 +1241,9 @@ func (c *sweetClient) Reboot(ctx context.Context, in *RebootRequest, opts ...grp
 // SweetServer is the server API for Sweet service.
 type SweetServer interface {
 	GetInfo(context.Context, *GetInfoRequest) (*GetInfoResponse, error)
+	SetName(context.Context, *SetNameRequest) (*SetNameResponse, error)
+	SetDispenseOnTouch(context.Context, *SetDispenseOnTouchRequest) (*SetDispenseOnTouchResponse, error)
+	SetBuzzOnDispense(context.Context, *SetBuzzOnDispenseRequest) (*SetBuzzOnDispenseResponse, error)
 	GetWpaConnectionInfo(context.Context, *GetWpaConnectionInfoRequest) (*GetWpaConnectionInfoResponse, error)
 	ConnectWpaNetwork(context.Context, *ConnectWpaNetworkRequest) (*ConnectWpaNetworkResponse, error)
 	GetWpaNetworks(context.Context, *GetWpaNetworksRequest) (*GetWpaNetworksResponse, error)
@@ -988,6 +1271,60 @@ func _Sweet_GetInfo_Handler(srv interface{}, ctx context.Context, dec func(inter
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SweetServer).GetInfo(ctx, req.(*GetInfoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Sweet_SetName_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetNameRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SweetServer).SetName(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/sweetrpc.Sweet/SetName",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SweetServer).SetName(ctx, req.(*SetNameRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Sweet_SetDispenseOnTouch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetDispenseOnTouchRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SweetServer).SetDispenseOnTouch(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/sweetrpc.Sweet/SetDispenseOnTouch",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SweetServer).SetDispenseOnTouch(ctx, req.(*SetDispenseOnTouchRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Sweet_SetBuzzOnDispense_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetBuzzOnDispenseRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SweetServer).SetBuzzOnDispense(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/sweetrpc.Sweet/SetBuzzOnDispense",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SweetServer).SetBuzzOnDispense(ctx, req.(*SetBuzzOnDispenseRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1125,6 +1462,18 @@ var _Sweet_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetInfo",
 			Handler:    _Sweet_GetInfo_Handler,
+		},
+		{
+			MethodName: "SetName",
+			Handler:    _Sweet_SetName_Handler,
+		},
+		{
+			MethodName: "SetDispenseOnTouch",
+			Handler:    _Sweet_SetDispenseOnTouch_Handler,
+		},
+		{
+			MethodName: "SetBuzzOnDispense",
+			Handler:    _Sweet_SetBuzzOnDispense_Handler,
 		},
 		{
 			MethodName: "GetWpaConnectionInfo",

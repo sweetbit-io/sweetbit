@@ -59,11 +59,13 @@ func (s *rpcServer) GetInfo(ctx context.Context,
 	}
 
 	return &sweetrpc.GetInfoResponse{
-		Serial:     id,
-		Version:    s.config.version,
-		Commit:     s.config.commit,
-		RemoteNode: remoteNode,
-		Name:       name,
+		Serial:          id,
+		Version:         s.config.version,
+		Commit:          s.config.commit,
+		RemoteNode:      remoteNode,
+		Name:            name,
+		DispenseOnTouch: s.config.dispenser.dispenseOnTouch,
+		BuzzOnDispense:  s.config.dispenser.buzzOnDispense,
 	}, nil
 }
 
@@ -77,6 +79,30 @@ func (s *rpcServer) SetName(ctx context.Context, req *sweetrpc.SetNameRequest) (
 	}
 
 	return &sweetrpc.SetNameResponse{}, nil
+}
+
+func (s *rpcServer) SetDispenseOnTouch(ctx context.Context, req *sweetrpc.SetDispenseOnTouchRequest) (*sweetrpc.SetDispenseOnTouchResponse, error) {
+	log.Infof("Setting dispense on touch to '%v'...", req.DispenseOnTouch)
+
+	err := s.config.dispenser.setDispenseOnTouch(req.DispenseOnTouch)
+	if err != nil {
+		log.Errorf("Failed setting dispense on touch: %v", err)
+		return nil, errors.New("Failed setting dispense on touch")
+	}
+
+	return &sweetrpc.SetDispenseOnTouchResponse{}, nil
+}
+
+func (s *rpcServer) SetBuzzOnDispense(ctx context.Context, req *sweetrpc.SetBuzzOnDispenseRequest) (*sweetrpc.SetBuzzOnDispenseResponse, error) {
+	log.Infof("Setting buzz on dispense to '%v'...", req.BuzzOnDispense)
+
+	err := s.config.dispenser.setBuzzOnDispense(req.BuzzOnDispense)
+	if err != nil {
+		log.Errorf("Failed setting buzz on dispense: %v", err)
+		return nil, errors.New("Failed setting buzz on dispense")
+	}
+
+	return &sweetrpc.SetBuzzOnDispenseResponse{}, nil
 }
 
 func (s *rpcServer) GetWpaConnectionInfo(ctx context.Context,

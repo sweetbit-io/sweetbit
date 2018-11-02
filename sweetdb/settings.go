@@ -8,9 +8,11 @@ import (
 )
 
 var (
-	settingsBucket   = []byte("settings")
-	lightningNodeKey = []byte("lightningNode")
-	nameKey          = []byte("name")
+	settingsBucket     = []byte("settings")
+	lightningNodeKey   = []byte("lightningNode")
+	nameKey            = []byte("name")
+	dispenseOnTouchKey = []byte("dispenseOnTouch")
+	buzzOnDispenseKey  = []byte("buzzOnDispense")
 )
 
 type LightningNode struct {
@@ -74,13 +76,11 @@ func (db *DB) GetLightningNode() (*LightningNode, error) {
 
 func (db *DB) SetName(name string) error {
 	return db.Update(func(tx *bolt.Tx) error {
-		// First grab the settings bucket
 		bucket, err := tx.CreateBucketIfNotExists(settingsBucket)
 		if err != nil {
 			return err
 		}
 
-		// Set the name
 		if err := bucket.Put(nameKey, []byte(name)); err != nil {
 			return err
 		}
@@ -93,7 +93,6 @@ func (db *DB) GetName() (string, error) {
 	var name string
 
 	err := db.View(func(tx *bolt.Tx) error {
-		// First fetch the bucket
 		bucket := tx.Bucket(settingsBucket)
 		if bucket == nil {
 			return nil
@@ -110,4 +109,96 @@ func (db *DB) GetName() (string, error) {
 	}
 
 	return name, nil
+}
+
+func (db *DB) SetDispenseOnTouch(dispenseOnTouch bool) error {
+	payload, err := json.Marshal(dispenseOnTouch)
+	if err != nil {
+		return err
+	}
+
+	return db.Update(func(tx *bolt.Tx) error {
+		bucket, err := tx.CreateBucketIfNotExists(settingsBucket)
+		if err != nil {
+			return err
+		}
+
+		if err := bucket.Put(dispenseOnTouchKey, payload); err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+
+func (db *DB) GetDispenseOnTouch() (bool, error) {
+	var dispenseOnTouch bool
+
+	err := db.View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket(settingsBucket)
+		if bucket == nil {
+			return nil
+		}
+
+		dispenseOnTouchBytes := bucket.Get(dispenseOnTouchKey)
+
+		err := json.Unmarshal(dispenseOnTouchBytes, &dispenseOnTouch)
+		if err != nil {
+			return errors.Errorf("Could not unmarshal data: %v", err)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return false, err
+	}
+
+	return dispenseOnTouch, nil
+}
+
+func (db *DB) SetBuzzOnDispense(buzzOnDispense bool) error {
+	payload, err := json.Marshal(buzzOnDispense)
+	if err != nil {
+		return err
+	}
+
+	return db.Update(func(tx *bolt.Tx) error {
+		bucket, err := tx.CreateBucketIfNotExists(settingsBucket)
+		if err != nil {
+			return err
+		}
+
+		if err := bucket.Put(buzzOnDispenseKey, payload); err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+
+func (db *DB) GetBuzzOnDispense() (bool, error) {
+	var buzzOnDispense bool
+
+	err := db.View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket(settingsBucket)
+		if bucket == nil {
+			return nil
+		}
+
+		buzzOnDispenseBytes := bucket.Get(buzzOnDispenseKey)
+
+		err := json.Unmarshal(buzzOnDispenseBytes, &buzzOnDispense)
+		if err != nil {
+			return errors.Errorf("Could not unmarshal data: %v", err)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return false, err
+	}
+
+	return buzzOnDispense, nil
 }

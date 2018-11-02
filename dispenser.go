@@ -224,6 +224,17 @@ func (d *dispenser) disconnectLndNode() error {
 	return nil
 }
 
+func (d *dispenser) getName() (string, error) {
+	log.Infof("Getting name")
+
+	name, err := d.db.GetName()
+	if err != nil {
+		return "", errors.Errorf("Failed getting name: %v", err)
+	}
+
+	return name, nil
+}
+
 func (d *dispenser) setName(name string) error {
 	log.Infof("Setting name")
 
@@ -235,15 +246,30 @@ func (d *dispenser) setName(name string) error {
 	return nil
 }
 
-func (d *dispenser) getName() (string, error) {
-	log.Infof("Getting name")
+func (d *dispenser) setDispenseOnTouch(dispenseOnTouch bool) error {
+	log.Infof("Setting dispense on touch")
 
-	name, err := d.db.GetName()
+	d.dispenseOnTouch = dispenseOnTouch
+
+	err := d.db.SetDispenseOnTouch(dispenseOnTouch)
 	if err != nil {
-		return "", errors.Errorf("Failed getting name: %v", err)
+		return errors.Errorf("Failed setting dispense on touch: %v", err)
 	}
 
-	return name, nil
+	return nil
+}
+
+func (d *dispenser) setBuzzOnDispense(buzzOnDispense bool) error {
+	log.Infof("Setting buzz on dispense")
+
+	d.buzzOnDispense = buzzOnDispense
+
+	err := d.db.SetBuzzOnDispense(buzzOnDispense)
+	if err != nil {
+		return errors.Errorf("Failed setting buzz on dispense: %v", err)
+	}
+
+	return nil
 }
 
 func (d *dispenser) shutdown() {
