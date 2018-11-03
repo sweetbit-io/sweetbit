@@ -26,64 +26,103 @@ The `sweetd` program offers the following features:
 * [x] 🔄 Update itself through app
 * [ ] ⚙️ Ensure all system configs are made
 
-## Usage
+## Download
 
 Download the pre-built binary for your system from the GitHub releases page.
 
 * ⬇️ [Download `sweetd`](https://github.com/the-lightning-land/sweetd/releases)
 
-Make sure that [all necessary dependencies](#dependencies) are installed.
-
 Extract and open the downloaded archive, then run `sweetd`.
-The following options are available. 
 
-```
-Usage:
-  sweetd [OPTIONS]
+## Data
 
-Application Options:
-  -v, --version                  Display version information and exit.
-      --debug                    Start in debug mode.
-      --listen=                  Add an interface/port/socket to listen for RPC
-                                 connections
-      --machine=[raspberry|mock] The machine controller to use. (default:
-                                 raspberry)
-      --ap                       Run the access point service.
-      --datadir=                 The directory to store sweetd's data within.'
-                                 (default: ./data)
+By default, `sweetd` stores all data to `./data`.
+You can easily override this location:
 
-Raspberry:
-      --raspberry.touchpin=      The touch input pin. (default: 4)
-      --raspberry.motorpin=      The motor output pin. (default: 27)
-      --raspberry.buzzerpin=     The buzzer output pin. (default: 17)
+```sh
+sweetd --datadir=/data/sweetd
+``` 
 
-Mock:
-      --mock.listen=             Add an interface/port to listen for mock
-                                 touches.
+## Configure machine access
 
-Access point:
-      --ap.ip=                   IP address of device on access point
-                                 interface. (default: 192.168.27.1/24)
-      --ap.interface=            Name of the access point interface. (default:
-                                 uap0)
-      --ap.ssid=                 Name of the access point. (default: candy)
-      --ap.passphrase=           WPA Passphrase (expected 8..63). (default:
-                                 reckless)
-      --ap.dhcprange=            IP range of the DHCP service. (default:
-                                 192.168.27.100,192.168.27.150,1h)
+Currently, the `sweetd` program is only tested and executed on a Raspberry Pi.
+Running the executable with no options is the same as providing the following
+options:
 
-Help Options:
-  -h, --help                     Show this help message
+```sh
+sweetd \
+  --machine=raspberry \
+  --raspberry.touchpin=4 \
+  --raspberry.motorpin=27 \
+  --raspberry.buzzerpin=17
 ```
 
-## Dependencies
+You can also mock the underlying machine with the following option:
 
-If you want to enable Wi-Fi pairing through the `--ap` option,
-you'll need to install the following packages on your system: 
+```sh
+sweetd \
+  --machine=mock \
+  --mock.listen=localhost:5000
+```
+
+With this option, you can fake touches by sending simple
+HTTP requests to the mock machine:
+
+```
+curl http://localhost:5000/touch/on
+curl http://localhost:5000/touch/off
+```
+
+## Configure the `sweetd` API server
+
+`sweetd` exposes a gRPC API. It can be used to configure the
+Wi-Fi network that the candy dispenser connects to,
+personalize it and change settings.
+
+By default, the API server listens on `0.0.0.0:9000`. This can be changed
+with the following option:
+
+```sh
+sweetd --listen=localhost:9000
+```
+
+It's also possible to specify multiple `--listen` options and
+listen to multiple interfaces at once.
+
+## Enable Wi-Fi hotspot pairing
+
+At the moment, the only app pairing mechanism is through a Wi-Fi hotspot
+that is created by the `sweetd` program.
+
+This feature needs to be activated first:
+
+```sh
+sweetd --ap
+```
+
+Make sure that the following dependencies are installed when
+running the access point mode:
 
 ```
 hostapd wireless-tools wpasupplicant dnsmasq iw
 ```
+
+The access point is configured with the below defaults. Any of these
+can be changed to your needs.
+
+```sh
+sweetd \
+  --ap \
+  --ap.ip=192.168.27.1/24 \
+  --ap.interface=uap0 \
+  --ap.ssid=candy \
+  --ap.passphrase=reckless \
+  --ap.dhcprange=192.168.27.100,192.168.27.150,1h
+```
+
+This will create a Wi-Fi network called `candy` with the passphrase `reckless`.
+An app will connect to that network for pairing and use
+the gRPC api that is provided by the `sweetd` program.
 
 ## Installation
 
@@ -122,10 +161,6 @@ hostapd wireless-tools wpasupplicant dnsmasq iw
 `go build`
 
 `./sweetd`
-
-### Update lnd grpc client
-
-`protoc -I. -I$GOPATH/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis lnrpc/rpc.proto --go_out=plugins=grpc:.`
 
 ## Releasing using [`goreleaser`](https://goreleaser.com)
 
