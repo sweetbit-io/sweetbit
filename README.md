@@ -1,9 +1,9 @@
 # 🔌 `sweetd`
 
-> Sweet daemon for pairing and control of the Bitcoin-enabled candy dispenser
-
 [![license](https://img.shields.io/github/license/the-lightning-land/sweetd.svg)](https://github.com/the-lightning-land/sweetd/blob/master/LICENSE)
 [![release](https://img.shields.io/github/release/the-lightning-land/sweetd.svg)](https://github.com/the-lightning-land/sweetd/releases)
+
+> Sweet daemon for pairing and control of the Bitcoin-enabled candy dispenser
 
 ## Intro
 
