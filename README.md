@@ -34,7 +34,7 @@ Download the pre-built binary for your system from the GitHub releases page.
 
 Extract and open the downloaded archive, then run `sweetd`.
 
-## Data
+## Configure data directory
 
 By default, `sweetd` stores all data to `./data`.
 You can easily override this location:
