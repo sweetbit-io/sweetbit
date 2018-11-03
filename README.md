@@ -1,17 +1,41 @@
-# `sweetd`
+# 🔌 `sweetd`
 
-> 🔌 Daemon for pairing and control of the candy dispenser
+> Daemon for pairing and control of the Bitcoin-enabled candy dispenser
 
-* [x] Control of touch sensor, motor and buzzer
-* [x] Start pairing mode
-* [ ] Bluetooth pairing
-* [x] WiFi pairing
-* [ ] Setup and configuration of `lnd` node
-* [ ] Bundle lnd in future
-* [x] Update procedure
-* [ ] Automatically ensure that there's `denyinterfaces uap0` in `/etc/dhcpcd.conf`
+[![license](https://img.shields.io/github/license/the-lightning-land/sweetd.svg)](https://github.com/the-lightning-land/sweetd/blob/master/LICENSE)
+[![release](https://img.shields.io/github/release/the-lightning-land/sweetd.svg)](https://github.com/the-lightning-land/sweetd/releases)
+
+## Intro
+
+`sweetd` is the daemon process running on the Bitcoin-enabled candy dispenser.
+It manages pairing and control, which is used by the Candy Dispenser app:
+
+* 📱 [Candy Dispenser iOS app](https://github.com/the-lightning-land/Dispenser-iOS)
+* 📱 *Candy Dispenser Android app coming in the future*
+
+The `sweetd` program offers the following features:
+
+* [x] 🍬 Control of the motor for dispensing candy
+* [x] 📳 Control of the buzzer for user feedback
+* [x] ☝️ React on events from the touch sensor
+* [x] 📶 Pair through Wi-Fi hotspot
+* [ ] 🔵 Pair through Bluetooth
+* [x] 🌐 Set up Wi-Fi on candy dispenser
+* [x] ⚡ Dispense candy on payments from remote `lnd` node
+* [x] 💅 Customize name of your dispenser
+* [x] 🔄 Update itself through app
+* [ ] ⚙️ Ensure all system configs are made
 
 ## Usage
+
+Download the pre-built binary for your system from the GitHub releases page.
+
+* ⬇️ [Download `sweetd`](https://github.com/the-lightning-land/sweetd/releases)
+
+Make sure that [all necessary dependencies](#dependencies) are installed.
+
+Extract and open the downloaded archive, then run `sweetd`.
+The following options are available. 
 
 ```
 Usage:
@@ -53,6 +77,9 @@ Help Options:
 ```
 
 ## Dependencies
+
+If you want to enable Wi-Fi pairing through the `--ap` option,
+you'll need to install the following packages on your system: 
 
 ```
 hostapd wireless-tools wpasupplicant dnsmasq iw
