@@ -12,21 +12,22 @@ import (
 )
 
 type rpcServerConfig struct {
-	version   string
-	commit    string
-	dispenser *dispenser
+	version string
+	commit  string
 }
 
 type rpcServer struct {
-	config *rpcServerConfig
+	dispenser *dispenser
+	config    *rpcServerConfig
 }
 
 // A compile time check to ensure that rpcServer fully implements the SweetServer gRPC service.
 var _ sweetrpc.SweetServer = (*rpcServer)(nil)
 
-func newRPCServer(config *rpcServerConfig) *rpcServer {
+func newRPCServer(dispenser *dispenser, config *rpcServerConfig) *rpcServer {
 	return &rpcServer{
-		config: config,
+		dispenser: dispenser,
+		config:    config,
 	}
 }
 
@@ -41,13 +42,13 @@ func (s *rpcServer) GetInfo(ctx context.Context,
 
 	var remoteNode *sweetrpc.RemoteNode = nil
 
-	if s.config.dispenser.lightningNodeUri != "" {
+	if s.dispenser.lightningNodeUri != "" {
 		remoteNode = &sweetrpc.RemoteNode{
-			Uri: s.config.dispenser.lightningNodeUri,
+			Uri: s.dispenser.lightningNodeUri,
 		}
 	}
 
-	name, err := s.config.dispenser.getName()
+	name, err := s.dispenser.getName()
 	if err != nil {
 		log.Errorf("Failed getting info: %v", err)
 		return nil, errors.New("Failed getting info")
@@ -64,15 +65,15 @@ func (s *rpcServer) GetInfo(ctx context.Context,
 		Commit:          s.config.commit,
 		RemoteNode:      remoteNode,
 		Name:            name,
-		DispenseOnTouch: s.config.dispenser.dispenseOnTouch,
-		BuzzOnDispense:  s.config.dispenser.buzzOnDispense,
+		DispenseOnTouch: s.dispenser.dispenseOnTouch,
+		BuzzOnDispense:  s.dispenser.buzzOnDispense,
 	}, nil
 }
 
 func (s *rpcServer) SetName(ctx context.Context, req *sweetrpc.SetNameRequest) (*sweetrpc.SetNameResponse, error) {
 	log.Infof("Setting name to '%v'...", req.Name)
 
-	err := s.config.dispenser.setName(req.Name)
+	err := s.dispenser.setName(req.Name)
 	if err != nil {
 		log.Errorf("Failed setting name: %v", err)
 		return nil, errors.New("Failed setting name")
@@ -84,7 +85,7 @@ func (s *rpcServer) SetName(ctx context.Context, req *sweetrpc.SetNameRequest) (
 func (s *rpcServer) SetDispenseOnTouch(ctx context.Context, req *sweetrpc.SetDispenseOnTouchRequest) (*sweetrpc.SetDispenseOnTouchResponse, error) {
 	log.Infof("Setting dispense on touch to '%v'...", req.DispenseOnTouch)
 
-	err := s.config.dispenser.setDispenseOnTouch(req.DispenseOnTouch)
+	err := s.dispenser.setDispenseOnTouch(req.DispenseOnTouch)
 	if err != nil {
 		log.Errorf("Failed setting dispense on touch: %v", err)
 		return nil, errors.New("Failed setting dispense on touch")
@@ -96,7 +97,7 @@ func (s *rpcServer) SetDispenseOnTouch(ctx context.Context, req *sweetrpc.SetDis
 func (s *rpcServer) SetBuzzOnDispense(ctx context.Context, req *sweetrpc.SetBuzzOnDispenseRequest) (*sweetrpc.SetBuzzOnDispenseResponse, error) {
 	log.Infof("Setting buzz on dispense to '%v'...", req.BuzzOnDispense)
 
-	err := s.config.dispenser.setBuzzOnDispense(req.BuzzOnDispense)
+	err := s.dispenser.setBuzzOnDispense(req.BuzzOnDispense)
 	if err != nil {
 		log.Errorf("Failed setting buzz on dispense: %v", err)
 		return nil, errors.New("Failed setting buzz on dispense")
@@ -260,13 +261,13 @@ func (s *rpcServer) ConnectToRemoteNode(ctx context.Context,
 	req *sweetrpc.ConnectToRemoteNodeRequest) (*sweetrpc.ConnectToRemoteNodeResponse, error) {
 	log.Infof("Connecting to lightning node %s", req.Uri)
 
-	err := s.config.dispenser.connectLndNode(req.Uri, req.Cert, req.Macaroon)
+	err := s.dispenser.connectLndNode(req.Uri, req.Cert, req.Macaroon)
 	if err != nil {
 		log.Errorf("Connection failed: %v", err)
 		return nil, errors.New("Connection failed")
 	}
 
-	err = s.config.dispenser.saveLndNode(req.Uri, req.Cert, req.Macaroon)
+	err = s.dispenser.saveLndNode(req.Uri, req.Cert, req.Macaroon)
 	if err != nil {
 		log.Errorf("Could not save remote lightning connection: %v", err)
 	}
@@ -278,13 +279,13 @@ func (s *rpcServer) DisconnectFromRemoteNode(ctx context.Context,
 	req *sweetrpc.DisconnectFromRemoteNodeRequest) (*sweetrpc.DisconnectFromRemoteNodeResponse, error) {
 	log.Infof("Disconnecting fromlightning node")
 
-	err := s.config.dispenser.disconnectLndNode()
+	err := s.dispenser.disconnectLndNode()
 	if err != nil {
 		log.Errorf("Disconnect failed: %v", err)
 		return nil, errors.New("Disconnect failed")
 	}
 
-	err = s.config.dispenser.deleteLndNode()
+	err = s.dispenser.deleteLndNode()
 	if err != nil {
 		log.Errorf("Could not delete remote lightning connection: %v", err)
 	}

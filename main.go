@@ -120,10 +120,9 @@ func sweetdMain() error {
 	if len(cfg.Listeners) > 0 {
 		grpcServer := grpc.NewServer()
 
-		sweetrpc.RegisterSweetServer(grpcServer, newRPCServer(&rpcServerConfig{
-			version:   version,
-			commit:    commit,
-			dispenser: dispenser,
+		sweetrpc.RegisterSweetServer(grpcServer, newRPCServer(dispenser, &rpcServerConfig{
+			version: version,
+			commit:  commit,
 		}))
 
 		// Next, Start the gRPC server listening for HTTP/2 connections.
