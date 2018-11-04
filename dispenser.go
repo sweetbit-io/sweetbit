@@ -107,6 +107,10 @@ func (d *dispenser) run() error {
 }
 
 func (d *dispenser) toggleDispense(on bool) {
+	if d.buzzOnDispense {
+		d.machine.ToggleBuzzer(on)
+	}
+
 	d.machine.ToggleMotor(on)
 }
 
