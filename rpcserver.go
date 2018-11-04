@@ -319,5 +319,24 @@ func (r *rpcServer) SubscribeDispenses(req *sweetrpc.SubscribeDispensesRequest,
 	updateStream sweetrpc.Sweet_SubscribeDispensesServer) error {
 	log.Info("Subscribing to dispenses")
 
+	client := r.dispenser.subscribeDispenses()
+
+	defer client.cancel()
+
+	for {
+		on := <-client.Dispenses
+
+		log.Debugf("Sending dispense event %v to client %v", on, client.id)
+
+		dispense := &sweetrpc.Dispense{
+			Dispense: on,
+		}
+
+		if err := updateStream.Send(dispense); err != nil {
+			log.Infof("Client %v failed receiving: %v", client.id, err)
+			return err
+		}
+	}
+
 	return nil
 }

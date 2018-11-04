@@ -14,19 +14,31 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"io"
+	"sync"
 	"time"
 )
 
 type dispenser struct {
-	machine          machine.Machine
-	db               *sweetdb.DB
-	dispenseOnTouch  bool
-	buzzOnDispense   bool
-	done             chan struct{}
-	payments         chan *lnrpc.Invoice
-	grpcConn         *grpc.ClientConn
-	lightningNodeUri string
+	machine              machine.Machine
+	db                   *sweetdb.DB
+	dispenseOnTouch      bool
+	buzzOnDispense       bool
+	done                 chan struct{}
+	payments             chan *lnrpc.Invoice
+	grpcConn             *grpc.ClientConn
+	lightningNodeUri     string
+	dispenses            chan bool
+	dispenseClients      map[uint32]*dispenseClient
+	dispenseClientMtx    sync.Mutex
+	nextDispenseClientID uint32
 	// add bluetooth pairing
+}
+
+type dispenseClient struct {
+	Dispenses  chan bool
+	id         uint32
+	cancelChan chan struct{}
+	dispenser  *dispenser
 }
 
 func newDispenser(machine machine.Machine, db *sweetdb.DB) *dispenser {
@@ -37,6 +49,8 @@ func newDispenser(machine machine.Machine, db *sweetdb.DB) *dispenser {
 		buzzOnDispense:  false,
 		done:            make(chan struct{}),
 		payments:        make(chan *lnrpc.Invoice),
+		dispenses:       make(chan bool),
+		dispenseClients: make(map[uint32]*dispenseClient),
 	}
 }
 
@@ -63,21 +77,27 @@ func (d *dispenser) run() error {
 		}
 	}
 
+	// Notify all subscribed dispense clients
+	go func() {
+		for {
+			on := <-d.dispenses
+
+			for _, client := range d.dispenseClients {
+				client.Dispenses <- on
+			}
+		}
+	}()
+
 	for {
 		select {
 		case on := <-d.machine.TouchEvents():
 			// react on direct touch events of the machine
-			log.Info("Touch event {}", on)
+			log.Info("Touch event %v", on)
 
-			if d.dispenseOnTouch {
-				d.machine.ToggleMotor(on)
-
-				if d.buzzOnDispense {
-					d.machine.ToggleBuzzer(on)
-				}
-			} else if !on {
-				d.machine.ToggleBuzzer(false)
-				d.machine.ToggleMotor(false)
+			if d.dispenseOnTouch && on {
+				d.toggleDispense(true)
+			} else {
+				d.toggleDispense(false)
 			}
 
 		case payment := <-d.payments:
@@ -86,18 +106,9 @@ func (d *dispenser) run() error {
 
 			log.Debugf("Dispensing for a duration of %v", dispense)
 
-			d.machine.ToggleMotor(true)
-
-			if d.buzzOnDispense {
-				d.machine.ToggleBuzzer(true)
-			}
-
+			d.toggleDispense(true)
 			time.Sleep(dispense)
-			d.machine.ToggleMotor(false)
-
-			if d.buzzOnDispense {
-				d.machine.ToggleBuzzer(false)
-			}
+			d.toggleDispense(false)
 
 		case <-d.done:
 			// finish loop when program is done
@@ -107,11 +118,14 @@ func (d *dispenser) run() error {
 }
 
 func (d *dispenser) toggleDispense(on bool) {
-	if d.buzzOnDispense {
+	// Always make sure that buzzing stops
+	if d.buzzOnDispense || !on {
 		d.machine.ToggleBuzzer(on)
 	}
 
 	d.machine.ToggleMotor(on)
+
+	d.dispenses <- on
 }
 
 func (d *dispenser) saveLndNode(uri string, certBytes []byte, macaroonBytes []byte) error {
@@ -288,4 +302,27 @@ func (d *dispenser) shutdown() {
 	}
 
 	close(d.done)
+}
+
+func (d *dispenser) subscribeDispenses() (*dispenseClient) {
+	client := &dispenseClient{
+		Dispenses:  make(chan bool),
+		cancelChan: make(chan struct{}),
+		dispenser:  d,
+	}
+
+	d.dispenseClientMtx.Lock()
+	client.id = d.nextDispenseClientID
+	d.nextDispenseClientID++
+	d.dispenseClientMtx.Unlock()
+
+	d.dispenseClients[client.id] = client
+
+	return client
+}
+
+func (c *dispenseClient) cancel() {
+	delete(c.dispenser.dispenseClients, c.id)
+
+	close(c.cancelChan)
 }
