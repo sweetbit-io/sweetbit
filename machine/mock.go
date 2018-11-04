@@ -5,10 +5,8 @@ import (
 )
 
 type MockMachine struct {
-	// Listeners
-	listen string
-	// Internal sending channel for touch events
-	touchEvents chan bool
+	listen      string    // Listeners
+	touchEvents chan bool // Internal sending channel for touch events
 }
 
 func NewMockMachine(listen string) *MockMachine {

@@ -16,16 +16,11 @@ const (
 )
 
 type DispenserMachine struct {
-	// Internal sending channel for touch events
-	touchEvents chan bool
-	// Internal motor events channel
-	motorEvents chan bool
-	// Internal buzzer events channel
-	buzzerEvents chan bool
-	// Internal done channel
-	done chan bool
-	// Internal goroutine WaitGroup
-	waitGroup sync.WaitGroup
+	touchEvents  chan bool      // Internal sending channel for touch events
+	motorEvents  chan bool      // Internal motor events channel
+	buzzerEvents chan bool      // Internal buzzer events channel
+	done         chan bool      // Internal done channel
+	waitGroup    sync.WaitGroup // Internal goroutine WaitGroup
 }
 
 func NewDispenserMachine() *DispenserMachine {

@@ -277,7 +277,7 @@ func (s *rpcServer) ConnectToRemoteNode(ctx context.Context,
 
 func (s *rpcServer) DisconnectFromRemoteNode(ctx context.Context,
 	req *sweetrpc.DisconnectFromRemoteNodeRequest) (*sweetrpc.DisconnectFromRemoteNodeResponse, error) {
-	log.Infof("Disconnecting fromlightning node")
+	log.Info("Disconnecting from lightning node")
 
 	err := s.dispenser.disconnectLndNode()
 	if err != nil {
@@ -295,7 +295,7 @@ func (s *rpcServer) DisconnectFromRemoteNode(ctx context.Context,
 
 func (s *rpcServer) Reboot(ctx context.Context,
 	req *sweetrpc.RebootRequest) (*sweetrpc.RebootResponse, error) {
-	log.Infof("Rebooting dispenser...")
+	log.Info("Rebooting dispenser...")
 
 	err := reboot.Reboot()
 	if err != nil {
@@ -304,4 +304,20 @@ func (s *rpcServer) Reboot(ctx context.Context,
 	}
 
 	return &sweetrpc.RebootResponse{}, nil
+}
+
+func (s *rpcServer) ToggleDispenser(ctx context.Context,
+	req *sweetrpc.ToggleDispenserRequest) (*sweetrpc.ToggleDispenserResponse, error) {
+	log.Infof("Toggling dispenser %v", req.Dispense)
+
+	s.dispenser.toggleDispense(req.Dispense)
+
+	return &sweetrpc.ToggleDispenserResponse{}, nil
+}
+
+func (r *rpcServer) SubscribeDispenses(req *sweetrpc.SubscribeDispensesRequest,
+	updateStream sweetrpc.Sweet_SubscribeDispensesServer) error {
+	log.Info("Subscribing to dispenses")
+
+	return nil
 }

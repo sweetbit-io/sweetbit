@@ -25,6 +25,10 @@ service Sweet {
     }
     rpc Reboot (RebootRequest) returns (RebootResponse) {
     }
+    rpc ToggleDispenser (ToggleDispenserRequest) returns (ToggleDispenserResponse) {
+    }
+    rpc SubscribeDispenses (SubscribeDispensesRequest) returns (stream Dispense) {
+    }
 }
 
 message GetInfoRequest {
@@ -131,4 +135,18 @@ message RebootRequest {
 }
 
 message RebootResponse {
+}
+
+message ToggleDispenserRequest {
+    bool dispense = 1;
+}
+
+message ToggleDispenserResponse {
+}
+
+message SubscribeDispensesRequest {
+}
+
+message Dispense {
+    bool dispense = 1;
 }

@@ -106,6 +106,10 @@ func (d *dispenser) run() error {
 	}
 }
 
+func (d *dispenser) toggleDispense(on bool) {
+	d.machine.ToggleMotor(on)
+}
+
 func (d *dispenser) saveLndNode(uri string, certBytes []byte, macaroonBytes []byte) error {
 	err := d.db.SetLightningNode(&sweetdb.LightningNode{
 		Uri:      uri,
