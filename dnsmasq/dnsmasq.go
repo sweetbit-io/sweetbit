@@ -1,11 +1,11 @@
 package dnsmasq
 
 import (
-	"os/exec"
 	"bufio"
-	"sync/atomic"
 	"github.com/pkg/errors"
+	"os/exec"
 	"strings"
+	"sync/atomic"
 	"time"
 )
 
@@ -89,11 +89,13 @@ func (d *Dnsmasq) Start() error {
 
 	// Block until the process has started
 	for {
-		<-timer.C
-		return errors.New("Timed out")
-		state := <-d.states
-		if state == STARTED {
-			return nil
+		select {
+		case <-timer.C:
+			return errors.New("Timed out")
+		case state := <-d.states:
+			if state == STARTED {
+				return nil
+			}
 		}
 	}
 }

@@ -66,12 +66,12 @@ func (m *DispenserMachine) Stop() {
 }
 
 func (m *DispenserMachine) ToggleMotor(on bool) {
-	log.Info("Toggling motor %v", on)
+	log.Infof("Toggling motor %v", on)
 	m.motorEvents <- on
 }
 
 func (m *DispenserMachine) ToggleBuzzer(on bool) {
-	log.Info("Toggling buzzer %v", on)
+	log.Infof("Toggling buzzer %v", on)
 	m.buzzerEvents <- on
 }
 
