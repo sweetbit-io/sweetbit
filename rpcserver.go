@@ -160,7 +160,7 @@ func (s *rpcServer) ConnectWpaNetwork(ctx context.Context,
 
 	tries := 1
 
-	ticker := time.NewTicker(5 * time.Second)
+	ticker := time.NewTicker(500 * time.Millisecond)
 	defer ticker.Stop()
 
 	for {
@@ -191,7 +191,7 @@ func (s *rpcServer) ConnectWpaNetwork(ctx context.Context,
 			}, nil
 		}
 
-		if tries > 5 {
+		if tries > 20 {
 			break
 		}
 
