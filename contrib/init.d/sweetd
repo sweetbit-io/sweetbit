@@ -21,7 +21,7 @@ DAEMON=/usr/local/bin/sweetd
 DEFAULTS=/etc/default/sweetd
 PIDFILE=/var/run/sweetd.pid
 SCRIPTNAME=/etc/init.d/$NAME
-EXTRA_OPTS="--ap"
+EXTRA_OPTS=
 
 test -f $DAEMON || exit 0
 
