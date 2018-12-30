@@ -26,6 +26,15 @@ func AddNetwork(iface string) (NetworkId, error) {
 	return NetworkId(net), nil
 }
 
+func RemoveNetwork(iface string, net NetworkId) (error) {
+	_, err := exec.Command("wpa_cli", "-i", iface, "remove_network", string(net)).Output()
+	if err != nil {
+		return errors.Errorf("Command: %s", err.Error())
+	}
+
+	return nil
+}
+
 func SetNetwork(iface string, net NetworkId, key AddNetworkKey, value string) error {
 	result, err := exec.Command("wpa_cli", "-i", iface, "set_network", string(net), string(key), "\""+value+"\"").Output()
 	if err != nil {

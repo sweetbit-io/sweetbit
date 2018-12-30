@@ -37,7 +37,6 @@ func New(config *Config) (*Dnsmasq, error) {
 	args := []string{
 		"--no-hosts", // Don't read the hostnames in /etc/hosts.
 		"--keep-in-foreground",
-		"--log-queries",
 		"--no-resolv",
 		"--address=" + config.Address,
 		"--dhcp-range=" + config.DhcpRange,
@@ -78,6 +77,10 @@ func (d *Dnsmasq) Start() error {
 			if strings.Contains(text, "started, version") {
 				d.states <- STARTED
 			}
+
+			if strings.Contains(text, "failed to bind DHCP server socket: Address already in use") {
+				d.states <- STARTED // not really, but what else can we do?
+			}
 		}
 	}()
 
@@ -85,7 +88,7 @@ func (d *Dnsmasq) Start() error {
 		return err
 	}
 
-	timer := time.NewTimer(60 * time.Second)
+	timer := time.NewTimer(15 * time.Second)
 
 	// Block until the process has started
 	for {
