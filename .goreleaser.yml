@@ -3,6 +3,11 @@ builds:
       - arm
     goarm:
       - 6
+release:
+  github:
+    owner: the-lightning-land
+    name: sweetd
+  draft: true
 archive:
   wrap_in_directory: true
 sign:
