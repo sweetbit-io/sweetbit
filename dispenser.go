@@ -100,9 +100,9 @@ func (d *dispenser) run() error {
 				d.toggleDispense(false)
 			}
 
-		case payment := <-d.payments:
+		case <-d.payments:
 			// react on incoming payments
-			dispense := time.Duration(payment.Value/2) * time.Millisecond
+			dispense := 1500 * time.Millisecond
 
 			log.Debugf("Dispensing for a duration of %v", dispense)
 
