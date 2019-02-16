@@ -19,9 +19,9 @@ type apConfig struct {
 }
 
 type raspberryConfig struct {
-	TouchPin  string `long:"touchpin" description:"The touch input pin."`
-	MotorPin  string `long:"motorpin" description:"The motor output pin."`
-	BuzzerPin string `long:"buzzerpin" description:"The buzzer output pin."`
+	TouchPin  string `long:"touchpin" description:"BCM number of the touch input pin."`
+	MotorPin  string `long:"motorpin" description:"BCM number of the motor output pin."`
+	BuzzerPin string `long:"buzzerpin" description:"BCM number of the buzzer output pin."`
 }
 
 type mockConfig struct {
@@ -62,8 +62,7 @@ func loadConfig() (*config, error) {
 			Passphrase: "reckless",
 			DhcpRange:  "192.168.27.100,192.168.27.150,1h",
 		},
-		Lnd: &lndConfig{
-		},
+		Lnd:     &lndConfig{},
 		DataDir: "./data",
 	}
 

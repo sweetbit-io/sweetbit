@@ -9,13 +9,10 @@ import (
 	"time"
 )
 
-const (
-	touchPin  = "4"  // BCM 4 = #7
-	motorPin  = "27" // BCM 27 = #13
-	buzzerPin = "17" // BCM 17 = #11
-)
-
 type DispenserMachine struct {
+	touchPin     string
+	motorPin     string
+	buzzerPin    string
 	touchEvents  chan bool      // Internal sending channel for touch events
 	motorEvents  chan bool      // Internal motor events channel
 	buzzerEvents chan bool      // Internal buzzer events channel
@@ -23,12 +20,21 @@ type DispenserMachine struct {
 	waitGroup    sync.WaitGroup // Internal goroutine WaitGroup
 }
 
-func NewDispenserMachine() *DispenserMachine {
+type DispenserMachineConfig struct {
+	TouchPin  string
+	MotorPin  string
+	BuzzerPin string
+}
+
+func NewDispenserMachine(config *DispenserMachineConfig) *DispenserMachine {
 	touchEvents := make(chan bool)
 	motorEvents := make(chan bool)
 	buzzerEvents := make(chan bool)
 
 	m := &DispenserMachine{
+		touchPin:     config.TouchPin,
+		motorPin:     config.MotorPin,
+		buzzerPin:    config.BuzzerPin,
 		touchEvents:  touchEvents,
 		motorEvents:  motorEvents,
 		buzzerEvents: buzzerEvents,
@@ -85,7 +91,7 @@ func (m *DispenserMachine) handleTouch() {
 	m.waitGroup.Add(1)
 	defer m.waitGroup.Done()
 
-	p := gpioreg.ByName(touchPin)
+	p := gpioreg.ByName(m.touchPin)
 
 	// set as input, with an internal pull down resistor
 	if err := p.In(gpio.PullDown, gpio.BothEdges); err != nil {
@@ -154,7 +160,7 @@ func (m *DispenserMachine) driveMotor() {
 	m.waitGroup.Add(1)
 	defer m.waitGroup.Done()
 
-	p := gpioreg.ByName(motorPin)
+	p := gpioreg.ByName(m.motorPin)
 
 	for {
 		select {
@@ -183,7 +189,7 @@ func (m *DispenserMachine) driveBuzzer() {
 	m.waitGroup.Add(1)
 	defer m.waitGroup.Done()
 
-	p := gpioreg.ByName(buzzerPin)
+	p := gpioreg.ByName(m.buzzerPin)
 
 	for {
 		select {

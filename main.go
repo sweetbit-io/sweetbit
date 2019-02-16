@@ -85,9 +85,14 @@ func sweetdMain() error {
 
 	switch cfg.Machine {
 	case "raspberry":
-		m = machine.NewDispenserMachine()
+		m = machine.NewDispenserMachine(&machine.DispenserMachineConfig{
+			TouchPin:  cfg.Raspberry.TouchPin,
+			MotorPin:  cfg.Raspberry.MotorPin,
+			BuzzerPin: cfg.Raspberry.BuzzerPin,
+		})
 
-		log.Info("Created Raspberry Pi machine.")
+		log.Infof("Created Raspberry Pi machine on touch pin %v, motor pin %v and buzzer pin %v.",
+			cfg.Raspberry.TouchPin, cfg.Raspberry.MotorPin, cfg.Raspberry.BuzzerPin)
 	case "mock":
 		m = machine.NewMockMachine(cfg.Mock.Listen)
 
