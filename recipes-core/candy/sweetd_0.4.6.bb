@@ -8,7 +8,7 @@ PR = "r0"
 PROVIDES = "sweetd"
 RPROVIDES_${PN} = "sweetd"
 
-RDEPENDS_${PN} = " iw hostapd dnsmasq"
+RDEPENDS_${PN} = " wpa-supplicant iw hostapd dnsmasq"
 
 SRC_URI = "https://github.com/the-lightning-land/sweetd/releases/download/v0.4.6/sweetd_0.4.6_linux_armv6.tar.gz;sha256sum=69a748b7ed599075d02661117dc76e60633df42595544d18899d1bc86c21f6b6 \
     file://init;name=init \
@@ -18,8 +18,6 @@ inherit update-rc.d systemd
 
 INITSCRIPT_NAME = "sweetd"
 INITSCRIPT_PARAMS="defaults 40"
-
-# SRC_URI = "file://relativefile.patch"
 
 INSANE_SKIP_${PN} = "already-stripped"
 
