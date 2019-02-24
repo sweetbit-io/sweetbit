@@ -194,14 +194,6 @@ func setUpAccessPoint(cfg *config) (*hostapd.Hostapd, *dnsmasq.Dnsmasq, error) {
 
 	log.Info("Started hostapd.")
 
-	log.Info("Restarting dhcpd in order to reestablish previous connection...")
-
-	if err := restartDhcp(); err != nil {
-		return h, nil, errors.Errorf("Could not restart dhcpd: %v", err)
-	}
-
-	log.Info("Restarted dhcpd.")
-
 	log.Info("Creating dnsmasq for DNS and DHCP management...")
 
 	d, err := dnsmasq.New(&dnsmasq.Config{
