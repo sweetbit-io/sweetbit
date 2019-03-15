@@ -1,0 +1,13 @@
+auto lo
+auto wlan0
+auto uap0
+
+iface lo inet loopback
+
+iface wlan0 inet dhcp
+    wpa-driver wext
+    wpa-conf /etc/wpa_supplicant.conf
+
+iface uap0 inet static
+    address 192.168.27.1
+    netmask 255.255.255.0
