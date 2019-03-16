@@ -92,7 +92,7 @@ func (d *dispenser) run() error {
 		select {
 		case on := <-d.machine.TouchEvents():
 			// react on direct touch events of the machine
-			log.Info("Touch event %v", on)
+			log.Infof("Touch event %v", on)
 
 			if d.dispenseOnTouch && on {
 				d.toggleDispense(true)
