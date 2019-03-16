@@ -50,9 +50,9 @@ func loadConfig() (*config, error) {
 		Machine: "raspberry",
 		Debug:   false,
 		Raspberry: &raspberryConfig{
-			TouchPin:  "4",
-			MotorPin:  "27",
-			BuzzerPin: "17",
+			TouchPin:  "25",
+			MotorPin:  "23",
+			BuzzerPin: "24",
 		},
 		RunAp: false,
 		Ap: &apConfig{
