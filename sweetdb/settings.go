@@ -13,12 +13,18 @@ var (
 	nameKey            = []byte("name")
 	dispenseOnTouchKey = []byte("dispenseOnTouch")
 	buzzOnDispenseKey  = []byte("buzzOnDispense")
+	wifiConnectionKey  = []byte("wifi")
 )
 
 type LightningNode struct {
 	Uri      string `json:"uri"`
 	Cert     []byte `json:"cert"`
 	Macaroon []byte `json:"macaroon"`
+}
+
+type WifiConnection struct {
+	Ssid string `json:ssid`
+	Psk  string `json:psk`
 }
 
 func (db *DB) SetLightningNode(lightningNode *LightningNode) error {
@@ -34,7 +40,6 @@ func (db *DB) SetLightningNode(lightningNode *LightningNode) error {
 			return err
 		}
 
-		// Set the lightning node
 		if err := bucket.Put(lightningNodeKey, payload); err != nil {
 			return err
 		}
@@ -72,6 +77,58 @@ func (db *DB) GetLightningNode() (*LightningNode, error) {
 	}
 
 	return lightningNode, nil
+}
+
+func (db *DB) SetWifiConnection(wifiConnection *WifiConnection) error {
+	payload, err := json.Marshal(wifiConnection)
+	if err != nil {
+		return err
+	}
+
+	return db.Update(func(tx *bolt.Tx) error {
+		// First grab the settings bucket
+		bucket, err := tx.CreateBucketIfNotExists(settingsBucket)
+		if err != nil {
+			return err
+		}
+
+		if err := bucket.Put(wifiConnectionKey, payload); err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+
+func (db *DB) GetWifiConnection() (*WifiConnection, error) {
+	var wifiConnection = &WifiConnection{}
+
+	err := db.View(func(tx *bolt.Tx) error {
+		// First fetch the bucket
+		bucket := tx.Bucket(settingsBucket)
+		if bucket == nil {
+			return nil
+		}
+
+		wifiConnectionBytes := bucket.Get(wifiConnectionKey)
+		if wifiConnectionBytes == nil || bytes.Equal(wifiConnectionBytes, []byte("null")) {
+			wifiConnection = nil
+			return nil
+		}
+
+		err := json.Unmarshal(wifiConnectionBytes, &wifiConnection)
+		if err != nil {
+			return errors.Errorf("Could not unmarshal data: %v", err)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return wifiConnection, nil
 }
 
 func (db *DB) SetName(name string) error {

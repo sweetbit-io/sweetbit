@@ -1,18 +1,19 @@
 package hostapd
 
 import (
-	"text/template"
-	"os/exec"
 	"bufio"
+	"github.com/pkg/errors"
+	"os/exec"
 	"strings"
 	"sync/atomic"
-	"github.com/pkg/errors"
+	"text/template"
 )
 
 var configTemplString = `interface=uap0
 ssid={{.Ssid}}
 hw_mode=g
-channel=11
+channel={{.Channel}}
+wmm_enabled=0
 macaddr_acl=0
 auth_algs=1
 ignore_broadcast_ssid=0
@@ -26,13 +27,14 @@ rsn_pairwise=CCMP
 type Config struct {
 	Ssid       string
 	Passphrase string
+	Channel    int
 	Log        func(string) ()
 }
 
 type HostapdState int
 
 const (
-	ENABLED  HostapdState = iota
+	ENABLED HostapdState = iota
 	DISABLED
 )
 

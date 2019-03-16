@@ -6,6 +6,7 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/lightningnetwork/lnd/lnrpc"
 	log "github.com/sirupsen/logrus"
+	"github.com/the-lightning-land/sweetd/ap"
 	"github.com/the-lightning-land/sweetd/machine"
 	"github.com/the-lightning-land/sweetd/sweetdb"
 	"golang.org/x/net/context"
@@ -20,6 +21,7 @@ import (
 
 type dispenser struct {
 	machine              machine.Machine
+	accessPoint          ap.Ap
 	db                   *sweetdb.DB
 	dispenseOnTouch      bool
 	buzzOnDispense       bool
@@ -41,10 +43,17 @@ type dispenseClient struct {
 	dispenser  *dispenser
 }
 
-func newDispenser(machine machine.Machine, db *sweetdb.DB) *dispenser {
+type dispenserConfig struct {
+	machine     machine.Machine
+	accessPoint ap.Ap
+	db          *sweetdb.DB
+}
+
+func newDispenser(config *dispenserConfig) *dispenser {
 	return &dispenser{
-		machine:         machine,
-		db:              db,
+		machine:         config.machine,
+		accessPoint:     config.accessPoint,
+		db:              config.db,
 		dispenseOnTouch: true,
 		buzzOnDispense:  false,
 		done:            make(chan struct{}),

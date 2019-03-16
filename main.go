@@ -4,8 +4,7 @@ import (
 	"github.com/jessevdk/go-flags"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	"github.com/the-lightning-land/sweetd/dnsmasq"
-	"github.com/the-lightning-land/sweetd/hostapd"
+	"github.com/the-lightning-land/sweetd/ap"
 	"github.com/the-lightning-land/sweetd/machine"
 	"github.com/the-lightning-land/sweetd/sweetdb"
 	"github.com/the-lightning-land/sweetd/sweetrpc"
@@ -13,7 +12,6 @@ import (
 	"net"
 	"os"
 	"os/signal"
-	"strings"
 )
 
 var (
@@ -60,24 +58,48 @@ func sweetdMain() error {
 		return nil
 	}
 
-	// Should run access point, so that the dispenser can be paired to
-	// and controlled through an app?
+	// sweet.db persistently stores all dispenser configurations and settings
+	sweetDB, err := sweetdb.Open(cfg.DataDir)
+
+	// The network access point, which acts as the core connectivity
+	// provider for all other components
+	var a ap.Ap
+
 	if cfg.RunAp {
-		h, d, err := setUpAccessPoint(cfg)
+		a, err = ap.NewDispenserAp(&ap.DispenserApConfig{
+			Hotspot: &ap.DispenserApHotspotConfig{
+				Interface:  cfg.Ap.Interface,
+				Ip:         cfg.Ap.Ip,
+				DhcpRange:  cfg.Ap.DhcpRange,
+				Ssid:       cfg.Ap.Ssid,
+				Passphrase: cfg.Ap.Passphrase,
+			},
+		})
 
-		if h != nil {
-			defer h.Stop()
-		}
+		log.Info("Created Candy Dispenser access point.")
+	} else {
+		a = ap.NewMockAp()
 
-		if d != nil {
-			defer d.Stop()
-		}
+		log.Info("Created a mock access point.")
+	}
+
+	defer a.Stop()
+
+	err = a.Start()
+	if err != nil {
+		return errors.Errorf("Could not start access point: %v", err)
+	}
+
+	wifiConnection, err := sweetDB.GetWifiConnection()
+
+	if wifiConnection != nil {
+		log.Infof("Will attempt connecting to Wifi %v.", wifiConnection.Ssid)
+
+		err := a.ConnectWifi(wifiConnection.Ssid, wifiConnection.Psk)
 
 		if err != nil {
-			return errors.Errorf("Could not start access point: %v", err)
+			log.Warnf("Whoops, couldn't connect to wifi: %v", err)
 		}
-	} else {
-		log.Info("Will not start access point according to configuration.")
 	}
 
 	// The hardware controller
@@ -101,13 +123,14 @@ func sweetdMain() error {
 		return errors.Errorf("Unknown machine type %v", cfg.Machine)
 	}
 
-	// sweet.db persistently stores all dispenser configurations and settings
-	sweetDB, err := sweetdb.Open(cfg.DataDir)
-
 	log.Infof("Opened sweet.db")
 
-	// central controller of everything the dispenser does
-	dispenser := newDispenser(m, sweetDB)
+	// central controller for everything the dispenser does
+	dispenser := newDispenser(&dispenserConfig{
+		machine:     m,
+		accessPoint: a,
+		db:          sweetDB,
+	})
 
 	log.Infof("Created dispenser.")
 
@@ -154,69 +177,6 @@ func sweetdMain() error {
 
 	// finish with no error
 	return nil
-}
-
-func setUpAccessPoint(cfg *config) (*hostapd.Hostapd, *dnsmasq.Dnsmasq, error) {
-	log.Infof("Setting up %s interface as access point...", cfg.Ap.Interface)
-
-	if err := removeApInterface(cfg.Ap.Interface); err != nil {
-		return nil, nil, errors.Errorf("Could not remove AP interface: %v", err)
-	}
-
-	if err := addApInterface(cfg.Ap.Interface); err != nil {
-		return nil, nil, errors.Errorf("Could not add AP interface: %v", err)
-	}
-
-	if err := upApInterface(cfg.Ap.Interface); err != nil {
-		return nil, nil, errors.Errorf("Could not up AP interface: %v", err)
-	}
-
-	if err := configureApInterface(cfg.Ap.Ip, cfg.Ap.Interface); err != nil {
-		return nil, nil, errors.Errorf("Could not configure AP interface: %v", err)
-	}
-
-	log.Info("Starting hostapd for access point management...")
-
-	h, err := hostapd.New(&hostapd.Config{
-		Ssid:       cfg.Ap.Ssid,
-		Passphrase: cfg.Ap.Passphrase,
-		Log: func(s string) {
-			log.WithField("service", "hostapd").Debug(s)
-		},
-	})
-	if err != nil {
-		return nil, nil, errors.Errorf("Could not create hostapd service: %v", err)
-	}
-
-	if err := h.Start(); err != nil {
-		return nil, nil, errors.Errorf("Could not start hostapd: %v", err)
-	}
-
-	log.Info("Started hostapd.")
-
-	log.Info("Creating dnsmasq for DNS and DHCP management...")
-
-	d, err := dnsmasq.New(&dnsmasq.Config{
-		Address:   "/#/" + strings.Split(cfg.Ap.Ip, "/")[0],
-		DhcpRange: cfg.Ap.DhcpRange,
-		Log: func(s string) {
-			log.WithField("service", "dnsmasq").Debug(s)
-		},
-	})
-
-	if err != nil {
-		return h, nil, errors.Errorf("Could not create dnsmasq service: %v", err)
-	}
-
-	log.Info("Starting dnsmasq...")
-
-	if err := d.Start(); err != nil {
-		return h, nil, errors.Errorf("Could not start dnsmasq: %v", err)
-	}
-
-	log.Info("Started dnsmasq.")
-
-	return h, d, nil
 }
 
 func main() {
