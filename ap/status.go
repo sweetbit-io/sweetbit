@@ -1,4 +1,4 @@
-package wpa
+package ap
 
 import (
 	"os/exec"
@@ -6,21 +6,15 @@ import (
 	"github.com/go-errors/errors"
 )
 
-type Status struct {
-	Ssid  string
-	State string
-	Ip    string
-}
-
 // Status returns the WPA wireless status.
-func GetStatus(iface string) (*Status, error) {
+func getStatus(iface string) (*ConnectionStatus, error) {
 	result, err := exec.Command("wpa_cli", "-i", iface, "status").Output()
 	if err != nil {
 		return nil, errors.Errorf("Command: %s", err.Error())
 	}
 
 	lines := bytes.Split(result, []byte("\n"))
-	status := Status{}
+	status := ConnectionStatus{}
 
 	for _, line := range lines {
 		key, value, err := kvp(line)

@@ -1,4 +1,4 @@
-package wpa
+package ap
 
 import (
 	"github.com/go-errors/errors"
@@ -6,13 +6,13 @@ import (
 	"strings"
 )
 
-type ConfiguredNetwork struct {
-	Id   NetworkId
-	Ssid string
+type configuredNetwork struct {
+	id   networkId
+	ssid string
 }
 
 // Status returns the WPA wireless status.
-func ListConfiguredNetworks(iface string) ([]*ConfiguredNetwork, error) {
+func listConfiguredNetworks(iface string) ([]*configuredNetwork, error) {
 	configuredNetworkListOut, err := exec.Command("wpa_cli", "-i", iface, "list_networks").Output()
 	if err != nil {
 		return nil, errors.Errorf("Command: %s", err.Error())
@@ -26,17 +26,17 @@ func ListConfiguredNetworks(iface string) ([]*ConfiguredNetwork, error) {
 	return configuredNetworks, nil
 }
 
-func parseListNetworksOutput(output *[]byte) ([]*ConfiguredNetwork, error) {
-	configuredNetworks := make([]*ConfiguredNetwork, 0)
+func parseListNetworksOutput(output *[]byte) ([]*configuredNetwork, error) {
+	configuredNetworks := make([]*configuredNetwork, 0)
 
 	networkListOutArr := strings.Split(string(*output), "\n")
 	for _, netRecord := range networkListOutArr[1:] {
 		fields := strings.Split(netRecord, "\t")
 
 		if len(fields) >= 2 {
-			configuredNetworks = append(configuredNetworks, &ConfiguredNetwork{
-				Id:   NetworkId(fields[0]),
-				Ssid: fields[1],
+			configuredNetworks = append(configuredNetworks, &configuredNetwork{
+				id:   networkId(fields[0]),
+				ssid: fields[1],
 			})
 		}
 	}

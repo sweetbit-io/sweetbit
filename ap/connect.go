@@ -1,4 +1,4 @@
-package wpa
+package ap
 
 import (
 	"os/exec"
@@ -6,16 +6,16 @@ import (
 	"github.com/pkg/errors"
 )
 
-type NetworkId string
+type networkId string
 
-type AddNetworkKey string
+type addNetworkKey string
 
 const (
-	Ssid AddNetworkKey = "ssid"
-	Psk  AddNetworkKey = "psk"
+	ssidKey addNetworkKey = "ssid"
+	pskKey  addNetworkKey = "psk"
 )
 
-func AddNetwork(iface string) (NetworkId, error) {
+func addNetwork(iface string) (networkId, error) {
 	result, err := exec.Command("wpa_cli", "-i", iface, "add_network").Output()
 	if err != nil {
 		return "", errors.Errorf("Command: %s", err.Error())
@@ -23,10 +23,10 @@ func AddNetwork(iface string) (NetworkId, error) {
 
 	net := strings.TrimSpace(string(result))
 
-	return NetworkId(net), nil
+	return networkId(net), nil
 }
 
-func RemoveNetwork(iface string, net NetworkId) (error) {
+func removeNetwork(iface string, net networkId) (error) {
 	_, err := exec.Command("wpa_cli", "-i", iface, "remove_network", string(net)).Output()
 	if err != nil {
 		return errors.Errorf("Command: %s", err.Error())
@@ -35,7 +35,7 @@ func RemoveNetwork(iface string, net NetworkId) (error) {
 	return nil
 }
 
-func SetNetwork(iface string, net NetworkId, key AddNetworkKey, value string) error {
+func setNetwork(iface string, net networkId, key addNetworkKey, value string) error {
 	result, err := exec.Command("wpa_cli", "-i", iface, "set_network", string(net), string(key), "\""+value+"\"").Output()
 	if err != nil {
 		return errors.Errorf("Command: %s", err.Error())
@@ -50,7 +50,7 @@ func SetNetwork(iface string, net NetworkId, key AddNetworkKey, value string) er
 	return nil
 }
 
-func EnableNetwork(iface string, net NetworkId) error {
+func enableNetwork(iface string, net networkId) error {
 	result, err := exec.Command("wpa_cli", "-i", iface, "enable_network", string(net)).Output()
 	if err != nil {
 		return errors.Errorf("Command: %s", err.Error())

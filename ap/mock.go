@@ -10,17 +10,31 @@ func NewMockAp() *MockAp {
 	return &MockAp{}
 }
 
-func (ap *MockAp) Start() error {
-	// Do nothing
+func (a *MockAp) Start() error {
 	return nil
 }
 
-func (ap *MockAp) ConnectWifi(ssid string, psk string) error {
-	// Do nothing
+func (a *MockAp) StartHotspot() error {
 	return nil
 }
 
-func (ap *MockAp) Stop() error {
-	// Do nothing
+func (a *MockAp) ListWifiNetworks() ([]*Network, error) {
+	empty := make([]*Network, 0)
+	return empty, nil
+}
+
+func (a *MockAp) ConnectWifi(ssid string, psk string) error {
+	return nil
+}
+
+func (a *MockAp) GetConnectionStatus() (*ConnectionStatus, error) {
+	return &ConnectionStatus{
+		Ssid:  "mock",
+		Ip:    "192.168.1.42",
+		State: "mocked",
+	}, nil
+}
+
+func (a *MockAp) Stop() error {
 	return nil
 }

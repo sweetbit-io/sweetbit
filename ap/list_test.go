@@ -1,4 +1,4 @@
-package wpa
+package ap
 
 import (
 	log "github.com/sirupsen/logrus"
@@ -19,11 +19,11 @@ func TestParseListNetworksPayload(t *testing.T) {
 		log.Fatalf("Unexpected amount of networks: %v", len(networks))
 	}
 
-	if networks[0].Ssid != "wifi with space in name" {
-		log.Fatalf("Unexpected first network: %v", networks[0].Ssid)
+	if networks[0].ssid != "wifi with space in name" {
+		log.Fatalf("Unexpected first network: %v", networks[0].ssid)
 	}
 
-	if networks[1].Id != "1" {
-		log.Fatalf("Unexpected second network: %v", networks[0].Id)
+	if networks[1].id != "1" {
+		log.Fatalf("Unexpected second network: %v", networks[0].id)
 	}
 }

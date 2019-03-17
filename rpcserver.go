@@ -4,9 +4,9 @@ import (
 	"github.com/go-errors/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/the-lightning-land/sweetd/reboot"
+	"github.com/the-lightning-land/sweetd/sweetdb"
 	"github.com/the-lightning-land/sweetd/sweetrpc"
 	"github.com/the-lightning-land/sweetd/sysid"
-	"github.com/the-lightning-land/sweetd/wpa"
 	"golang.org/x/net/context"
 	"time"
 )
@@ -56,6 +56,7 @@ func (s *rpcServer) GetInfo(ctx context.Context,
 
 	if name == "" {
 		name = "Candy Dispenser"
+		// TODO: Name the dispenser individually by default
 		// name = fmt.Sprintf("Candy %v", id)
 	}
 
@@ -108,13 +109,16 @@ func (s *rpcServer) SetBuzzOnDispense(ctx context.Context, req *sweetrpc.SetBuzz
 
 func (s *rpcServer) GetWpaConnectionInfo(ctx context.Context,
 	req *sweetrpc.GetWpaConnectionInfoRequest) (*sweetrpc.GetWpaConnectionInfoResponse, error) {
-	log.Info("Getting wpa connection info...")
 
-	status, err := wpa.GetStatus("wlan0")
+	log.Info("Requested wifi connection info")
+
+	status, err := s.dispenser.accessPoint.GetConnectionStatus()
 	if err != nil {
-		log.Errorf("Getting WPA status failed: %v", err)
-		return nil, errors.New("Getting WPA status failed")
+		log.Errorf("Could not get Wifi connection status: %v", err)
+		return nil, errors.New("Could not get Wifi connection status")
 	}
+
+	log.Info("Getting wpa connection info...")
 
 	return &sweetrpc.GetWpaConnectionInfoResponse{
 		Ssid:  status.Ssid,
@@ -126,99 +130,52 @@ func (s *rpcServer) GetWpaConnectionInfo(ctx context.Context,
 func (s *rpcServer) ConnectWpaNetwork(ctx context.Context,
 	req *sweetrpc.ConnectWpaNetworkRequest) (*sweetrpc.ConnectWpaNetworkResponse, error) {
 
-	log.Info("Adding new network...")
+	log.Infof("Requested wifi connection to %v", req.Ssid)
 
-	net, err := wpa.AddNetwork("wlan0")
+	err := s.dispenser.accessPoint.ConnectWifi(req.Ssid, req.Psk)
 	if err != nil {
-		log.Errorf("Adding network failed: %s", err.Error())
-		return nil, errors.New("Connection failed")
-	}
-
-	log.Infof("Setting ssid %v for network %v...", req.Ssid, net)
-
-	err = wpa.SetNetwork("wlan0", net, wpa.Ssid, req.Ssid)
-	if err != nil {
-		log.Errorf("Setting ssid failed: %s", err.Error())
-		return nil, errors.New("Connection failed")
-	}
-
-	log.Infof("Setting psk for network %v...", net)
-
-	err = wpa.SetNetwork("wlan0", net, wpa.Psk, req.Psk)
-	if err != nil {
-		log.Errorf("Setting psk failed: %s", err.Error())
-		return nil, errors.New("Connection failed")
-	}
-
-	log.Infof("Enabling network %v...", net)
-
-	err = wpa.EnableNetwork("wlan0", net)
-	if err != nil {
-		log.Errorf("Enabling network failed: %v", err)
-		return nil, errors.New("Connection failed")
-	}
-
-	configuredNetworks, err := wpa.ListConfiguredNetworks("wlan0")
-	if err != nil {
-		log.Errorf("Listing configured networks failed: %v", err)
-	} else {
-		log.Infof("Got %v configured networks", len(configuredNetworks))
-
-		for _, configuredNetwork := range configuredNetworks {
-			if configuredNetwork.Id == net {
-				continue
-			}
-
-			err := wpa.RemoveNetwork("wlan0", configuredNetwork.Id)
-			if err != nil {
-				log.Warnf("Unable to remove configured network %v", configuredNetwork.Id)
-			}
-
-			log.Infof("Removed network %v=%v", configuredNetwork.Id, configuredNetwork.Ssid)
-		}
+		log.Errorf("Could not get Wifi networks: %v", err)
+		return nil, errors.New("Could not get Wifi networks")
 	}
 
 	tries := 1
 
-	ticker := time.NewTicker(1000 * time.Millisecond)
+	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
 
 	for {
 		<-ticker.C
 
-		log.Info("Fetching connection status...")
-
-		status, err := wpa.GetStatus("wlan0")
+		status, err := s.dispenser.accessPoint.GetConnectionStatus()
 		if err != nil {
 			log.Errorf("Getting WPA status failed: %s", err.Error())
-			return nil, errors.New("Getting WPA status failed")
+			return nil, errors.New("Getting Wifi connection status failed")
 		}
 
 		log.Infof("Got status %v for ssid %v.", status.State, status.Ssid)
 
-		if status.Ssid == req.Ssid && status.State == "COMPLETED" {
-			log.Infof("Saving the modified network configuration")
-
-			err = wpa.Save("wlan0")
+		if status.Ssid == req.Ssid && (status.State == "ASSOCIATED" || status.State == "COMPLETED") {
+			err := s.dispenser.setWifiConnection(&sweetdb.WifiConnection{
+				Ssid: req.Ssid,
+				Psk:  req.Psk,
+			})
 			if err != nil {
-				log.Errorf("Saving config failed: %v", err)
+				log.Errorf("Could not save wifi connection: %v", err)
 			}
-
-			log.Info("Confirming successful connection")
 
 			return &sweetrpc.ConnectWpaNetworkResponse{
 				Status: sweetrpc.ConnectWpaNetworkResponse_CONNECTED,
 			}, nil
 		}
 
-		if tries > 5 {
+		if tries > 30 {
 			break
 		}
 
 		tries++
 	}
 
-	log.Errorf("Could not connect to network %v", req.Ssid)
+	log.Errorf("Could not connect to network %v in time", req.Ssid)
 
 	return &sweetrpc.ConnectWpaNetworkResponse{
 		Status: sweetrpc.ConnectWpaNetworkResponse_FAILED,
@@ -227,31 +184,21 @@ func (s *rpcServer) ConnectWpaNetwork(ctx context.Context,
 
 func (s *rpcServer) GetWpaNetworks(ctx context.Context,
 	req *sweetrpc.GetWpaNetworksRequest) (*sweetrpc.GetWpaNetworksResponse, error) {
-	log.Info("Getting wpa networks...")
 
-	err := wpa.Scan("wlan0")
+	log.Info("Requested wifi networks")
+
+	networks, err := s.dispenser.accessPoint.ListWifiNetworks()
 	if err != nil {
-		log.Errorf("Scan failed: %v", err)
-		return nil, errors.New("Scan failed")
+		log.Errorf("Getting Wifi networks failed: %v", err)
+		return nil, errors.New("Getting Wifi networks failed")
 	}
 
-	ticker := time.NewTicker(1 * time.Second)
-	defer ticker.Stop()
+	log.Infof("Found %v networks", len(networks))
 
-	<-ticker.C
+	results := make([]*sweetrpc.WpaNetwork, len(networks))
 
-	results, err := wpa.Results("wlan0")
-	if err != nil {
-		log.Errorf("Scan failed: %v", err)
-		return nil, errors.New("Scan failed")
-	}
-
-	log.Infof("Found %v networks", len(results))
-
-	// Map results []*wpa.Network to networks []*sweetrpc.WpaNetwork
-	networks := make([]*sweetrpc.WpaNetwork, len(results))
-	for i, result := range results {
-		networks[i] = &sweetrpc.WpaNetwork{
+	for i, result := range networks {
+		results[i] = &sweetrpc.WpaNetwork{
 			Ssid:        result.Ssid,
 			Bssid:       result.Bssid,
 			Flags:       result.Flags,
@@ -261,7 +208,7 @@ func (s *rpcServer) GetWpaNetworks(ctx context.Context,
 	}
 
 	return &sweetrpc.GetWpaNetworksResponse{
-		Networks: networks,
+		Networks: results,
 	}, nil
 }
 

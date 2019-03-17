@@ -3,6 +3,7 @@ package hostapd
 import (
 	"bufio"
 	"github.com/pkg/errors"
+	"os"
 	"os/exec"
 	"strings"
 	"sync/atomic"
@@ -24,10 +25,15 @@ wpa_pairwise=TKIP
 rsn_pairwise=CCMP
 `
 
-type Config struct {
+type configTmpl struct {
 	Ssid       string
 	Passphrase string
 	Channel    int
+}
+
+type Config struct {
+	Ssid       string
+	Passphrase string
 	Log        func(string) ()
 }
 
@@ -39,6 +45,7 @@ const (
 )
 
 type Hostapd struct {
+	channel int
 	started int32 // atomic
 	config  *Config
 	cmd     *exec.Cmd
@@ -58,12 +65,11 @@ func New(config *Config) (*Hostapd, error) {
 
 	return &Hostapd{
 		config: config,
-		cmd:    exec.Command("hostapd", "-d", "/dev/stdin"),
 		states: make(chan HostapdState),
 	}, nil
 }
 
-func (h *Hostapd) Start() error {
+func (h *Hostapd) Start(channel int) error {
 	// Already running?
 	if !atomic.CompareAndSwapInt32(&h.started, 0, 1) {
 		return errors.New("hostapd already started")
@@ -74,6 +80,8 @@ func (h *Hostapd) Start() error {
 	if err != nil {
 		return err
 	}
+
+	h.cmd = exec.Command("hostapd", "-d", "/dev/stdin")
 
 	hostapdPipe, _ := h.cmd.StdinPipe()
 	cmdStdoutReader, err := h.cmd.StdoutPipe()
@@ -97,10 +105,16 @@ func (h *Hostapd) Start() error {
 				h.states <- DISABLED
 			}
 		}
+
+		h.states <- DISABLED
 	}()
 
 	// Write config to stdin, where the process is set up to read it from
-	err = tmpl.Execute(hostapdPipe, h.config)
+	err = tmpl.Execute(hostapdPipe, configTmpl{
+		Ssid:       h.config.Ssid,
+		Passphrase: h.config.Passphrase,
+		Channel:    channel,
+	})
 	if err != nil {
 		return err
 	}
@@ -116,17 +130,38 @@ func (h *Hostapd) Start() error {
 	for {
 		state := <-h.states
 		if state == ENABLED {
+			// Remember the channel hostapd was started with
+			h.channel = channel
 			return nil
 		}
 	}
 }
 
-func (h *Hostapd) Stop() error {
-	if atomic.LoadInt32(&h.started) != 1 {
-		return errors.New("hostapd not started yet")
+func (h *Hostapd) ChangeChannel(channel int) error {
+	if channel == h.channel {
+		// don't restart if desired channel is already set
+		return nil
 	}
 
-	h.cmd.Process.Kill()
+	err := h.Stop()
+	if err != nil {
+		return errors.Errorf("Could not stop hostapd: %v", err)
+	}
+
+	err = h.Start(channel)
+	if err != nil {
+		return errors.Errorf("Could not start hostapd: %v", err)
+	}
+
+	return nil
+}
+
+func (h *Hostapd) Stop() error {
+	if !atomic.CompareAndSwapInt32(&h.started, 1, 0) {
+		return errors.New("hostapd not started")
+	}
+
+	h.cmd.Process.Signal(os.Interrupt)
 
 	// Block until the process has finished
 	for {

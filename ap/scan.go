@@ -1,4 +1,4 @@
-package wpa
+package ap
 
 import (
 	"os/exec"
@@ -6,23 +6,18 @@ import (
 	"github.com/go-errors/errors"
 )
 
-// WpaNetwork defines a wifi network to connect to.
-type Network struct {
-	Bssid       string
-	Frequency   string
-	SignalLevel string
-	Flags       string
-	Ssid        string
-}
+var errBusy = errors.New("Device is busy")
 
-func Scan(iface string) error {
+func scan(iface string) error {
 	result, err := exec.Command("wpa_cli", "-i", iface, "scan").Output()
 	if err != nil {
-		return errors.Errorf("Command: %s", err.Error())
+		return errors.Errorf("Command: %v", err)
 	}
 
 	resultClean := strings.TrimSpace(string(result))
-	if resultClean != "OK" {
+	if resultClean == "FAIL-BUSY" {
+		return errBusy
+	} else if resultClean != "OK" {
 		return errors.Errorf("Got %s instead of OK", resultClean)
 	}
 
@@ -30,12 +25,12 @@ func Scan(iface string) error {
 }
 
 // Results returns an array of WpaNetwork data structures.
-func Results(iface string) ([]*Network, error) {
+func results(iface string) ([]*Network, error) {
 	wpaNetworks := make([]*Network, 0)
 
 	networkListOut, err := exec.Command("wpa_cli", "-i", iface, "scan_results").Output()
 	if err != nil {
-		return wpaNetworks, errors.Errorf("Command: %s", err.Error())
+		return wpaNetworks, errors.Errorf("Command: %v", err)
 	}
 
 	networkListOutArr := strings.Split(string(networkListOut), "\n")

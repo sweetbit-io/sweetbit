@@ -1,4 +1,4 @@
-package wpa
+package ap
 
 import (
 	"os/exec"
@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func Save(iface string) error {
+func save(iface string) error {
 	result, err := exec.Command("wpa_cli", "-i", iface, "save_config").Output()
 	if err != nil {
 		return errors.Errorf("Command: %s", err.Error())

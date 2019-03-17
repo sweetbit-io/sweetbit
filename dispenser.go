@@ -255,6 +255,17 @@ func (d *dispenser) disconnectLndNode() error {
 	return nil
 }
 
+func (d *dispenser) setWifiConnection(connection *sweetdb.WifiConnection) error {
+	log.Infof("Setting Wifi connection")
+
+	err := d.db.SetWifiConnection(connection)
+	if err != nil {
+		return errors.Errorf("Failed setting Wifi connection: %v", err)
+	}
+
+	return nil
+}
+
 func (d *dispenser) getName() (string, error) {
 	log.Infof("Getting name")
 

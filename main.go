@@ -67,6 +67,7 @@ func sweetdMain() error {
 
 	if cfg.RunAp {
 		a, err = ap.NewDispenserAp(&ap.DispenserApConfig{
+			Interface: "wlan0",
 			Hotspot: &ap.DispenserApHotspotConfig{
 				Interface:  cfg.Ap.Interface,
 				Ip:         cfg.Ap.Ip,
@@ -91,15 +92,24 @@ func sweetdMain() error {
 	}
 
 	wifiConnection, err := sweetDB.GetWifiConnection()
+	if err != nil {
+		log.Warnf("Could not retrieve saved wifi connection: %v", err)
+	}
 
 	if wifiConnection != nil {
 		log.Infof("Will attempt connecting to Wifi %v.", wifiConnection.Ssid)
 
 		err := a.ConnectWifi(wifiConnection.Ssid, wifiConnection.Psk)
-
 		if err != nil {
 			log.Warnf("Whoops, couldn't connect to wifi: %v", err)
 		}
+	} else {
+		log.Infof("No saved Wifi connection available. Not connecting.")
+	}
+
+	err = a.StartHotspot()
+	if err != nil {
+		log.Warnf("Whoops, couldn't start hotspot: %v", err)
 	}
 
 	// The hardware controller
