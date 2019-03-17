@@ -52,9 +52,9 @@ options:
 ```sh
 sweetd \
   --machine=raspberry \
-  --raspberry.touchpin=4 \
-  --raspberry.motorpin=27 \
-  --raspberry.buzzerpin=17
+  --raspberry.touchpin=25 \
+  --raspberry.motorpin=23 \
+  --raspberry.buzzerpin=24
 ```
 
 You can also mock the underlying machine with the following option:
