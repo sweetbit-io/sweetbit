@@ -15,11 +15,11 @@ import (
 )
 
 var (
-	// Commit stores the current commit hash of this build. This should be set using -ldflags during compilation.
+	// commit stores the current commit hash of this build. This should be set using -ldflags during compilation.
 	commit string
-	// Version stores the version string of this build. This should be set using -ldflags during compilation.
+	// version stores the version string of this build. This should be set using -ldflags during compilation.
 	version string
-	// Stores the date of this build. This should be set using -ldflags during compilation.
+	// date stores the date of this build. This should be set using -ldflags during compilation.
 	date string
 )
 
@@ -140,6 +140,7 @@ func sweetdMain() error {
 		machine:     m,
 		accessPoint: a,
 		db:          sweetDB,
+		memoPrefix:  cfg.MemoPrefix,
 	})
 
 	log.Infof("Created dispenser.")

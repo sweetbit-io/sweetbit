@@ -5,9 +5,18 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/golang:1.9
+      - image: circleci/golang:1.12
+        environment:
+          GO111MODULE: "ON"
     working_directory: /go/src/github.com/the-lightning-land/sweetd
     steps:
       - checkout
-      - run: go get -v -t -d ./...
-      - run: go test -v ./...
+      - restore_cache:
+          keys:
+            - go-mod-v1-{{ checksum "go.sum" }}
+      - run: make
+      - run: make test
+      - save_cache:
+          key: go-mod-v1-{{ checksum "go.sum" }}
+          paths:
+            - "/go/pkg/mod"

@@ -1,8 +1,10 @@
 builds:
   - goarch:
       - arm
+      - amd64
     goarm:
       - 6
+      - 7
 release:
   github:
     owner: the-lightning-land
@@ -11,4 +13,4 @@ release:
 archive:
   wrap_in_directory: true
 sign:
-   artifacts: checksum
+  artifacts: checksum

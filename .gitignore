@@ -9,6 +9,12 @@ sweetd
 *.so
 *.dylib
 
+# Generated binary
+sweetd
+
+# Generated releases
+sweetd-*
+
 # Test binary, build with `go test -c`
 *.test
 

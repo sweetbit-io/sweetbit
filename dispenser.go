@@ -15,6 +15,7 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"io"
+	"strings"
 	"sync"
 	"time"
 )
@@ -33,6 +34,7 @@ type dispenser struct {
 	dispenseClients      map[uint32]*dispenseClient
 	dispenseClientMtx    sync.Mutex
 	nextDispenseClientID uint32
+	memoPrefix           string
 	// add bluetooth pairing
 }
 
@@ -47,6 +49,7 @@ type dispenserConfig struct {
 	machine     machine.Machine
 	accessPoint ap.Ap
 	db          *sweetdb.DB
+	memoPrefix  string
 }
 
 func newDispenser(config *dispenserConfig) *dispenser {
@@ -60,6 +63,7 @@ func newDispenser(config *dispenserConfig) *dispenser {
 		payments:        make(chan *lnrpc.Invoice),
 		dispenses:       make(chan bool),
 		dispenseClients: make(map[uint32]*dispenseClient),
+		memoPrefix:      config.memoPrefix,
 	}
 }
 
@@ -221,17 +225,29 @@ func (d *dispenser) connectLndNode(uri string, certBytes []byte, macaroonBytes [
 				break
 			}
 
-			if err != nil && status.Code(err) == 1 {
-				log.Info("Stopping invoice listener")
-				break
-			} else if err != nil {
-				log.WithError(err).Error("Failed receiving subscription items")
-				break
+			if err != nil {
+				errStatus, ok := status.FromError(err)
+				if !ok {
+					log.Errorf("Could not get status from err: %v", err)
+				}
+
+				if errStatus.Code() == 1 {
+					log.Info("Stopping invoice listener")
+					break
+				} else if err != nil {
+					log.WithError(err).Error("Failed receiving subscription items")
+					break
+				}
 			}
 
 			if invoice.Settled {
-				log.Debugf("Received settled payment of %v sat", invoice.Value)
-				d.payments <- invoice
+				if d.memoPrefix == "" ||
+					(d.memoPrefix != "" && strings.HasPrefix(invoice.Memo, d.memoPrefix)) {
+					log.Debugf("Received settled payment of %v sat", invoice.Value)
+					d.payments <- invoice
+				} else {
+					log.Infof("Received payment with memo %s but memo prefix is %s.", invoice.Memo, d.memoPrefix)
+				}
 			} else {
 				log.Debugf("Generated invoice of %v sat", invoice.Value)
 			}

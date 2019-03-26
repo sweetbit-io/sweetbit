@@ -164,11 +164,21 @@ the gRPC api that is provided by the `sweetd` program.
 
 ## Releasing using [`goreleaser`](https://goreleaser.com)
 
+The tool goreleaser can automatically sign the release and upload it to GitHub.
+
 `git tag -a v0.1.0 -m "Release name"`
 
 `git push origin v0.1.0`
 
 `goreleaser --rm-dist`
+
+## Releasing using the release script
+
+`git tag -a v0.1.0 -m "Release name"`
+
+`git push origin v0.1.0`
+
+`./release.sh v0.1.0`
 
 ## Regenerate grpc files
 

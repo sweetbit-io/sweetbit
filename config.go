@@ -43,6 +43,7 @@ type config struct {
 	Ap           *apConfig        `group:"Access point" namespace:"ap"`
 	Lnd          *lndConfig       `group:"lnd" namespace:"lnd"`
 	DataDir      string           `long:"datadir" description:"The directory to store sweetd's data within.'"`
+	MemoPrefix   string           `long:"memoprefix" description:"Only react to invoices that have a memo starting with this prefix. (default empty, react to all invoices)'"`
 }
 
 func loadConfig() (*config, error) {
@@ -64,6 +65,7 @@ func loadConfig() (*config, error) {
 		},
 		Lnd:     &lndConfig{},
 		DataDir: "./data",
+		MemoPrefix: "",
 	}
 
 	preCfg := defaultCfg
