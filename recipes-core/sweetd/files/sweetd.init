@@ -28,7 +28,13 @@ delay_stop() {
 }
 
 case "$1" in
-start)  echo -n "Starting $NAME: "
+start)  echo -n "Running btuart: "
+        btuart
+        echo "btuart."
+        echo -n "Running bthelper hci0: "
+        bthelper hci0
+        echo "bthelper."
+        echo -n "Starting $NAME: "
         start-stop-daemon -S -b -x $DAEMON -- $EXTRA_OPTS
         echo "$NAME."
         ;;

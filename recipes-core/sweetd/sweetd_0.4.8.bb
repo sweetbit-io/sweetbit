@@ -11,14 +11,17 @@ PR = "r0"
 PROVIDES = "sweetd"
 RPROVIDES_${PN} = "sweetd"
 
-RDEPENDS_${PN} = " wpa-supplicant iw hostapd dnsmasq"
+RDEPENDS_${PN} = " wpa-supplicant bluez5 pi-bluetooth"
 
 SRC_URI = "\
     https://github.com/the-lightning-land/sweetd/releases/download/v${VERSION}/sweetd_${VERSION}_linux_armv6.tar.gz;sha256sum=${SHA256SUM} \
-    file://init \
-    file://default \
+    file://sweetd.init \
+    file://sweetd.default \
+    file://sweet.conf \
     file://sweetd.service \
     "
+
+FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 
 inherit update-rc.d systemd
 
@@ -34,10 +37,11 @@ do_install() {
     install -m 0755 ${WORKDIR}/sweetd_${VERSION}_linux_armv6/sweetd ${D}${bindir}/sweetd
     install -m 0644 ${WORKDIR}/sweetd_${VERSION}_linux_armv6/README.md ${D}${docdir}/sweetd/README
 
-    install -m 0755 -d ${D}${sysconfdir}/init.d ${D}${sysconfdir}/default
-    install -m 0755 ${WORKDIR}/init ${D}${sysconfdir}/init.d/sweetd
-    install -m 0755 ${WORKDIR}/default ${D}${sysconfdir}/default/sweetd
+    install -m 0755 -d ${D}${sysconfdir}/init.d ${D}${sysconfdir}/default ${D}${sysconfdir}/dbus-1 ${D}${sysconfdir}/dbus-1/system.d
+    install -m 0755 ${WORKDIR}/sweetd.init ${D}${sysconfdir}/init.d/sweetd
     sed -i -e 's,@BINDIR@,${bindir},g' -e 's,@SYSCONFDIR@,${sysconfdir},g' ${D}${sysconfdir}/init.d/sweetd
+    install -m 0755 ${WORKDIR}/sweetd.default ${D}${sysconfdir}/default/sweetd
+    install -m 0755 ${WORKDIR}/sweet.conf ${D}${sysconfdir}/dbus-1/system.d/
 
     install -m 0755 -d ${D}${systemd_unitdir}/system/
     install -m 0644 ${WORKDIR}/sweetd.service ${D}${systemd_unitdir}/system/
@@ -48,5 +52,6 @@ FILES_${PN} = "\
     ${bindir}/sweetd \
     ${sysconfdir}/init.d/sweetd \
     ${sysconfdir}/default/sweetd \
+    ${sysconfdir}/dbus-1/system.d/sweet.conf \
     ${systemd_unitdir}/system/sweetd.service \
     "
