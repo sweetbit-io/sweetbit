@@ -18,8 +18,12 @@ func (a *MockAp) StartHotspot() error {
 	return nil
 }
 
+func (a *MockAp) ScanWifiNetworks() error {
+	return nil
+}
+
 func (a *MockAp) ListWifiNetworks() ([]*Network, error) {
-	empty := make([]*Network, 0)
+	var empty []*Network
 	return empty, nil
 }
 
@@ -37,4 +41,16 @@ func (a *MockAp) GetConnectionStatus() (*ConnectionStatus, error) {
 
 func (a *MockAp) Stop() error {
 	return nil
+}
+
+func (a *MockAp) SubscribeUpdates() *ApClient {
+	return &ApClient{
+		Updates:    make(chan *ApUpdate),
+		Id:         0,
+		ap:         a,
+		cancelChan: make(chan struct{}),
+	}
+}
+
+func (a *MockAp) deleteApClient(id uint32) {
 }

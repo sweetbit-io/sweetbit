@@ -10,14 +10,6 @@ const (
 	defaultRPCPort = 9000
 )
 
-type apConfig struct {
-	Ip         string `long:"ip" description:"IP address of device on access point interface."`
-	Interface  string `long:"interface" description:"Name of the access point interface."`
-	Ssid       string `long:"ssid" description:"Name of the access point."`
-	Passphrase string `long:"passphrase" description:"WPA Passphrase (expected 8..63)."`
-	DhcpRange  string `long:"dhcprange" description:"IP range of the DHCP service."`
-}
-
 type raspberryConfig struct {
 	TouchPin  string `long:"touchpin" description:"BCM number of the touch input pin."`
 	MotorPin  string `long:"motorpin" description:"BCM number of the motor output pin."`
@@ -39,9 +31,8 @@ type config struct {
 	Machine      string           `long:"machine" description:"The machine controller to use." choice:"raspberry" choice:"mock"`
 	Raspberry    *raspberryConfig `group:"Raspberry" namespace:"raspberry"`
 	Mock         *mockConfig      `group:"Mock" namespace:"mock"`
-	RunAp        bool             `long:"ap" description:"Run the access point service."`
-	Ap           *apConfig        `group:"Access point" namespace:"ap"`
 	Lnd          *lndConfig       `group:"lnd" namespace:"lnd"`
+	Net          string           `long:"net" description:"The networking system to use." choice:"dispenser" choice:"mock"`
 	DataDir      string           `long:"datadir" description:"The directory to store sweetd's data within.'"`
 	MemoPrefix   string           `long:"memoprefix" description:"Only react to invoices that have a memo starting with this prefix. (default empty, react to all invoices)'"`
 }
@@ -55,16 +46,9 @@ func loadConfig() (*config, error) {
 			MotorPin:  "23",
 			BuzzerPin: "24",
 		},
-		RunAp: false,
-		Ap: &apConfig{
-			Ip:         "192.168.27.1/24",
-			Interface:  "uap0",
-			Ssid:       "candy",
-			Passphrase: "reckless",
-			DhcpRange:  "192.168.27.100,192.168.27.150,1h",
-		},
-		Lnd:     &lndConfig{},
-		DataDir: "./data",
+		Lnd:        &lndConfig{},
+		Net:        "dispenser",
+		DataDir:    "./data",
 		MemoPrefix: "",
 	}
 

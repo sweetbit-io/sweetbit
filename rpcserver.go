@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/go-errors/errors"
 	log "github.com/sirupsen/logrus"
+	"github.com/the-lightning-land/sweetd/dispenser"
 	"github.com/the-lightning-land/sweetd/reboot"
 	"github.com/the-lightning-land/sweetd/sweetdb"
 	"github.com/the-lightning-land/sweetd/sweetrpc"
@@ -17,14 +18,14 @@ type rpcServerConfig struct {
 }
 
 type rpcServer struct {
-	dispenser *dispenser
+	dispenser *dispenser.Dispenser
 	config    *rpcServerConfig
 }
 
 // A compile time check to ensure that rpcServer fully implements the SweetServer gRPC service.
 var _ sweetrpc.SweetServer = (*rpcServer)(nil)
 
-func newRPCServer(dispenser *dispenser, config *rpcServerConfig) *rpcServer {
+func newRPCServer(dispenser *dispenser.Dispenser, config *rpcServerConfig) *rpcServer {
 	return &rpcServer{
 		dispenser: dispenser,
 		config:    config,
@@ -42,13 +43,13 @@ func (s *rpcServer) GetInfo(ctx context.Context,
 
 	var remoteNode *sweetrpc.RemoteNode = nil
 
-	if s.dispenser.lightningNodeUri != "" {
+	if s.dispenser.LightningNodeUri != "" {
 		remoteNode = &sweetrpc.RemoteNode{
-			Uri: s.dispenser.lightningNodeUri,
+			Uri: s.dispenser.LightningNodeUri,
 		}
 	}
 
-	name, err := s.dispenser.getName()
+	name, err := s.dispenser.GetName()
 	if err != nil {
 		log.Errorf("Failed getting info: %v", err)
 		return nil, errors.New("Failed getting info")
@@ -66,15 +67,15 @@ func (s *rpcServer) GetInfo(ctx context.Context,
 		Commit:          s.config.commit,
 		RemoteNode:      remoteNode,
 		Name:            name,
-		DispenseOnTouch: s.dispenser.dispenseOnTouch,
-		BuzzOnDispense:  s.dispenser.buzzOnDispense,
+		DispenseOnTouch: s.dispenser.DispenseOnTouch,
+		BuzzOnDispense:  s.dispenser.BuzzOnDispense,
 	}, nil
 }
 
 func (s *rpcServer) SetName(ctx context.Context, req *sweetrpc.SetNameRequest) (*sweetrpc.SetNameResponse, error) {
 	log.Infof("Setting name to '%v'...", req.Name)
 
-	err := s.dispenser.setName(req.Name)
+	err := s.dispenser.SetName(req.Name)
 	if err != nil {
 		log.Errorf("Failed setting name: %v", err)
 		return nil, errors.New("Failed setting name")
@@ -86,7 +87,7 @@ func (s *rpcServer) SetName(ctx context.Context, req *sweetrpc.SetNameRequest) (
 func (s *rpcServer) SetDispenseOnTouch(ctx context.Context, req *sweetrpc.SetDispenseOnTouchRequest) (*sweetrpc.SetDispenseOnTouchResponse, error) {
 	log.Infof("Setting dispense on touch to '%v'...", req.DispenseOnTouch)
 
-	err := s.dispenser.setDispenseOnTouch(req.DispenseOnTouch)
+	err := s.dispenser.SetDispenseOnTouch(req.DispenseOnTouch)
 	if err != nil {
 		log.Errorf("Failed setting dispense on touch: %v", err)
 		return nil, errors.New("Failed setting dispense on touch")
@@ -98,7 +99,7 @@ func (s *rpcServer) SetDispenseOnTouch(ctx context.Context, req *sweetrpc.SetDis
 func (s *rpcServer) SetBuzzOnDispense(ctx context.Context, req *sweetrpc.SetBuzzOnDispenseRequest) (*sweetrpc.SetBuzzOnDispenseResponse, error) {
 	log.Infof("Setting buzz on dispense to '%v'...", req.BuzzOnDispense)
 
-	err := s.dispenser.setBuzzOnDispense(req.BuzzOnDispense)
+	err := s.dispenser.SetBuzzOnDispense(req.BuzzOnDispense)
 	if err != nil {
 		log.Errorf("Failed setting buzz on dispense: %v", err)
 		return nil, errors.New("Failed setting buzz on dispense")
@@ -112,7 +113,7 @@ func (s *rpcServer) GetWpaConnectionInfo(ctx context.Context,
 
 	log.Info("Requested wifi connection info")
 
-	status, err := s.dispenser.accessPoint.GetConnectionStatus()
+	status, err := s.dispenser.AccessPoint.GetConnectionStatus()
 	if err != nil {
 		log.Errorf("Could not get Wifi connection status: %v", err)
 		return nil, errors.New("Could not get Wifi connection status")
@@ -132,7 +133,7 @@ func (s *rpcServer) ConnectWpaNetwork(ctx context.Context,
 
 	log.Infof("Requested wifi connection to %v", req.Ssid)
 
-	err := s.dispenser.accessPoint.ConnectWifi(req.Ssid, req.Psk)
+	err := s.dispenser.AccessPoint.ConnectWifi(req.Ssid, req.Psk)
 	if err != nil {
 		log.Errorf("Could not get Wifi networks: %v", err)
 		return nil, errors.New("Could not get Wifi networks")
@@ -146,7 +147,7 @@ func (s *rpcServer) ConnectWpaNetwork(ctx context.Context,
 	for {
 		<-ticker.C
 
-		status, err := s.dispenser.accessPoint.GetConnectionStatus()
+		status, err := s.dispenser.AccessPoint.GetConnectionStatus()
 		if err != nil {
 			log.Errorf("Getting WPA status failed: %s", err.Error())
 			return nil, errors.New("Getting Wifi connection status failed")
@@ -155,7 +156,7 @@ func (s *rpcServer) ConnectWpaNetwork(ctx context.Context,
 		log.Infof("Got status %v for ssid %v.", status.State, status.Ssid)
 
 		if status.Ssid == req.Ssid && (status.State == "ASSOCIATED" || status.State == "COMPLETED") {
-			err := s.dispenser.setWifiConnection(&sweetdb.WifiConnection{
+			err := s.dispenser.SetWifiConnection(&sweetdb.WifiConnection{
 				Ssid: req.Ssid,
 				Psk:  req.Psk,
 			})
@@ -187,7 +188,7 @@ func (s *rpcServer) GetWpaNetworks(ctx context.Context,
 
 	log.Info("Requested wifi networks")
 
-	networks, err := s.dispenser.accessPoint.ListWifiNetworks()
+	networks, err := s.dispenser.AccessPoint.ListWifiNetworks()
 	if err != nil {
 		log.Errorf("Getting Wifi networks failed: %v", err)
 		return nil, errors.New("Getting Wifi networks failed")
@@ -228,13 +229,13 @@ func (s *rpcServer) ConnectToRemoteNode(ctx context.Context,
 	req *sweetrpc.ConnectToRemoteNodeRequest) (*sweetrpc.ConnectToRemoteNodeResponse, error) {
 	log.Infof("Connecting to lightning node %s", req.Uri)
 
-	err := s.dispenser.connectLndNode(req.Uri, req.Cert, req.Macaroon)
+	err := s.dispenser.ConnectLndNode(req.Uri, req.Cert, req.Macaroon)
 	if err != nil {
 		log.Errorf("Connection failed: %v", err)
 		return nil, errors.New("Connection failed")
 	}
 
-	err = s.dispenser.saveLndNode(req.Uri, req.Cert, req.Macaroon)
+	err = s.dispenser.SaveLndNode(req.Uri, req.Cert, req.Macaroon)
 	if err != nil {
 		log.Errorf("Could not save remote lightning connection: %v", err)
 	}
@@ -246,13 +247,13 @@ func (s *rpcServer) DisconnectFromRemoteNode(ctx context.Context,
 	req *sweetrpc.DisconnectFromRemoteNodeRequest) (*sweetrpc.DisconnectFromRemoteNodeResponse, error) {
 	log.Info("Disconnecting from lightning node")
 
-	err := s.dispenser.disconnectLndNode()
+	err := s.dispenser.DisconnectLndNode()
 	if err != nil {
 		log.Errorf("Disconnect failed: %v", err)
 		return nil, errors.New("Disconnect failed")
 	}
 
-	err = s.dispenser.deleteLndNode()
+	err = s.dispenser.DeleteLndNode()
 	if err != nil {
 		log.Errorf("Could not delete remote lightning connection: %v", err)
 	}
@@ -277,7 +278,7 @@ func (s *rpcServer) ToggleDispenser(ctx context.Context,
 	req *sweetrpc.ToggleDispenserRequest) (*sweetrpc.ToggleDispenserResponse, error) {
 	log.Infof("Toggling dispenser %v", req.Dispense)
 
-	s.dispenser.toggleDispense(req.Dispense)
+	s.dispenser.ToggleDispense(req.Dispense)
 
 	return &sweetrpc.ToggleDispenserResponse{}, nil
 }
@@ -286,21 +287,21 @@ func (r *rpcServer) SubscribeDispenses(req *sweetrpc.SubscribeDispensesRequest,
 	updateStream sweetrpc.Sweet_SubscribeDispensesServer) error {
 	log.Info("Subscribing to dispenses")
 
-	client := r.dispenser.subscribeDispenses()
+	client := r.dispenser.SubscribeDispenses()
 
-	defer client.cancel()
+	defer client.Cancel()
 
 	for {
 		on := <-client.Dispenses
 
-		log.Debugf("Sending dispense event %v to client %v", on, client.id)
+		log.Debugf("Sending dispense event %v to client %v", on, client.Id)
 
 		dispense := &sweetrpc.Dispense{
 			Dispense: on,
 		}
 
 		if err := updateStream.Send(dispense); err != nil {
-			log.Infof("Client %v failed receiving: %v", client.id, err)
+			log.Infof("Client %v failed receiving: %v", client.Id, err)
 			return err
 		}
 	}

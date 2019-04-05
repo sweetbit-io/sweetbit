@@ -5,7 +5,9 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/the-lightning-land/sweetd/ap"
+	"github.com/the-lightning-land/sweetd/dispenser"
 	"github.com/the-lightning-land/sweetd/machine"
+	"github.com/the-lightning-land/sweetd/pairing"
 	"github.com/the-lightning-land/sweetd/sweetdb"
 	"github.com/the-lightning-land/sweetd/sweetrpc"
 	"google.golang.org/grpc"
@@ -60,36 +62,42 @@ func sweetdMain() error {
 
 	// sweet.db persistently stores all dispenser configurations and settings
 	sweetDB, err := sweetdb.Open(cfg.DataDir)
+	if err != nil {
+		return errors.Errorf("Could not open sweet.db: %v", err)
+	}
+
+	log.Infof("Opened sweet.db")
 
 	// The network access point, which acts as the core connectivity
 	// provider for all other components
 	var a ap.Ap
 
-	if cfg.RunAp {
+	switch cfg.Net {
+	case "dispenser":
 		a, err = ap.NewDispenserAp(&ap.DispenserApConfig{
 			Interface: "wlan0",
-			Hotspot: &ap.DispenserApHotspotConfig{
-				Interface:  cfg.Ap.Interface,
-				Ip:         cfg.Ap.Ip,
-				DhcpRange:  cfg.Ap.DhcpRange,
-				Ssid:       cfg.Ap.Ssid,
-				Passphrase: cfg.Ap.Passphrase,
-			},
 		})
 
 		log.Info("Created Candy Dispenser access point.")
-	} else {
+	case "mock":
 		a = ap.NewMockAp()
 
 		log.Info("Created a mock access point.")
+	default:
+		return errors.Errorf("Unknown networking type %v", cfg.Machine)
 	}
-
-	defer a.Stop()
 
 	err = a.Start()
 	if err != nil {
 		return errors.Errorf("Could not start access point: %v", err)
 	}
+
+	defer func() {
+		err := a.Stop()
+		if err != nil {
+			log.Errorf("Could not properly shut down access point: %v", err)
+		}
+	}()
 
 	wifiConnection, err := sweetDB.GetWifiConnection()
 	if err != nil {
@@ -105,11 +113,6 @@ func sweetdMain() error {
 		}
 	} else {
 		log.Infof("No saved Wifi connection available. Not connecting.")
-	}
-
-	err = a.StartHotspot()
-	if err != nil {
-		log.Warnf("Whoops, couldn't start hotspot: %v", err)
 	}
 
 	// The hardware controller
@@ -133,26 +136,47 @@ func sweetdMain() error {
 		return errors.Errorf("Unknown machine type %v", cfg.Machine)
 	}
 
-	log.Infof("Opened sweet.db")
-
 	// central controller for everything the dispenser does
-	dispenser := newDispenser(&dispenserConfig{
-		machine:     m,
-		accessPoint: a,
-		db:          sweetDB,
-		memoPrefix:  cfg.MemoPrefix,
+	dispenser := dispenser.NewDispenser(&dispenser.Config{
+		Machine:     m,
+		AccessPoint: a,
+		DB:          sweetDB,
+		MemoPrefix:  cfg.MemoPrefix,
 	})
 
 	log.Infof("Created dispenser.")
 
-	// Handle interrupt signals correctly
-	go func() {
-		signals := make(chan os.Signal, 1)
-		signal.Notify(signals, os.Interrupt)
-		sig := <-signals
-		log.Info(sig)
-		log.Info("Received an interrupt, stopping dispenser...")
-		dispenser.shutdown()
+	log.Infof("Creating pairing controller...")
+
+	// create subsystem responsible for pairing
+	pairingController, err := pairing.NewController(&pairing.Config{
+		Logger:      log.New().WithField("system", "pairing"),
+		AdapterId:   "hci0",
+		AccessPoint: a,
+		Dispenser:   dispenser,
+	})
+	if err != nil {
+		return errors.Errorf("Could not create pairing controller: %v", err)
+	}
+
+	log.Infof("Created pairing controller")
+
+	log.Infof("Starting pairing controller...")
+
+	err = pairingController.Start()
+	if err != nil {
+		return errors.Errorf("Could not start pairing controller: %v", err)
+	}
+
+	log.Infof("Started pairing controller")
+
+	defer func() {
+		log.Infof("Stopping pairing controller...")
+
+		err := pairingController.Stop()
+		if err != nil {
+			log.Errorf("Could not properly shut down pairing controller: %v", err)
+		}
 	}()
 
 	// Create a gRPC server for remote control of the dispenser
@@ -171,17 +195,35 @@ func sweetdMain() error {
 				return errors.New("RPC server unable to listen on %s")
 			}
 
-			defer lis.Close()
+			defer func() {
+				err := lis.Close()
+				if err != nil {
+					log.Errorf("Could not properly close: %v", err)
+				}
+			}()
 
 			go func() {
 				log.Infof("RPC server listening on %s", lis.Addr())
-				grpcServer.Serve(lis)
+				err := grpcServer.Serve(lis)
+				if err != nil {
+					log.Errorf("Could not serve: %v", err)
+				}
 			}()
 		}
 	}
 
+	// Handle interrupt signals correctly
+	go func() {
+		signals := make(chan os.Signal, 1)
+		signal.Notify(signals, os.Interrupt)
+		sig := <-signals
+		log.Info(sig)
+		log.Info("Received an interrupt, stopping dispenser...")
+		dispenser.Shutdown()
+	}()
+
 	// blocks until the dispenser is shut down
-	err = dispenser.run()
+	err = dispenser.Run()
 	if err != nil {
 		return errors.Errorf("Failed running dispenser: %v", err)
 	}

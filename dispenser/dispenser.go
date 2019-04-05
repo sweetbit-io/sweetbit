@@ -1,4 +1,4 @@
-package main
+package dispenser
 
 import (
 	"crypto/x509"
@@ -20,54 +20,53 @@ import (
 	"time"
 )
 
-type dispenser struct {
+type Dispenser struct {
 	machine              machine.Machine
-	accessPoint          ap.Ap
+	AccessPoint          ap.Ap
 	db                   *sweetdb.DB
-	dispenseOnTouch      bool
-	buzzOnDispense       bool
+	DispenseOnTouch      bool
+	BuzzOnDispense       bool
 	done                 chan struct{}
 	payments             chan *lnrpc.Invoice
 	grpcConn             *grpc.ClientConn
-	lightningNodeUri     string
+	LightningNodeUri     string
 	dispenses            chan bool
-	dispenseClients      map[uint32]*dispenseClient
+	dispenseClients      map[uint32]*DispenseClient
 	dispenseClientMtx    sync.Mutex
 	nextDispenseClientID uint32
 	memoPrefix           string
-	// add bluetooth pairing
 }
 
-type dispenseClient struct {
+type DispenseClient struct {
 	Dispenses  chan bool
-	id         uint32
+	Id         uint32
 	cancelChan chan struct{}
-	dispenser  *dispenser
+	dispenser  *Dispenser
 }
 
-type dispenserConfig struct {
-	machine     machine.Machine
-	accessPoint ap.Ap
-	db          *sweetdb.DB
-	memoPrefix  string
+type Config struct {
+	Machine     machine.Machine
+	AccessPoint ap.Ap
+	DB          *sweetdb.DB
+	MemoPrefix  string
 }
 
-func newDispenser(config *dispenserConfig) *dispenser {
-	return &dispenser{
-		machine:         config.machine,
-		accessPoint:     config.accessPoint,
-		db:              config.db,
-		dispenseOnTouch: true,
-		buzzOnDispense:  false,
+func NewDispenser(config *Config) *Dispenser {
+	return &Dispenser{
+		machine:         config.Machine,
+		AccessPoint:     config.AccessPoint,
+		db:              config.DB,
+		DispenseOnTouch: true,
+		BuzzOnDispense:  false,
 		done:            make(chan struct{}),
 		payments:        make(chan *lnrpc.Invoice),
 		dispenses:       make(chan bool),
-		dispenseClients: make(map[uint32]*dispenseClient),
-		memoPrefix:      config.memoPrefix,
+		dispenseClients: make(map[uint32]*DispenseClient),
+		memoPrefix:      config.MemoPrefix,
 	}
 }
 
-func (d *dispenser) run() error {
+func (d *Dispenser) Run() error {
 	log.Info("Starting machine...")
 
 	if err := d.machine.Start(); err != nil {
@@ -84,7 +83,7 @@ func (d *dispenser) run() error {
 
 	// connect to remote lightning node
 	if node != nil {
-		err := d.connectLndNode(node.Uri, node.Cert, node.Macaroon)
+		err := d.ConnectLndNode(node.Uri, node.Cert, node.Macaroon)
 		if err != nil {
 			log.Errorf("Could not connect to remote lightning node: %v", err)
 		}
@@ -107,10 +106,10 @@ func (d *dispenser) run() error {
 			// react on direct touch events of the machine
 			log.Infof("Touch event %v", on)
 
-			if d.dispenseOnTouch && on {
-				d.toggleDispense(true)
+			if d.DispenseOnTouch && on {
+				d.ToggleDispense(true)
 			} else {
-				d.toggleDispense(false)
+				d.ToggleDispense(false)
 			}
 
 		case <-d.payments:
@@ -119,9 +118,9 @@ func (d *dispenser) run() error {
 
 			log.Debugf("Dispensing for a duration of %v", dispense)
 
-			d.toggleDispense(true)
+			d.ToggleDispense(true)
 			time.Sleep(dispense)
-			d.toggleDispense(false)
+			d.ToggleDispense(false)
 
 		case <-d.done:
 			// finish loop when program is done
@@ -130,9 +129,9 @@ func (d *dispenser) run() error {
 	}
 }
 
-func (d *dispenser) toggleDispense(on bool) {
+func (d *Dispenser) ToggleDispense(on bool) {
 	// Always make sure that buzzing stops
-	if d.buzzOnDispense || !on {
+	if d.BuzzOnDispense || !on {
 		d.machine.ToggleBuzzer(on)
 	}
 
@@ -141,7 +140,7 @@ func (d *dispenser) toggleDispense(on bool) {
 	d.dispenses <- on
 }
 
-func (d *dispenser) saveLndNode(uri string, certBytes []byte, macaroonBytes []byte) error {
+func (d *Dispenser) SaveLndNode(uri string, certBytes []byte, macaroonBytes []byte) error {
 	err := d.db.SetLightningNode(&sweetdb.LightningNode{
 		Uri:      uri,
 		Cert:     certBytes,
@@ -155,7 +154,7 @@ func (d *dispenser) saveLndNode(uri string, certBytes []byte, macaroonBytes []by
 	return nil
 }
 
-func (d *dispenser) deleteLndNode() error {
+func (d *Dispenser) DeleteLndNode() error {
 	err := d.db.SetLightningNode(nil)
 
 	if err != nil {
@@ -170,7 +169,7 @@ var (
 	endCertificateBlock   = []byte("\n-----END CERTIFICATE-----")
 )
 
-func (d *dispenser) connectLndNode(uri string, certBytes []byte, macaroonBytes []byte) error {
+func (d *Dispenser) ConnectLndNode(uri string, certBytes []byte, macaroonBytes []byte) error {
 	log.Infof("Connecting to remote lightning node %s", uri)
 
 	cert := x509.NewCertPool()
@@ -214,7 +213,7 @@ func (d *dispenser) connectLndNode(uri string, certBytes []byte, macaroonBytes [
 	d.grpcConn = conn
 
 	// save currently connected node uri
-	d.lightningNodeUri = uri
+	d.LightningNodeUri = uri
 
 	go func() {
 		log.Info("Listening to paid invoices...")
@@ -257,7 +256,7 @@ func (d *dispenser) connectLndNode(uri string, certBytes []byte, macaroonBytes [
 	return nil
 }
 
-func (d *dispenser) disconnectLndNode() error {
+func (d *Dispenser) DisconnectLndNode() error {
 	log.Infof("Disconnecting from remote lightning node")
 
 	// close open connection
@@ -266,12 +265,12 @@ func (d *dispenser) disconnectLndNode() error {
 	}
 
 	// remove currently connected node uri
-	d.lightningNodeUri = ""
+	d.LightningNodeUri = ""
 
 	return nil
 }
 
-func (d *dispenser) setWifiConnection(connection *sweetdb.WifiConnection) error {
+func (d *Dispenser) SetWifiConnection(connection *sweetdb.WifiConnection) error {
 	log.Infof("Setting Wifi connection")
 
 	err := d.db.SetWifiConnection(connection)
@@ -282,7 +281,7 @@ func (d *dispenser) setWifiConnection(connection *sweetdb.WifiConnection) error 
 	return nil
 }
 
-func (d *dispenser) getName() (string, error) {
+func (d *Dispenser) GetName() (string, error) {
 	log.Infof("Getting name")
 
 	name, err := d.db.GetName()
@@ -293,7 +292,7 @@ func (d *dispenser) getName() (string, error) {
 	return name, nil
 }
 
-func (d *dispenser) setName(name string) error {
+func (d *Dispenser) SetName(name string) error {
 	log.Infof("Setting name")
 
 	err := d.db.SetName(name)
@@ -304,10 +303,10 @@ func (d *dispenser) setName(name string) error {
 	return nil
 }
 
-func (d *dispenser) setDispenseOnTouch(dispenseOnTouch bool) error {
+func (d *Dispenser) SetDispenseOnTouch(dispenseOnTouch bool) error {
 	log.Infof("Setting dispense on touch")
 
-	d.dispenseOnTouch = dispenseOnTouch
+	d.DispenseOnTouch = dispenseOnTouch
 
 	err := d.db.SetDispenseOnTouch(dispenseOnTouch)
 	if err != nil {
@@ -317,10 +316,10 @@ func (d *dispenser) setDispenseOnTouch(dispenseOnTouch bool) error {
 	return nil
 }
 
-func (d *dispenser) setBuzzOnDispense(buzzOnDispense bool) error {
+func (d *Dispenser) SetBuzzOnDispense(buzzOnDispense bool) error {
 	log.Infof("Setting buzz on dispense")
 
-	d.buzzOnDispense = buzzOnDispense
+	d.BuzzOnDispense = buzzOnDispense
 
 	err := d.db.SetBuzzOnDispense(buzzOnDispense)
 	if err != nil {
@@ -330,7 +329,27 @@ func (d *dispenser) setBuzzOnDispense(buzzOnDispense bool) error {
 	return nil
 }
 
-func (d *dispenser) shutdown() {
+func (d *Dispenser) ConnectToWifi(ssid string, psk string) error {
+	log.Infof("Connecting to wifi %v", ssid)
+
+	err := d.AccessPoint.ConnectWifi(ssid, psk)
+	if err != nil {
+		log.Errorf("Could not get Wifi networks: %v", err)
+		return errors.New("Could not get Wifi networks")
+	}
+
+	err = d.SetWifiConnection(&sweetdb.WifiConnection{
+		Ssid: ssid,
+		Psk:  psk,
+	})
+	if err != nil {
+		log.Errorf("Could not save wifi connection: %v", err)
+	}
+
+	return nil
+}
+
+func (d *Dispenser) Shutdown() {
 	d.machine.Stop()
 
 	if d.grpcConn != nil {
@@ -340,25 +359,25 @@ func (d *dispenser) shutdown() {
 	close(d.done)
 }
 
-func (d *dispenser) subscribeDispenses() (*dispenseClient) {
-	client := &dispenseClient{
+func (d *Dispenser) SubscribeDispenses() *DispenseClient {
+	client := &DispenseClient{
 		Dispenses:  make(chan bool),
 		cancelChan: make(chan struct{}),
 		dispenser:  d,
 	}
 
 	d.dispenseClientMtx.Lock()
-	client.id = d.nextDispenseClientID
+	client.Id = d.nextDispenseClientID
 	d.nextDispenseClientID++
 	d.dispenseClientMtx.Unlock()
 
-	d.dispenseClients[client.id] = client
+	d.dispenseClients[client.Id] = client
 
 	return client
 }
 
-func (c *dispenseClient) cancel() {
-	delete(c.dispenser.dispenseClients, c.id)
+func (c *DispenseClient) Cancel() {
+	delete(c.dispenser.dispenseClients, c.Id)
 
 	close(c.cancelChan)
 }
