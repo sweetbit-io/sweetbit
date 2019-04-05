@@ -1,9 +1,9 @@
 DESCRIPTION = "Sweet daemon for pairing and control of the Bitcoin-enabled candy dispenser"
 HOMEPAGE = "https://the.lightning.land"
 
-VERSION = "0.4.8"
+VERSION = "0.5.0"
 ARCHIVE = ""
-SHA256SUM = "b9dcd378de2ff5b14e767aae15a6752c0af35767a12459ae0aa60c7d3318f2ae"
+SHA256SUM = "f1067abcf2c9663738ecb1c2d68493156b0f0f561ce73031ba1d6234b0ce0447"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${WORKDIR}/sweetd_${VERSION}_linux_armv6/LICENSE;md5=7087f57a125c674f2eeafee675b016a1"
 
