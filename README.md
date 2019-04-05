@@ -18,8 +18,7 @@ The `sweetd` program offers the following features:
 * [x] 🍬 Control of the motor for dispensing candy
 * [x] 📳 Control of the buzzer for user feedback
 * [x] ☝️ React on events from the touch sensor
-* [x] 📶 Pair through Wi-Fi hotspot
-* [ ] 🔵 Pair through Bluetooth
+* [x] 🔵 Pair through Bluetooth
 * [x] 🌐 Set up Wi-Fi on candy dispenser
 * [x] ⚡ Dispense candy on payments from remote `lnd` node
 * [x] 💅 Customize name of your dispenser
