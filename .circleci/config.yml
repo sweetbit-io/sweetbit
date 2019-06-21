@@ -7,4 +7,4 @@ jobs:
       - checkout
       - run:
           name: Hello
-          command: 'echo "Hello World!"'
+          command: 'pwd && ls -al && source oe-init-build-env'
