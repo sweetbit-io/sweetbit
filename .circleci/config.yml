@@ -23,9 +23,10 @@ jobs:
             cd ~/poky
             source oe-init-build-env ~/poky/meta-candy/build
 
-            bitbake sweetd
+            bitbake --quiet core-image-base
       - save_cache:
           key: cache
+          when: always
           paths:
             - ~/poky/meta-candy/build/{cache,downloads,sstate-cache}
 workflows:
