@@ -28,7 +28,9 @@ jobs:
           key: cache
           when: always
           paths:
-            - ~/poky/meta-candy/build/{cache,downloads,sstate-cache}
+            - ~/poky/meta-candy/build/cache
+            - ~/poky/meta-candy/build/downloads
+            - ~/poky/meta-candy/build/sstate-cache
 workflows:
   version: 2
   workflow:
