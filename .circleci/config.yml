@@ -1,10 +1,35 @@
-version: 2.1
+version: 2
 jobs:
   build:
     docker:
       - image: crops/poky:ubuntu-18.10
+        # entrypoint: /usr/bin/dumb-init -- /usr/bin/poky-entry.py
+        command: --workdir /home/pokyuser
+        # user: pokyuser
     steps:
-      - checkout
+      - run: git clone --quiet --depth 1 --branch warrior git://git.yoctoproject.org/poky ~/poky
+      - checkout:
+          path: ~/poky/meta-candy
+      - restore_cache:
+          keys:
+            - cache
       - run:
-          name: Hello
-          command: 'pwd && ls -al && cd /workdir && ls -al && cd poky && ls -al'
+          command: |
+            git clone --quiet --depth 1 --branch warrior https://github.com/openembedded/meta-openembedded.git ~/poky/meta-oe
+            git clone --quiet --depth 1 --branch warrior https://github.com/agherzan/meta-raspberrypi.git ~/poky/meta-raspberrypi
+            git clone --quiet --depth 1 --branch master https://github.com/the-lightning-land/meta-mender.git ~/poky/meta-mender
+            git clone --quiet --depth 1 --branch warrior https://github.com/the-lightning-land/meta-bitcoin.git ~/poky/meta-bitcoin
+
+            cd ~/poky
+            source oe-init-build-env ~/poky/meta-candy/build
+
+            bitbake sweetd
+      - save_cache:
+          key: cache
+          paths:
+            - ~/poky/meta-candy/build/{cache,downloads,sstate-cache}
+workflows:
+  version: 2
+  workflow:
+    jobs:
+      - build
