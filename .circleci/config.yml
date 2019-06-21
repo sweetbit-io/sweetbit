@@ -3,3 +3,8 @@ jobs:
   build:
     docker:
       - image: crops/poky:ubuntu-18.10
+    steps:
+      - checkout
+      - run:
+          name: Hello
+          command: 'echo "Hello World!"'
