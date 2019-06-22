@@ -7,25 +7,40 @@ jobs:
         command: --workdir /home/pokyuser
         # user: pokyuser
     steps:
-      - run: git clone --quiet --depth 1 --branch warrior git://git.yoctoproject.org/poky ~/poky
+      - run:
+          name: Checkout poky build environment
+          command: git clone --quiet --depth 1 --branch warrior git://git.yoctoproject.org/poky ~/poky
       - checkout:
           path: ~/poky/meta-candy
       - restore_cache:
           keys:
-            - cache
+            - cache-v1-{{ .Branch }}-{{ .Revision }}
+            - cache-v1-{{ .Branch }}-
+            - cache-v1-
       - run:
+          name: Checkout layer dependencies
           command: |
             git clone --quiet --depth 1 --branch warrior https://github.com/openembedded/meta-openembedded.git ~/poky/meta-oe
             git clone --quiet --depth 1 --branch warrior https://github.com/agherzan/meta-raspberrypi.git ~/poky/meta-raspberrypi
             git clone --quiet --depth 1 --branch master https://github.com/the-lightning-land/meta-mender.git ~/poky/meta-mender
             git clone --quiet --depth 1 --branch warrior https://github.com/the-lightning-land/meta-bitcoin.git ~/poky/meta-bitcoin
-
+      - run:
+          name: Build
+          command: |
             cd ~/poky
             source oe-init-build-env ~/poky/meta-candy/build
 
             bitbake --quiet core-image-base
+      - store_artifacts:
+          name: Store mender image
+          path: ~/poky/meta-candy/build/tmp/deploy/images/raspberrypi0-wifi/core-image-base-raspberrypi0-wifi.mender
+          destination: candy.mender
+      - store_artifacts:
+          name: Store sd card image
+          path: ~/poky/meta-candy/build/tmp/deploy/images/raspberrypi0-wifi/core-image-base-raspberrypi0-wifi.sdimg
+          destination: candy.rpi-sdimg
       - save_cache:
-          key: cache
+          key: cache-v1-{{ .Branch }}-{{ .Revision }}
           when: always
           paths:
             - ~/poky/meta-candy/build/cache
