@@ -9,8 +9,10 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Checkout dependencies
-          command: git submodule update
+          name: Check out dependencies
+          command: |
+            git submodule sync
+            git submodule update --init
       - restore_cache:
           keys:
             - cache-v1-{{ .Branch }}-{{ .Revision }}
