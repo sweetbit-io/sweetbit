@@ -1,19 +1,15 @@
 [submodule "meta-bitcoin"]
 	path = meta-bitcoin
 	url = https://github.com/the-lightning-land/meta-bitcoin.git
-	shallow = true
 [submodule "meta-mender"]
 	path = meta-mender
 	url = https://github.com/the-lightning-land/meta-mender.git
-	shallow = true
 [submodule "meta-raspberrypi"]
 	path = meta-raspberrypi
 	url = https://github.com/agherzan/meta-raspberrypi.git
 [submodule "poky"]
 	path = poky
 	url = git://git.yoctoproject.org/poky
-	shallow = true
 [submodule "meta-openembedded"]
 	path = meta-openembedded
 	url = https://github.com/openembedded/meta-openembedded.git
-	shallow = true
