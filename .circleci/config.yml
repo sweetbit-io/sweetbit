@@ -1,6 +1,7 @@
 version: 2
 jobs:
   build:
+    resource_class: large
     docker:
       - image: crops/poky:ubuntu-18.10
         # entrypoint: /usr/bin/dumb-init -- /usr/bin/poky-entry.py
