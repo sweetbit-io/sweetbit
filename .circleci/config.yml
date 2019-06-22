@@ -7,8 +7,7 @@ jobs:
         command: --workdir /home/pokyuser
         # user: pokyuser
     steps:
-      - checkout:
-          path: ~/meta-candy
+      - checkout
       - run:
           name: Checkout dependencies
           command: git submodule update
@@ -21,24 +20,24 @@ jobs:
           name: Build
           no_output_timeout: 1h
           command: |
-            cd ~/meta-candy/poky
-            source oe-init-build-env ~/meta-candy/build
+            cd poky
+            source oe-init-build-env ../build
             bitbake --quiet core-image-base
       - store_artifacts:
           name: Store mender image
-          path: ~/meta-candy/build/tmp/deploy/images/raspberrypi0-wifi/core-image-base-raspberrypi0-wifi.mender
+          path: build/tmp/deploy/images/raspberrypi0-wifi/core-image-base-raspberrypi0-wifi.mender
           destination: candy.mender
       - store_artifacts:
           name: Store sd card image
-          path: ~/meta-candy/build/tmp/deploy/images/raspberrypi0-wifi/core-image-base-raspberrypi0-wifi.sdimg
+          path: build/tmp/deploy/images/raspberrypi0-wifi/core-image-base-raspberrypi0-wifi.sdimg
           destination: candy.rpi-sdimg
       - save_cache:
           key: cache-v1-{{ .Branch }}-{{ .Revision }}
           when: always
           paths:
-            - ~/meta-candy/build/cache
-            - ~/meta-candy/build/downloads
-            - ~/meta-candy/build/sstate-cache
+            - build/cache
+            - build/downloads
+            - build/sstate-cache
 workflows:
   version: 2
   workflow:
