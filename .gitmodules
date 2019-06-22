@@ -18,4 +18,3 @@
 	path = meta-openembedded
 	url = https://github.com/openembedded/meta-openembedded.git
 	shallow = true
-	branch = warrior
