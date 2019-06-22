@@ -9,7 +9,6 @@
 [submodule "meta-raspberrypi"]
 	path = meta-raspberrypi
 	url = https://github.com/agherzan/meta-raspberrypi.git
-	shallow = true
 [submodule "poky"]
 	path = poky
 	url = git://git.yoctoproject.org/poky
