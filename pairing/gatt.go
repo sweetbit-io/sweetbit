@@ -29,8 +29,8 @@ type Notifier <-chan []byte
 type gattApp struct {
 	app           *service.Application
 	err           error
-	readHandlers  map[string]HandleRead
-	writeHandlers map[string]HandleWrite
+	readHandlers  map[dbus.ObjectPath]HandleRead
+	writeHandlers map[dbus.ObjectPath]HandleWrite
 	notifiers     map[*service.GattCharacteristic1]Notifier
 	done          chan struct{}
 }
@@ -59,8 +59,8 @@ func GattApp(objectName string, objectPath string, localName string) *gattApp {
 	a := &gattApp{}
 	var err error
 
-	a.readHandlers = make(map[string]HandleRead)
-	a.writeHandlers = make(map[string]HandleWrite)
+	a.readHandlers = make(map[dbus.ObjectPath]HandleRead)
+	a.writeHandlers = make(map[dbus.ObjectPath]HandleWrite)
 	a.notifiers = make(map[*service.GattCharacteristic1]Notifier)
 	a.done = make(chan struct{})
 
@@ -80,16 +80,16 @@ func GattApp(objectName string, objectPath string, localName string) *gattApp {
 	return a
 }
 
-func (a *gattApp) handleRead(app *service.Application, serviceUuid string, characteristicUuid string) ([]byte, error) {
-	if readHandler, ok := a.readHandlers[characteristicUuid]; ok {
+func (a *gattApp) handleRead(app *service.Application, serviceObjectPath dbus.ObjectPath, charObjectPath dbus.ObjectPath) ([]byte, error) {
+	if readHandler, ok := a.readHandlers[charObjectPath]; ok {
 		return readHandler()
 	}
 
 	return nil, service.NewCallbackError(service.CallbackNotRegistered, "")
 }
 
-func (a *gattApp) handleWrite(app *service.Application, serviceUuid string, characteristicUuid string, value []byte) error {
-	if writeHandler, ok := a.writeHandlers[characteristicUuid]; ok {
+func (a *gattApp) handleWrite(app *service.Application, serviceObjectPath dbus.ObjectPath, charObjectPath dbus.ObjectPath, value []byte) error {
+	if writeHandler, ok := a.writeHandlers[charObjectPath]; ok {
 		return writeHandler(value)
 	}
 
@@ -237,16 +237,8 @@ func (c *gattPendingCharacteristic) Create() *gattCharacteristic {
 		inferredFlags = append(inferredFlags, bluez.FlagCharacteristicRead)
 	}
 
-	if c.characteristicRead != nil {
-		// TODO: Mapping by characteristic UUID only makes this work for one service
-		c.readHandlers[c.characteristicUuid] = c.characteristicRead
-	}
-
 	if c.characteristicWrite != nil {
 		inferredFlags = append(inferredFlags, bluez.FlagCharacteristicWrite)
-
-		// TODO: Mapping by characteristic UUID only makes this work for one service
-		c.writeHandlers[c.characteristicUuid] = c.characteristicWrite
 	}
 
 	if c.characteristicNotifications != nil {
@@ -258,6 +250,14 @@ func (c *gattPendingCharacteristic) Create() *gattCharacteristic {
 		Value: c.characteristicValue,
 		Flags: inferredFlags,
 	})
+
+	if c.characteristicRead != nil {
+		c.readHandlers[characteristic.Path()] = c.characteristicRead
+	}
+
+	if c.characteristicWrite != nil {
+		c.writeHandlers[characteristic.Path()] = c.characteristicWrite
+	}
 
 	if err != nil {
 		c.err = errors.Errorf("Failed to create characteristic: %v", err)

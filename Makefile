@@ -5,7 +5,7 @@ VERSION := $(shell git describe --tags)
 COMMIT := $(shell git rev-parse HEAD)
 DATE := $(shell date +%Y-%m-%d)
 
-LDFLAGS := -ldflags "-X main.Commit=$(COMMIT) -X main.Version=$(VERSION) -X main.Date=$(DATE)"
+LDFLAGS := "-X main.Commit=$(COMMIT) -X main.Version=$(VERSION) -X main.Date=$(DATE) ${LDFLAGS}"
 
 GOBUILD := GO111MODULE=on go build -v
 RM := rm -f
@@ -16,7 +16,7 @@ default: build
 
 compile:
 	@$(call print, "Building sweetd.")
-	$(GOBUILD) -o sweetd $(LDFLAGS) $(PKG)
+	$(GOBUILD) -o sweetd -ldflags $(LDFLAGS) $(PKG)
 
 test:
 	@$(call print, "Testing sweetd.")

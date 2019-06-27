@@ -11,9 +11,11 @@ require (
 	github.com/jessevdk/go-flags v1.4.0
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/lightningnetwork/lnd v0.5.2-beta
-	github.com/muka/go-bluetooth v0.0.0-20190324143007-1174effa3337
+	github.com/muka/ble v0.0.0-20190208060657-c5982255bf40 // indirect
+	github.com/muka/go-bluetooth v0.0.0-20190511040657-127007ab0f74
 	github.com/pkg/errors v0.8.1
 	github.com/sirupsen/logrus v1.4.0
+	github.com/stretchr/testify v1.3.0 // indirect
 	go.etcd.io/bbolt v1.3.2
 	golang.org/x/crypto v0.0.0-20190325154230-a5d413f7728c // indirect
 	golang.org/x/net v0.0.0-20190326090315-15845e8f865b
@@ -25,5 +27,3 @@ require (
 )
 
 replace github.com/golang/lint => github.com/golang/lint v0.0.0-20190227174305-8f45f776aaf1
-
-replace github.com/muka/go-bluetooth => github.com/davidknezic/go-bluetooth v0.0.0-20190328210424-e60e37bbe516

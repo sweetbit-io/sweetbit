@@ -120,6 +120,8 @@ github.com/muka/ble v0.0.0-20190208060657-c5982255bf40 h1:14ftq8a9fG15Pv8MDEhAOy
 github.com/muka/ble v0.0.0-20190208060657-c5982255bf40/go.mod h1:1lEPQDLh8Z86+REeQMqID8UpXCSdHF0fvU0qZj3b1eA=
 github.com/muka/go-bluetooth v0.0.0-20190324143007-1174effa3337 h1:B8E01GMEob29MhQJ8WCVjNVwTsf0gN68dI9WhorhbTs=
 github.com/muka/go-bluetooth v0.0.0-20190324143007-1174effa3337/go.mod h1:tbUgXz7VZqw14AD1gArXW8wcVQtfGWBZAIhyMziuTck=
+github.com/muka/go-bluetooth v0.0.0-20190511040657-127007ab0f74 h1:TOQjVaVrdTyK9d1uxHcPAk0A7Ann8CtvbYETXmU1k+g=
+github.com/muka/go-bluetooth v0.0.0-20190511040657-127007ab0f74/go.mod h1:brKFFAJeW2mWp1W5D/GJhwbn3IpNR69jIm1qGWZcl50=
 github.com/onsi/ginkgo v1.6.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
 github.com/onsi/ginkgo v1.7.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
 github.com/onsi/gomega v1.4.1/go.mod h1:C1qb7wdrVGGVU+Z6iS04AVkA3Q65CEZX59MT0QO5uiA=
