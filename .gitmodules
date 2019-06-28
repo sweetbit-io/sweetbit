@@ -3,7 +3,7 @@
 	url = https://github.com/the-lightning-land/meta-bitcoin.git
 [submodule "meta-mender"]
 	path = meta-mender
-	url = https://github.com/mendersoftware/meta-mender.git
+	url = https://github.com/the-lightning-land/meta-mender.git
 [submodule "meta-raspberrypi"]
 	path = meta-raspberrypi
 	url = https://github.com/agherzan/meta-raspberrypi.git
