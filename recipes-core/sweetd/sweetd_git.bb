@@ -8,7 +8,7 @@ LIC_FILES_CHKSUM = "file://src/${GO_IMPORT}/LICENSE;md5=7087f57a125c674f2eeafee6
 
 GO_IMPORT = "github.com/davidknezic/sweetd"
 SRC_URI = "\
-  git://${GO_IMPORT};branch=update-bluetooth \
+  git://${GO_IMPORT};branch=add-point-of-sales \
   file://sweetd.init \
   file://sweetd.default \
   file://sweet.conf \
@@ -16,7 +16,7 @@ SRC_URI = "\
   "
 
 # points to Update go-bluetooth commit
-SRCREV = "4f9978390f6ba394318da7149453fb7d62edde4a"
+SRCREV = "d8c98dd1c695dbfc23725fc050edd8f5ed2f8f3a"
 
 PROVIDES = "sweetd"
 RPROVIDES_${PN} = "sweetd"
