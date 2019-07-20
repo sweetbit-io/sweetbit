@@ -23,7 +23,7 @@ The `sweetd` program offers the following features:
 * [x] ⚡ Dispense candy on payments from remote `lnd` node
 * [x] 💅 Customize name of your dispenser
 * [x] 🔄 Update itself through app
-* [ ] ⚙️ Ensure all system configs are made
+* [x] ⚙️ Ensure all system configs are made
 
 ## Download
 

@@ -9,6 +9,9 @@ type MockMachine struct {
 	touchEvents chan bool // Internal sending channel for touch events
 }
 
+// Compile time check for protocol compatibility
+var _ Machine = (*MockMachine)(nil)
+
 func NewMockMachine(listen string) *MockMachine {
 	touchEvents := make(chan bool)
 

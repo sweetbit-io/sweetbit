@@ -1,0 +1,23 @@
+{
+  "name": "@the-lightning-land/candy-pos",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/the-lightning-land/sweetd",
+  "author": "David Knezić <davidknezic@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "dev": "API_BASE_URL=http://localhost:3000/api next -p 3001",
+    "build": "next build",
+    "start": "API_BASE_URL=http://localhost:3000/api next start -p 3001",
+    "export": "npm run build && next export"
+  },
+  "dependencies": {
+    "next": "^9.0.2",
+    "qrcode.react": "^0.9.3",
+    "query-string": "^6.8.1",
+    "react": "^16.8.6",
+    "react-animate-height": "^2.0.15",
+    "react-copy-to-clipboard": "^5.0.1",
+    "react-dom": "^16.8.6"
+  }
+}

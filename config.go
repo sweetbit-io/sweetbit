@@ -16,11 +16,20 @@ type raspberryConfig struct {
 	BuzzerPin string `long:"buzzerpin" description:"BCM number of the buzzer output pin."`
 }
 
+type menderConfig struct {
+	ConfigFile string `long:"config" description:"The file that holds mender configurations."`
+	DataDir    string `long:"data" description:"The directory that stores mender data."`
+}
+
 type mockConfig struct {
 	Listen string `long:"listen" description:"Add an interface/port to listen for mock touches."`
 }
 
 type lndConfig struct {
+}
+
+type torConfig struct {
+	DataDir string `long:"data" description:"The directory that stores Tor data."`
 }
 
 type config struct {
@@ -35,6 +44,9 @@ type config struct {
 	Net          string           `long:"net" description:"The networking system to use." choice:"dispenser" choice:"mock"`
 	DataDir      string           `long:"datadir" description:"The directory to store sweetd's data within.'"`
 	MemoPrefix   string           `long:"memoprefix" description:"Only react to invoices that have a memo starting with this prefix. (default empty, react to all invoices)'"`
+	Updater      string           `long:"updater" description:"The updater to use." choice:"none" choice:"mender"`
+	Mender       *menderConfig    `group:"Mender" namespace:"mender"`
+	Tor          *torConfig       `group:"Tor" namespace:"tor"`
 }
 
 func loadConfig() (*config, error) {
@@ -50,6 +62,14 @@ func loadConfig() (*config, error) {
 		Net:        "dispenser",
 		DataDir:    "./data",
 		MemoPrefix: "",
+		Updater:    "none",
+		Mender: &menderConfig{
+			ConfigFile: "/etc/mender/mender.conf",
+			DataDir:    "/var/lib/mender",
+		},
+		Tor: &torConfig{
+			DataDir: "./tor",
+		},
 	}
 
 	preCfg := defaultCfg

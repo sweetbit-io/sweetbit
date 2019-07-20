@@ -8,8 +8,11 @@ import (
 	"github.com/the-lightning-land/sweetd/dispenser"
 	"github.com/the-lightning-land/sweetd/machine"
 	"github.com/the-lightning-land/sweetd/pairing"
+	"github.com/the-lightning-land/sweetd/pos"
 	"github.com/the-lightning-land/sweetd/sweetdb"
+	"github.com/the-lightning-land/sweetd/sweetlog"
 	"github.com/the-lightning-land/sweetd/sweetrpc"
+	"github.com/the-lightning-land/sweetd/updater"
 	"google.golang.org/grpc"
 	"net"
 	"os"
@@ -28,11 +31,13 @@ var (
 // sweetdMain is the true entry point for sweetd. This is required since defers
 // created in the top-level scope of a main method aren't executed if os.Exit() is called.
 func sweetdMain() error {
+	sweetLog := sweetlog.New()
+
 	log.SetOutput(os.Stdout)
 	log.SetLevel(log.InfoLevel)
+	log.AddHook(sweetLog)
 
 	log.Debug("Starting sweetd...")
-
 	log.Debug("Loading config...")
 
 	// Load CLI configuration and defaults
@@ -115,6 +120,31 @@ func sweetdMain() error {
 		log.Infof("No saved Wifi connection available. Not connecting.")
 	}
 
+	// The updater
+	var u updater.Updater
+
+	switch cfg.Updater {
+	case "none":
+		u = updater.NewNoopUpdater()
+
+		log.Info("Created noop updater.")
+	case "mender":
+		u, err = updater.NewMenderUpdater(&updater.MenderUpdaterConfig{
+			Logger: log.New().WithField("system", "updater"),
+		})
+
+		log.Info("Created Mender updater.")
+	default:
+		return errors.Errorf("Unknown updater type %v", cfg.Updater)
+	}
+
+	artifactName, err := u.GetArtifactName()
+	if err != nil {
+		log.Error("Could not obtain artifact name. Continuing though...")
+	} else {
+		log.Infof("Updater returned artifact name %v", artifactName)
+	}
+
 	// The hardware controller
 	var m machine.Machine
 
@@ -136,12 +166,29 @@ func sweetdMain() error {
 		return errors.Errorf("Unknown machine type %v", cfg.Machine)
 	}
 
+	log.Infof("Creating PoS...")
+
+	// create subsystem responsible for the point of sale app
+	pos, err := pos.NewPos(&pos.Config{
+		Logger:     log.New().WithField("system", "pos"),
+		TorDataDir: cfg.Tor.DataDir,
+	})
+	if err != nil {
+		return errors.Errorf("Could not create PoS: %v", err)
+	}
+
+	log.Infof("Created PoS")
+
 	// central controller for everything the dispenser does
 	dispenser := dispenser.NewDispenser(&dispenser.Config{
 		Machine:     m,
 		AccessPoint: a,
 		DB:          sweetDB,
 		MemoPrefix:  cfg.MemoPrefix,
+		Updater:     u,
+		Pos:         pos,
+		SweetLog:    sweetLog,
+		Logger:      log.New().WithField("system", "dispenser"),
 	})
 
 	log.Infof("Created dispenser.")
@@ -192,7 +239,7 @@ func sweetdMain() error {
 		for _, listener := range cfg.Listeners {
 			lis, err := net.Listen(listener.Network(), listener.String())
 			if err != nil {
-				return errors.New("RPC server unable to listen on %s")
+				return errors.Errorf("RPC server unable to listen on %s", listener.String())
 			}
 
 			defer func() {

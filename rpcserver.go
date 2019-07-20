@@ -216,7 +216,7 @@ func (s *rpcServer) GetWpaNetworks(ctx context.Context,
 func (s *rpcServer) Update(ctx context.Context, req *sweetrpc.UpdateRequest) (*sweetrpc.UpdateResponse, error) {
 	log.Infof("Go update request with %s", req.Url)
 
-	err := doUpdate(req.Url)
+	err := s.dispenser.Updater.StartUpdate(req.Url)
 	if err != nil {
 		log.Errorf("Update failed: %v", err)
 		return nil, errors.New("Update failed")

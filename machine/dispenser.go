@@ -26,6 +26,9 @@ type DispenserMachineConfig struct {
 	BuzzerPin string
 }
 
+// Compile time check for protocol compatibility
+var _ Machine = (*DispenserMachine)(nil)
+
 func NewDispenserMachine(config *DispenserMachineConfig) *DispenserMachine {
 	touchEvents := make(chan bool)
 	motorEvents := make(chan bool)

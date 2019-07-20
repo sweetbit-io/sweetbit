@@ -26,3 +26,8 @@ sweetd-*
 
 # Relase
 dist
+
+*-packr.go
+
+# Tor data directory
+tor
