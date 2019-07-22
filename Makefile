@@ -7,9 +7,6 @@ DATE := $(shell date +%Y-%m-%d)
 
 LDFLAGS := "-X main.Commit=$(COMMIT) -X main.Version=$(VERSION) -X main.Date=$(DATE)"
 
-GOBUILD := go build
-RM := rm -f
-
 PACKR2_PKG := github.com/gobuffalo/packr/v2
 PACKR2_BIN := $(GO_BIN)/packr2
 PACKR2_COMMIT := $(shell cat go.mod | \
@@ -24,8 +21,8 @@ default: build
 
 packr2:
 	@$(call print, "Installing packr2.")
-	go get $(PACKR2_PKG)@$(PACKR2_COMMIT)
-	go install $(PACKR2_PKG)/packr2
+	go get -d $(PACKR2_PKG)@$(PACKR2_COMMIT)
+	go build -o packr2 -ldflags $(LDFLAGS) $(PACKR2_PKG)/packr2
 
 pack: packr2
 	@$(call print, "Getting node dependencies.")
@@ -33,11 +30,11 @@ pack: packr2
 	@$(call print, "Compiling point-of-sale assets.")
 	(cd pos && npm run export)
 	@$(call print, "Packaging static assets.")
-	$(PACKR2_BIN)
+	./packr2
 
 compile: pack
 	@$(call print, "Building sweetd.")
-	$(GOBUILD) -o sweetd -ldflags $(LDFLAGS) $(PKG)
+	go build -o sweetd -ldflags $(LDFLAGS) $(PKG)
 
 test:
 	@$(call print, "Testing sweetd.")
@@ -45,9 +42,9 @@ test:
 
 clean:
 	@$(call print, "Cleaning static asset packages.")
-	packr2 clean
+	./packr2 clean
 	@$(call print, "Cleaning builds and module cache")
-	$(RM) ./sweetd
+	rm -rf ./sweetd
 
 clean-cache:
 	@$(call print, "Cleaning go module cache")

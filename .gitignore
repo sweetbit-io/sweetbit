@@ -31,3 +31,6 @@ dist
 
 # Tor data directory
 tor
+
+# packr2 binary
+packr2
