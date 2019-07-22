@@ -1,14 +1,11 @@
 PKG := github.com/the-lightning-land/sweetd
 
-GO_BIN := ${GOPATH}/bin
 VERSION := $(shell git describe --tags)
 COMMIT := $(shell git rev-parse HEAD)
 DATE := $(shell date +%Y-%m-%d)
-
-LDFLAGS := "-X main.Commit=$(COMMIT) -X main.Version=$(VERSION) -X main.Date=$(DATE)"
+LDFLAGS := '-ldflags="-X main.Commit=$(COMMIT) -X main.Version=$(VERSION) -X main.Date=$(DATE)"'
 
 PACKR2_PKG := github.com/gobuffalo/packr/v2
-PACKR2_BIN := $(GO_BIN)/packr2
 PACKR2_COMMIT := $(shell cat go.mod | \
     grep $(PACKR2_PKG) | \
     tail -n1 | \
@@ -22,7 +19,7 @@ default: build
 packr2:
 	@$(call print, "Installing packr2.")
 	go get -d $(PACKR2_PKG)@$(PACKR2_COMMIT)
-	go build -o packr2 -ldflags $(LDFLAGS) $(PACKR2_PKG)/packr2
+	go build $(LDFLAGS) $(GOBUILDFLAGS) -o packr2 $(PACKR2_PKG)/packr2
 
 pack: packr2
 	@$(call print, "Getting node dependencies.")
@@ -34,7 +31,7 @@ pack: packr2
 
 compile: pack
 	@$(call print, "Building sweetd.")
-	go build -o sweetd -ldflags $(LDFLAGS) $(PKG)
+	go build $(LDFLAGS) $(GOBUILDFLAGS) -o sweetd $(PKG)
 
 test:
 	@$(call print, "Testing sweetd.")
