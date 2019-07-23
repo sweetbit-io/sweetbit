@@ -19,15 +19,15 @@ default: build
 packr2:
 	@$(call print, "Installing packr2.")
 	go get -d $(PACKR2_PKG)@$(PACKR2_COMMIT)
-	go build $(LDFLAGS) $(GOBUILDFLAGS) -o packr2 $(PACKR2_PKG)/packr2
+	go build $(GOBUILDFLAGS) -o packr2 $(PACKR2_PKG)/packr2
 
-pack: packr2
+pack:
 	@$(call print, "Getting node dependencies.")
 	(cd pos && npm install)
 	@$(call print, "Compiling point-of-sale assets.")
 	(cd pos && npm run export)
 	@$(call print, "Packaging static assets.")
-	./packr2
+	packr2
 
 compile: pack
 	@$(call print, "Building sweetd.")
@@ -39,7 +39,7 @@ test:
 
 clean:
 	@$(call print, "Cleaning static asset packages.")
-	./packr2 clean
+	packr2 clean
 	@$(call print, "Cleaning builds and module cache")
 	rm -rf ./sweetd
 
