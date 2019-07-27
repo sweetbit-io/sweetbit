@@ -1,6 +1,3 @@
-[submodule "meta-bitcoin"]
-	path = meta-bitcoin
-	url = https://github.com/the-lightning-land/meta-bitcoin.git
 [submodule "meta-mender"]
 	path = meta-mender
 	url = https://github.com/the-lightning-land/meta-mender.git
