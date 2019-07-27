@@ -1,0 +1,27 @@
+From e06c55fac6f8ae3114dbd1bcb9e35623a44f24b6 Mon Sep 17 00:00:00 2001
+From: David Knezic <davidknezic@gmail.com>
+Date: Thu, 9 May 2019 13:02:10 +0000
+Subject: [PATCH] Enable neutrino on mainnet
+
+---
+ config.go | 7 -------
+ 1 file changed, 7 deletions(-)
+
+diff --git a/src/github.com/lightningnetwork/lnd/config.go b/src/github.com/lightningnetwork/lnd/config.go
+index ff56a13..9bb122f 100644
+--- a/src/github.com/lightningnetwork/lnd/config.go
++++ b/src/github.com/lightningnetwork/lnd/config.go
+@@ -769,13 +769,6 @@ func loadConfig() (*config, error) {
+ 			return nil, err
+ 		}
+ 
+-		if cfg.Bitcoin.Node == "neutrino" && cfg.Bitcoin.MainNet {
+-			str := "%s: neutrino isn't yet supported for " +
+-				"bitcoin's mainnet"
+-			err := fmt.Errorf(str, funcName)
+-			return nil, err
+-		}
+-
+ 		if cfg.Bitcoin.TimeLockDelta < minTimeLockDelta {
+ 			return nil, fmt.Errorf("timelockdelta must be at least %v",
+ 				minTimeLockDelta)
