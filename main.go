@@ -15,8 +15,11 @@ import (
 	"github.com/the-lightning-land/sweetd/updater"
 	"google.golang.org/grpc"
 	"net"
+	"net/http"
 	"os"
 	"os/signal"
+	// Blank import to set up profiling HTTP handlers.
+	_ "net/http/pprof"
 )
 
 var (
@@ -63,6 +66,19 @@ func sweetdMain() error {
 	// Stop here if only version was requested
 	if cfg.ShowVersion {
 		return nil
+	}
+
+	if cfg.Profiling != nil {
+		go func() {
+			log.Infof("Starting profiling server on %v", cfg.Profiling.Listen)
+			// Redirect the root path
+			http.Handle("/", http.RedirectHandler("/debug/pprof", http.StatusSeeOther))
+			// All other handlers are registered on DefaultServeMux through the import of pprof
+			err := http.ListenAndServe(cfg.Profiling.Listen, nil)
+			if err != nil {
+				log.Errorf("Could not run profiler: %v", err)
+			}
+		}()
 	}
 
 	// sweet.db persistently stores all dispenser configurations and settings

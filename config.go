@@ -32,6 +32,10 @@ type torConfig struct {
 	DataDir string `long:"data" description:"The directory that stores Tor data."`
 }
 
+type profilingConfig struct {
+	Listen string `long:"listen" description:"Add an interface/port to listen for profiling data."`
+}
+
 type config struct {
 	ShowVersion  bool     `short:"v" long:"version" description:"Display version information and exit."`
 	Debug        bool     `long:"debug" description:"Start in debug mode."`
@@ -47,6 +51,7 @@ type config struct {
 	Updater      string           `long:"updater" description:"The updater to use." choice:"none" choice:"mender"`
 	Mender       *menderConfig    `group:"Mender" namespace:"mender"`
 	Tor          *torConfig       `group:"Tor" namespace:"tor"`
+	Profiling    *profilingConfig `group:"Profiling" namespace:"profiling"`
 }
 
 func loadConfig() (*config, error) {
