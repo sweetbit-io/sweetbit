@@ -18,8 +18,7 @@ SRC_URI += " file://0001-Enable-neutrino-on-mainnet.patch"
 PROVIDES = "lnd"
 RPROVIDES_${PN} = "lnd"
 
-# points to 0.6.1 tag
-SRCREV = "c4415f04008c70be20b42f85e1ceff3ef99614c2"
+SRCREV = "add905d17f7bbb11d0df2761cdf8accf2fef2b00"
 
 inherit go
 

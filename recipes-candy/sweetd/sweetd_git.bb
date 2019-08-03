@@ -14,7 +14,7 @@ SRC_URI = "\
   file://sweetd.service \
   "
 
-SRCREV = "70bb2222ee736f0270d0e54a70c6306afd5792a8"
+SRCREV = "f4813ee8cd86f40710562525fc1147ffb3de0e08"
 PV = "${SRCREV}"
 
 PROVIDES = "sweetd"
