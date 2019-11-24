@@ -9,8 +9,8 @@ LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=5f5073beceebf4a374e5fae87ff912b2"
 
 SRC_URI = "https://dist.torproject.org/tor-${PV}.tar.gz"
-SRC_URI[md5sum] = "23278fc58d0014db22b428cdae3ea966"
-SRC_URI[sha256sum] = "b5a2cbf0dcd3f1df2675dbd5ec10bbe6f8ae995c41b68cebe2bc95bffc90696e"
+SRC_URI[md5sum] = "7a7b414dca81b87d3c51569fe5dce376"
+SRC_URI[sha256sum] = "1e92b655a19062209c747c2f328f2b52009d8256a9514705bb8a6cfebb21b3ae"
 
 DEPENDS = "xz libevent openssl"
 
