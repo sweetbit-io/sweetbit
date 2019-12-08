@@ -1,0 +1,57 @@
+#!/bin/sh
+
+DESC="Manages pairing and control of the Bitcoin Candy Dispenser"
+NAME=sweetd
+DAEMON=/usr/bin/sweetd
+DEFAULTS=/etc/default/sweetd
+SCRIPTNAME=/etc/init.d/$NAME
+EXTRA_OPTS=
+
+test -f $DAEMON || exit 0
+
+[ -s "$DEFAULTS" ] && . /etc/default/sweetd
+
+. /etc/init.d/functions
+
+delay_stop() {
+	count=0
+	while [ $count -lt 9 ] ; do
+	        if pidof $DAEMON >/dev/null; then
+	                sleep 1
+	        else
+	                return 0
+	        fi
+		count=`expr $count + 1`
+	done
+	echo "Failed to stop $NAME."
+	return 1
+}
+
+case "$1" in
+start)  echo -n "Running btuart: "
+        btuart
+        echo "btuart."
+        echo -n "Running bthelper hci0: "
+        bthelper hci0
+        echo "bthelper."
+        echo -n "Starting $NAME: "
+        start-stop-daemon -S -b -x $DAEMON -- $EXTRA_OPTS
+        echo "$NAME."
+        ;;
+stop)   echo -n "Stopping $NAME: "
+        start-stop-daemon -K --oknodo -x $DAEMON
+        echo "$NAME."
+        ;;
+restart)
+	$0 stop
+	delay_stop && $0 start
+	;;
+status)
+        status $DAEMON
+        exit $?
+        ;;
+*)      log_action_msg "Usage: $0 {start|stop|status|restart}"
+        exit 1
+        ;;
+esac
+exit 0

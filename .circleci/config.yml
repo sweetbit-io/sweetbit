@@ -1,9 +1,6 @@
-# Golang CircleCI 2.0 configuration file
-#
-# Check https://circleci.com/docs/2.0/language-go/ for more details
 version: 2
 jobs:
-  build:
+  sweetd:
     docker:
       - image: circleci/golang:1.12-stretch-node
     steps:
@@ -19,3 +16,50 @@ jobs:
           key: go-mod-v1-{{ checksum "go.sum" }}
           paths:
             - "/go/pkg/mod"
+  yocto:
+    resource_class: large
+    docker:
+      - image: crops/poky:ubuntu-18.10
+        # entrypoint: /usr/bin/dumb-init -- /usr/bin/poky-entry.py
+        command: --workdir /home/pokyuser
+        # user: pokyuser
+    steps:
+      - checkout
+      - run:
+          name: Check out dependencies
+          command: |
+            git submodule sync
+            git submodule update --init
+      - restore_cache:
+          keys:
+            - cache-v1-{{ .Branch }}-{{ .Revision }}
+            - cache-v1-{{ .Branch }}-
+            - cache-v1-
+      - run:
+          name: Build
+          no_output_timeout: 1h
+          command: |
+            cd yocto/poky
+            source oe-init-build-env ../build
+            bitbake --quiet core-image-base
+      - store_artifacts:
+          name: Store mender image
+          path: build/tmp/deploy/images/raspberrypi0-wifi/core-image-base-raspberrypi0-wifi.mender
+          destination: candy.mender
+      - store_artifacts:
+          name: Store sd card image
+          path: build/tmp/deploy/images/raspberrypi0-wifi/core-image-base-raspberrypi0-wifi.sdimg
+          destination: candy.rpi-sdimg
+      - save_cache:
+          key: cache-v1-{{ .Branch }}-{{ .Revision }}
+          when: always
+          paths:
+            - build/cache
+            - build/downloads
+            - build/sstate-cache
+workflows:
+  version: 2
+  workflow:
+    jobs:
+      - sweetd
+      - yocto

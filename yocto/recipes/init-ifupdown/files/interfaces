@@ -1,0 +1,8 @@
+auto lo
+auto wlan0
+
+iface lo inet loopback
+
+iface wlan0 inet dhcp
+    wpa-driver wext
+    wpa-conf /etc/wpa_supplicant.conf

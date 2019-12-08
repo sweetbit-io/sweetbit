@@ -1,0 +1,1 @@
+EXTRA_OPTS="--datadir=/data/sweet --raspberry.touchpin=25 --raspberry.motorpin=23 --raspberry.buzzerpin=24"

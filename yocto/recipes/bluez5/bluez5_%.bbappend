@@ -1,0 +1,1 @@
+PACKAGECONFIG = "deprecated readline tools"
