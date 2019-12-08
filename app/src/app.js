@@ -2,6 +2,7 @@ import React, { useEffect, useCallback } from 'react';
 import { useDispenserState } from './hooks/state';
 import { useNodesState } from './hooks/state';
 import Node from './node';
+import NoNodes from './no-nodes';
 
 function App() {
   const [dispenser, setDispenser] = useDispenserState(null);
@@ -53,9 +54,14 @@ function App() {
       </div>
       <div className="nodes">
         <div className="actions">
-          Order, Remove, Add
+          Nodes Order, Remove, Add
         </div>
         <div className="items">
+          {nodes && nodes.length === 0 && (
+            <div className="node">
+              <NoNodes onAdd={null} />
+            </div>
+          )}
           {nodes && nodes.map(node => (
             <div className="node" key={node.id}>
               <Node
@@ -86,7 +92,7 @@ function App() {
         </div>
       </div>
       <div className="feedback">
-        How do you like your candy dispenser?
+        <a href="https://github.com/sweetbit-io/sweetbit/issues/new">How do you like your candy dispenser?</a>
       </div>
       <style jsx>{`
         .dispenser {
@@ -106,7 +112,7 @@ function App() {
 
         @media (min-width: 460px) {
           .dispenser {
-            margin-top: 20px;
+            padding-top: 50px;
           }
 
           .dispenser div:first-child {
@@ -129,6 +135,7 @@ function App() {
         .dispenser .info {
           border: 1px solid #f1f1f1;
           padding: 20px;
+          background: #fff;
         }
 
         .pos {
@@ -136,6 +143,7 @@ function App() {
           margin: 20px auto 0;
           border: 1px solid #f1f1f1;
           padding: 20px;
+          background: #fff;
         }
 
         @media (min-width: 460px) {
@@ -161,7 +169,7 @@ function App() {
 
         .nodes .items .node {
           border: 1px solid #f1f1f1;
-          padding: 20px;
+          background: #fff;
         }
 
         .nodes .items .node + .node {
@@ -192,6 +200,7 @@ function App() {
         .networks .items .network {
           border: 1px solid #f1f1f1;
           padding: 20px;
+          background: #fff;
         }
 
         .networks .items .network + .network {
@@ -219,7 +228,7 @@ function App() {
         .feedback {
           max-width: 460px;
           margin: 0 auto;
-          padding: 20px;
+          padding: 20px 20px 80px;
           text-align: center;
         }
       `}</style>
@@ -229,8 +238,8 @@ function App() {
         }
 
         body {
-          background-color: #fff;
-          color: #222;
+          background-color: #f8f8f8;
+          color: #333;
           font-size: 16px;
           margin: 0;
           padding: 0;

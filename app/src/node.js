@@ -21,6 +21,10 @@ export default function Node({
         {type} {enabled && 'enabled'}
       </div>
       <style jsx>{`
+        div {
+          padding: 20px;
+        }
+
         h1 {
           margin: 0;
           font-size: 16px;
