@@ -136,7 +136,7 @@ export default class IndexPage extends Component {
             />
           </a>
         </div>
-        <div className="payreq">
+        <div className={classnames('payreq', { show: this.state.invoice && !this.state.invoice.settled })}>
           <div className="invoice">Your invoice ⚡️</div>
           <pre>
             <code>
@@ -311,6 +311,13 @@ export default class IndexPage extends Component {
 
           .payreq {
             padding-top: 20px;
+            opacity: 0;
+            pointer-events: none;
+          }
+
+          .payreq.show {
+            opacity: 1;
+            pointer-events: all;
           }
 
           .invoice {

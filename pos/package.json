@@ -6,9 +6,9 @@
   "author": "David Knezić <davidknezic@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "dev": "API_BASE_URL=http://localhost:3000/api next -p 3001",
+    "dev": "API_BASE_URL=http://localhost:9001/api next -p 3001",
     "build": "next build",
-    "start": "API_BASE_URL=http://localhost:3000/api next start -p 3001",
+    "start": "API_BASE_URL=http://localhost:9001/api next start -p 3001",
     "export": "npm run build && next export"
   },
   "dependencies": {

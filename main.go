@@ -1,34 +1,34 @@
 package main
 
 import (
+	"github.com/cretz/bine/tor"
 	"github.com/jessevdk/go-flags"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	"github.com/the-lightning-land/sweetd/ap"
 	"github.com/the-lightning-land/sweetd/dispenser"
 	"github.com/the-lightning-land/sweetd/machine"
+	"github.com/the-lightning-land/sweetd/network"
+	"github.com/the-lightning-land/sweetd/nodeman"
 	"github.com/the-lightning-land/sweetd/pairing"
-	"github.com/the-lightning-land/sweetd/pos"
 	"github.com/the-lightning-land/sweetd/sweetdb"
 	"github.com/the-lightning-land/sweetd/sweetlog"
-	"github.com/the-lightning-land/sweetd/sweetrpc"
 	"github.com/the-lightning-land/sweetd/updater"
-	"google.golang.org/grpc"
-	"net"
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
+
 	// Blank import to set up profiling HTTP handlers.
 	_ "net/http/pprof"
 )
 
 var (
 	// commit stores the current commit hash of this build. This should be set using -ldflags during compilation.
-	commit string
+	Commit string
 	// version stores the version string of this build. This should be set using -ldflags during compilation.
-	version string
+	Version string
 	// date stores the date of this build. This should be set using -ldflags during compilation.
-	date string
+	Date string
 )
 
 // sweetdMain is the true entry point for sweetd. This is required since defers
@@ -40,10 +40,7 @@ func sweetdMain() error {
 	log.SetLevel(log.InfoLevel)
 	log.AddHook(sweetLog)
 
-	log.Debug("Starting sweetd...")
-	log.Debug("Loading config...")
-
-	// Load CLI configuration and defaults
+	// load cli configuration and defaults
 	cfg, err := loadConfig()
 	if e, ok := err.(*flags.Error); ok && e.Type == flags.ErrHelp {
 		return nil
@@ -51,7 +48,7 @@ func sweetdMain() error {
 		return errors.Errorf("Failed parsing arguments: %v", err)
 	}
 
-	// Set logger into debug mode if called with --debug
+	// set logger into debug mode if called with --debug
 	if cfg.Debug {
 		log.SetLevel(log.DebugLevel)
 		log.Info("Setting debug mode.")
@@ -59,19 +56,19 @@ func sweetdMain() error {
 
 	log.Debug("Loaded config.")
 
-	// Print version of the daemon
-	log.Infof("Version %s (commit %s)", version, commit)
-	log.Infof("Built on %s", date)
+	// print version of the daemon
+	log.Infof("Version %s (commit %s)", Version, Commit)
+	log.Infof("Built on %s", Date)
 
-	// Stop here if only version was requested
 	if cfg.ShowVersion {
+		// return without error if only the version string  was requested
 		return nil
 	}
 
-	if cfg.Profiling != nil {
+	if cfg.Profiling != nil && cfg.Profiling.Listen != "" {
 		go func() {
 			log.Infof("Starting profiling server on %v", cfg.Profiling.Listen)
-			// Redirect the root path
+			// redirect the root path
 			http.Handle("/", http.RedirectHandler("/debug/pprof", http.StatusSeeOther))
 			// All other handlers are registered on DefaultServeMux through the import of pprof
 			err := http.ListenAndServe(cfg.Profiling.Listen, nil)
@@ -89,54 +86,47 @@ func sweetdMain() error {
 
 	log.Infof("Opened sweet.db")
 
-	// The network access point, which acts as the core connectivity
-	// provider for all other components
-	var a ap.Ap
-
-	switch cfg.Net {
-	case "dispenser":
-		a, err = ap.NewDispenserAp(&ap.DispenserApConfig{
-			Interface: "wlan0",
-		})
-
-		log.Info("Created Candy Dispenser access point.")
-	case "mock":
-		a = ap.NewMockAp()
-
-		log.Info("Created a mock access point.")
-	default:
-		return errors.Errorf("Unknown networking type %v", cfg.Machine)
-	}
-
-	err = a.Start()
-	if err != nil {
-		return errors.Errorf("Could not start access point: %v", err)
-	}
-
 	defer func() {
-		err := a.Stop()
+		err := sweetDB.Close()
 		if err != nil {
-			log.Errorf("Could not properly shut down access point: %v", err)
+			log.Errorf("Could not close sweet.db: %v", err)
+		} else {
+			log.Info("Closed sweet.db.")
 		}
 	}()
 
-	wifiConnection, err := sweetDB.GetWifiConnection()
-	if err != nil {
-		log.Warnf("Could not retrieve saved wifi connection: %v", err)
-	}
+	// network, which acts as the core connectivity
+	// provider for all other components
+	var net network.Network
 
-	if wifiConnection != nil {
-		log.Infof("Will attempt connecting to Wifi %v.", wifiConnection.Ssid)
+	if cfg.Net.Interface != "" {
+		net = network.NewWpaNetwork(&network.Config{
+			Interface: cfg.Net.Interface,
+			Logger:    log.WithField("system", "network"),
+		})
 
-		err := a.ConnectWifi(wifiConnection.Ssid, wifiConnection.Psk)
-		if err != nil {
-			log.Warnf("Whoops, couldn't connect to wifi: %v", err)
-		}
+		log.Info("Created network.")
 	} else {
-		log.Infof("No saved Wifi connection available. Not connecting.")
+		net = network.NewMockNetwork()
+
+		log.Info("Created mock network.")
 	}
 
-	// The updater
+	err = net.Start()
+	if err != nil {
+		return errors.Errorf("Could not start network: %v", err)
+	}
+
+	defer func() {
+		err = net.Stop()
+		if err != nil {
+			log.Errorf("Could not properly shut down network: %v", err)
+		} else {
+			log.Info("Stopped network.")
+		}
+	}()
+
+	// updater which takes care of system updates
 	var u updater.Updater
 
 	switch cfg.Updater {
@@ -146,22 +136,19 @@ func sweetdMain() error {
 		log.Info("Created noop updater.")
 	case "mender":
 		u, err = updater.NewMenderUpdater(&updater.MenderUpdaterConfig{
-			Logger: log.New().WithField("system", "updater"),
+			Logger: log.WithField("system", "updater"),
+			DB:     sweetDB,
 		})
+		if err != nil {
+			return errors.Errorf("unable to create Mender updater: %v", err)
+		}
 
 		log.Info("Created Mender updater.")
 	default:
 		return errors.Errorf("Unknown updater type %v", cfg.Updater)
 	}
 
-	artifactName, err := u.GetArtifactName()
-	if err != nil {
-		log.Error("Could not obtain artifact name. Continuing though...")
-	} else {
-		log.Infof("Updater returned artifact name %v", artifactName)
-	}
-
-	// The hardware controller
+	// hardware machine controller
 	var m machine.Machine
 
 	switch cfg.Machine {
@@ -182,98 +169,110 @@ func sweetdMain() error {
 		return errors.Errorf("Unknown machine type %v", cfg.Machine)
 	}
 
-	log.Infof("Creating PoS...")
-
-	// create subsystem responsible for the point of sale app
-	pos, err := pos.NewPos(&pos.Config{
-		Logger:     log.New().WithField("system", "pos"),
-		TorDataDir: cfg.Tor.DataDir,
-	})
-	if err != nil {
-		return errors.Errorf("Could not create PoS: %v", err)
+	if err := m.Start(); err != nil {
+		return errors.Errorf("Could not start machine: %v", err)
 	}
-
-	log.Infof("Created PoS")
-
-	// central controller for everything the dispenser does
-	dispenser := dispenser.NewDispenser(&dispenser.Config{
-		Machine:     m,
-		AccessPoint: a,
-		DB:          sweetDB,
-		MemoPrefix:  cfg.MemoPrefix,
-		Updater:     u,
-		Pos:         pos,
-		SweetLog:    sweetLog,
-		Logger:      log.New().WithField("system", "dispenser"),
-	})
-
-	log.Infof("Created dispenser.")
-
-	log.Infof("Creating pairing controller...")
-
-	// create subsystem responsible for pairing
-	pairingController, err := pairing.NewController(&pairing.Config{
-		Logger:      log.New().WithField("system", "pairing"),
-		AdapterId:   "hci0",
-		AccessPoint: a,
-		Dispenser:   dispenser,
-	})
-	if err != nil {
-		return errors.Errorf("Could not create pairing controller: %v", err)
-	}
-
-	log.Infof("Created pairing controller")
-
-	log.Infof("Starting pairing controller...")
-
-	err = pairingController.Start()
-	if err != nil {
-		return errors.Errorf("Could not start pairing controller: %v", err)
-	}
-
-	log.Infof("Started pairing controller")
 
 	defer func() {
-		log.Infof("Stopping pairing controller...")
-
-		err := pairingController.Stop()
+		err := m.Stop()
 		if err != nil {
-			log.Errorf("Could not properly shut down pairing controller: %v", err)
+			log.Errorf("Could not properly stop machine: %v", err)
+		} else {
+			log.Infof("Stopped machine.")
 		}
 	}()
 
-	// Create a gRPC server for remote control of the dispenser
-	if len(cfg.Listeners) > 0 {
-		grpcServer := grpc.NewServer()
+	// start Tor node
+	t, err := tor.Start(nil, &tor.StartConf{
+		ExePath:         cfg.Tor.Path,
+		TempDataDirBase: os.TempDir(),
+		DebugWriter:     log.WithField("system", "tor").WriterLevel(log.DebugLevel),
+	})
+	if err != nil {
+		return errors.Errorf("Could not start tor: %v", err)
+	}
 
-		sweetrpc.RegisterSweetServer(grpcServer, newRPCServer(dispenser, &rpcServerConfig{
-			version: version,
-			commit:  commit,
-		}))
+	log.Infof("Started Tor.")
 
-		// Next, Start the gRPC server listening for HTTP/2 connections.
-		for _, listener := range cfg.Listeners {
-			lis, err := net.Listen(listener.Network(), listener.String())
-			if err != nil {
-				return errors.Errorf("RPC server unable to listen on %s", listener.String())
+	defer func() {
+		t.StopProcessOnClose = true
+		t.DeleteDataDirOnClose = true
+
+		err := t.Close()
+		if err != nil {
+			log.Errorf("Could not properly stop Tor: %v", err)
+		} else {
+			log.Infof("Stopped Tor.")
+		}
+	}()
+
+	nodeman := nodeman.New(&nodeman.Config{
+		NodesDataDir: filepath.Join(cfg.DataDir, "nodes"),
+		DB:           sweetDB,
+		LogCreator: func(node string) nodeman.Logger {
+			logger := log.WithField("system", "nodeman")
+
+			if node != "" {
+				logger = logger.WithField("node", node)
 			}
 
-			defer func() {
-				err := lis.Close()
-				if err != nil {
-					log.Errorf("Could not properly close: %v", err)
-				}
-			}()
+			return logger
+		},
+	})
 
-			go func() {
-				log.Infof("RPC server listening on %s", lis.Addr())
-				err := grpcServer.Serve(lis)
-				if err != nil {
-					log.Errorf("Could not serve: %v", err)
-				}
-			}()
+	// pairingAdapter adapts the dispenser API to one compatible
+	// with the pairing controller
+	pairingAdapter := &dispenser.PairingAdapter{}
+
+	if cfg.Pairing.Interface != "" {
+		pairingAdapter.Pairing, err = pairing.NewController(&pairing.BLEControllerConfig{
+			Logger:    log.WithField("system", "pairing"),
+			AdapterId: cfg.Pairing.Interface,
+			Dispenser: pairingAdapter,
+		})
+		if err != nil {
+			return errors.Errorf("unable to create BLE pairing controller: %v", err)
 		}
+
+		log.Infof("created BLE pairing controller")
+	} else {
+		pairingAdapter.Pairing = pairing.NewNoopController()
+
+		log.Info("created no-op pairing controller as no interface was specified")
 	}
+
+	// central controller for everything the dispenser does
+	dispenser := dispenser.NewDispenser(&dispenser.Config{
+		Nodeman:  nodeman,
+		Machine:  m,
+		DB:       sweetDB,
+		Updater:  u,
+		SweetLog: sweetLog,
+		Logger:   log.WithField("system", "dispenser"),
+		Tor:      t,
+		Network:  net,
+		Pairing:  pairingAdapter.Pairing,
+	})
+
+	pairingAdapter.Dispenser = dispenser
+
+	log.Infof("created dispenser")
+
+	err = pairingAdapter.Pairing.Start()
+	if err != nil {
+		return errors.Errorf("unable to start pairing controller: %v", err)
+	}
+
+	log.Info("started pairing controller")
+
+	defer func() {
+		err := pairingAdapter.Pairing.Stop()
+		if err != nil {
+			log.Errorf("unable to stop pairing controller: %v", err)
+		} else {
+			log.Info("stopped pairing controller")
+		}
+	}()
 
 	// Handle interrupt signals correctly
 	go func() {
@@ -282,16 +281,16 @@ func sweetdMain() error {
 		sig := <-signals
 		log.Info(sig)
 		log.Info("Received an interrupt, stopping dispenser...")
-		dispenser.Shutdown()
+		dispenser.Stop()
 	}()
 
-	// blocks until the dispenser is shut down
-	err = dispenser.Run()
+	// blocks until the dispenser is stopped
+	err = dispenser.RunAndWait()
 	if err != nil {
-		return errors.Errorf("Failed running dispenser: %v", err)
+		return errors.Errorf("unable to run: %v", err)
 	}
 
-	// finish with no error
+	// finish without error
 	return nil
 }
 

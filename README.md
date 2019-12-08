@@ -33,6 +33,26 @@ Download the pre-built binary for your system from the GitHub releases page.
 
 Extract and open the downloaded archive, then run `sweetd`.
 
+## Structure
+
+The `sweetd` program's source code is split into small modules:
+
+* 🔌 [`api`](api) - REST api for remote management of the dispenser
+* ⚙️ [`app`](app) - website for managing the dispenser
+* 🍬 [`dispenser`](dispenser) - orchestrator for everything the dispenser does
+* ⚡️ [`lightning`](lightning) - controller for configured Lightning nodes, remote and local
+* 🔩️ [`machine`](machine) - hardware controller for the touch sensor, motor and buzzer
+* 📶 [`network`](network) - network subsystem that handles Wi-Fi discovery and connectivity
+* 🤹‍ [`nodeman`](nodeman) - node manager
+* 🧅 [`onion`](onion) - Tor onion service conveniences and .onion address generation
+* 📲 [`pairing`](pairing) - pairing controller for BLE pairing
+* 💵 [`pos`](pos) - point-of-sale website that creates invoices
+* 🛑 [`reboot`](reboot) - methods for rebooting and shutting down the system 
+* 📁 [`sweetdb`](sweetdb) - persistent database manager
+* 📃 [`sweetlog`](sweetlog) - logging middleware for intercepting logs
+* 🔖 [`sysid`](sysid) - methods for determining a system-specific id
+* 🔄 [`updater`](updater) - update subsystem that controls system updates
+
 ## Configure data directory
 
 By default, `sweetd` stores all data to `./data`.
@@ -123,34 +143,6 @@ This will create a Wi-Fi network called `candy` with the passphrase `reckless`.
 An app will connect to that network for pairing and use
 the gRPC api that is provided by the `sweetd` program.
 
-## Installation
-
-`curl -LO https://github.com/the-lightning-land/sweetd/releases/download/v0.1.0/sweetd_0.1.0_linux_armv6.tar.gz`
-
-`tar xfvz sweetd_0.1.0_linux_armv6.tar.gz`
-
-`rm sweetd_0.1.0_linux_armv6.tar.gz`
-
-`sudo mv sweetd_0.1.0_linux_armv6/sweetd /usr/local/bin/`
-
-`sudo chown root:staff /usr/local/bin/sweetd`
-
-`sudo echo "denyinterfaces uap0" >> /etc/dhcpcd.conf`
-
-`sudo curl -L -o /etc/init.d/sweetd https://raw.githubusercontent.com/the-lightning-land/sweetd/master/contrib/init.d/sweetd`
-
-`sudo chmod a+x /etc/init.d/sweetd`
-
-`sudo update-rc.d sweetd defaults`
-
-`sudo apt-get install hostapd wireless-tools wpasupplicant dnsmasq iw`
-
-`sudo systemctl mask hostapd`
-
-`sudo systemctl mask dnsmasq`
-
-`sudo service sweetd start`
-
 ## Development
 
 `go get -d github.com/the-lightning-land/sweetd`
@@ -170,28 +162,3 @@ The tool goreleaser can automatically sign the release and upload it to GitHub.
 `git push origin v0.1.0`
 
 `goreleaser --rm-dist`
-
-## Releasing using the release script
-
-`git tag -a v0.1.0 -m "Release name"`
-
-`git push origin v0.1.0`
-
-`./release.sh v0.1.0`
-
-## Regenerate grpc files
-
-`sweetd` exposes a gRPC API. When the API definition in `sweetrpc/rpc.proto` changes,
-the following command will regenerate the source files:
-
-```text
-protoc -I sweetrpc/ sweetrpc/rpc.proto --go_out=plugins=grpc:sweetrpc
-```
-
-## init.d
-
-```
-sudo ln -s $GOPATH/src/github.com/the-lightning-land/sweetd/contrib/init.d/sweetd /etc/init.d/sweetd
-sudo update-rc.d sweetd defaults
-sudo service sweetd start
-```

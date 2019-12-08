@@ -11,6 +11,8 @@ jobs:
       - restore_cache:
           keys:
             - go-mod-v1-{{ checksum "go.sum" }}
+      - run: make get
+      - run: make packr2
       - run: make
       - run: make test
       - save_cache:
