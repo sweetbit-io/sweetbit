@@ -1,7 +1,3 @@
-# sweetd binary
-
-sweetd
-
 # Binaries for programs and plugins
 *.exe
 *.exe~
@@ -10,10 +6,10 @@ sweetd
 *.dylib
 
 # Generated binary
-sweetd
+/sweetd
 
 # Generated releases
-sweetd-*
+/sweetd-*
 
 # Test binary, build with `go test -c`
 *.test
@@ -24,10 +20,9 @@ sweetd-*
 # GoLand
 .idea
 
-# Relase
-dist
-
+# packr2
 *-packr.go
 
 # Tor data directory
 tor
+

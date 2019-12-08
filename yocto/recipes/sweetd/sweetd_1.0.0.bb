@@ -1,21 +1,39 @@
 SUMMARY = "sweetd"
 DESCRIPTION = "Sweet daemon for pairing and control \
 of the Bitcoin-enabled candy dispenser."
-HOMEPAGE = "https://github.com/the-lightning-land/sweetd"
+HOMEPAGE = "https://github.com/sweetbit-io/sweetbit"
 SECTION = "net"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://git/LICENSE;md5=7087f57a125c674f2eeafee675b016a1"
 
 SRC_URI = "\
-  git://github.com/the-lightning-land/sweetd \
+  file://../../../../api;subdir=git;unpack=0 \
+  file://../../../../app;subdir=git;unpack=0 \
+  file://../../../../dispenser;subdir=git;unpack=0 \
+  file://../../../../lightning;subdir=git;unpack=0 \
+  file://../../../../machine;subdir=git;unpack=0 \
+  file://../../../../network;subdir=git;unpack=0 \
+  file://../../../../nodeman;subdir=git;unpack=0 \
+  file://../../../../onion;subdir=git;unpack=0 \
+  file://../../../../pairing;subdir=git;unpack=0 \
+  file://../../../../pos;subdir=git;unpack=0 \
+  file://../../../../reboot;subdir=git;unpack=0 \
+  file://../../../../state;subdir=git;unpack=0 \
+  file://../../../../sweetdb;subdir=git;unpack=0 \
+  file://../../../../sweetlog;subdir=git;unpack=0 \
+  file://../../../../sysid;subdir=git;unpack=0 \
+  file://../../../../updater;subdir=git;unpack=0 \
+  file://../../../../config.go;subdir=git;unpack=0 \
+  file://../../../../go.mod;subdir=git;unpack=0 \
+  file://../../../../go.sum;subdir=git;unpack=0 \
+  file://../../../../LICENSE;subdir=git;unpack=0 \
+  file://../../../../main.go;subdir=git;unpack=0 \
+  file://../../../../Makefile;subdir=git;unpack=0 \
   file://sweetd.init \
   file://sweetd.default \
   file://sweet.conf \
   file://sweetd.service \
   "
-
-SRCREV = "f4813ee8cd86f40710562525fc1147ffb3de0e08"
-PV = "${SRCREV}"
 
 PROVIDES = "sweetd"
 RPROVIDES_${PN} = "sweetd"
