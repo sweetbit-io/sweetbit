@@ -1,8 +1,11 @@
 import React, { useEffect, useCallback } from 'react';
+import { useModal } from 'react-modal-hook';
+import Modal from './modal';
 import { useDispenserState } from './hooks/state';
 import { useNodesState } from './hooks/state';
 import Node from './node';
 import NoNodes from './no-nodes';
+import AddNode from './add-node';
 
 function App() {
   const [dispenser, setDispenser] = useDispenserState(null);
@@ -28,11 +31,54 @@ function App() {
 
   const deleteNode = useCallback((id) => {
     async function doDelete() {
-      await fetch(`http://localhost:9000/api/v1/nodes/${id}`, { method: 'DELETE' });
+      await fetch(`http://localhost:9000/api/v1/nodes/${id}`, {
+        method: 'DELETE',
+      });
       setNodes(nodes.filter(node => node.id !== id));
     }
     doDelete();
   }, [nodes, setNodes]);
+
+  const addNode = useCallback((data) => {
+    async function onAdd() {
+      const res = await fetch('http://localhost:9000/api/v1/nodes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: data,
+      });
+      const node = await res.json();
+      setNodes([...nodes, node]);
+    }
+    onAdd();
+  }, [nodes, setNodes]);
+
+  const enableNode = useCallback((id) => {
+    async function onAdd() {
+      const res = await fetch(`http://localhost:9000/api/v1/nodes/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          enabled: true,
+        }),
+      });
+      const node = await res.json();
+      setNodes(nodes.map(n => n.id === node.id ? node : n));
+    }
+    onAdd();
+  }, [nodes, setNodes]);
+
+  const [showAddNodeModal, hideAddNodeModal] = useModal(({ in: open }) => (
+    <Modal open={open} onClose={hideAddNodeModal}>
+      <AddNode
+        onAdd={addNode}
+        onCancel={hideAddNodeModal}
+      />
+    </Modal>
+  ), []);
 
   return (
     <div>
@@ -59,7 +105,7 @@ function App() {
         <div className="items">
           {nodes && nodes.length === 0 && (
             <div className="node">
-              <NoNodes onAdd={null} />
+              <NoNodes onAdd={showAddNodeModal} />
             </div>
           )}
           {nodes && nodes.map(node => (
@@ -69,6 +115,7 @@ function App() {
                 name={node.name}
                 enabled={node.enabled}
                 onDelete={deleteNode}
+                onEnable={enableNode}
               />
             </div>
           ))}
@@ -250,6 +297,10 @@ function App() {
 
         code {
           font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
+        }
+
+        .ReactModal__Body--open {
+          overflow: hidden;
         }
       `}</style>
     </div>

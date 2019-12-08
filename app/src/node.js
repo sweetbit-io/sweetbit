@@ -6,15 +6,21 @@ export default function Node({
   name,
   enabled,
   onDelete,
+  onEnable,
 }) {
   const deleteNode = useCallback(() => {
     onDelete(id);
   }, [id, onDelete]);
 
+  const enableNode = useCallback(() => {
+    onEnable(id);
+  }, [id, onEnable]);
+
   return (
     <div>
       <h1>
         <span>{name}</span>
+        <button onClick={enableNode}>enable</button>
         <button onClick={deleteNode}>delete</button>
       </h1>
       <div className="status">

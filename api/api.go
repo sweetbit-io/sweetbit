@@ -48,15 +48,20 @@ func NewHandler(config *Config) http.Handler {
 	router.Handle("/updates/{id}", api.handlePatchUpdate()).Methods(http.MethodPatch)
 	router.Handle("/updates/{id}/events", api.handleGetUpdateEvents()).Methods(http.MethodGet, http.MethodOptions)
 
-	router.Handle("/nodes", api.getNodes()).Methods(http.MethodGet, http.MethodOptions)
+	router.Handle("/nodes", api.noContent()).Methods(http.MethodOptions)
+	router.Handle("/nodes", api.getNodes()).Methods(http.MethodGet)
 	router.Handle("/nodes", api.postNodes()).Methods(http.MethodPost)
-	router.Handle("/nodes/{id}", api.getNodes()).Methods(http.MethodGet, http.MethodOptions)
+	router.Handle("/nodes/{id}", api.noContent()).Methods(http.MethodOptions)
+	router.Handle("/nodes/{id}", api.getNodes()).Methods(http.MethodGet)
 	router.Handle("/nodes/{id}", api.patchNode()).Methods(http.MethodPatch)
 	router.Handle("/nodes/{id}", api.deleteNode()).Methods(http.MethodDelete)
 
-	router.Handle("/networks", api.handlePostUpdate()).Methods(http.MethodPost, http.MethodOptions)
-	router.Handle("/networks/{id}", api.handlePostUpdate()).Methods(http.MethodPatch, http.MethodOptions)
-	router.Handle("/networks/events", api.handlePostUpdate()).Methods(http.MethodGet, http.MethodOptions)
+	router.Handle("/networks", api.noContent()).Methods(http.MethodOptions)
+	router.Handle("/networks", api.handlePostUpdate()).Methods(http.MethodPost)
+	router.Handle("/networks/{id}", api.noContent()).Methods(http.MethodOptions)
+	router.Handle("/networks/{id}", api.handlePostUpdate()).Methods(http.MethodPatch)
+	router.Handle("/networks/events", api.noContent()).Methods(http.MethodOptions)
+	router.Handle("/networks/events", api.handlePostUpdate()).Methods(http.MethodGet)
 
 	router.Use(mux.CORSMethodMiddleware(router))
 
@@ -69,6 +74,13 @@ func (a *Handler) loggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		a.log.Infof("%s %s", r.Method, r.RequestURI)
 		next.ServeHTTP(w, r)
+	})
+}
+
+func (a *Handler) noContent() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Headers", "content-type")
+		w.WriteHeader(http.StatusNoContent)
 	})
 }
 
