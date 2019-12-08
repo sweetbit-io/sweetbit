@@ -7,28 +7,28 @@ LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://git/LICENSE;md5=7087f57a125c674f2eeafee675b016a1"
 
 SRC_URI = "\
-  file://../../../../api;subdir=git;unpack=0 \
-  file://../../../../app;subdir=git;unpack=0 \
-  file://../../../../dispenser;subdir=git;unpack=0 \
-  file://../../../../lightning;subdir=git;unpack=0 \
-  file://../../../../machine;subdir=git;unpack=0 \
-  file://../../../../network;subdir=git;unpack=0 \
-  file://../../../../nodeman;subdir=git;unpack=0 \
-  file://../../../../onion;subdir=git;unpack=0 \
-  file://../../../../pairing;subdir=git;unpack=0 \
-  file://../../../../pos;subdir=git;unpack=0 \
-  file://../../../../reboot;subdir=git;unpack=0 \
-  file://../../../../state;subdir=git;unpack=0 \
-  file://../../../../sweetdb;subdir=git;unpack=0 \
-  file://../../../../sweetlog;subdir=git;unpack=0 \
-  file://../../../../sysid;subdir=git;unpack=0 \
-  file://../../../../updater;subdir=git;unpack=0 \
-  file://../../../../config.go;subdir=git;unpack=0 \
-  file://../../../../go.mod;subdir=git;unpack=0 \
-  file://../../../../go.sum;subdir=git;unpack=0 \
-  file://../../../../LICENSE;subdir=git;unpack=0 \
-  file://../../../../main.go;subdir=git;unpack=0 \
-  file://../../../../Makefile;subdir=git;unpack=0 \
+  file://api;subdir=git \
+  file://app;subdir=git \
+  file://dispenser;subdir=git \
+  file://lightning;subdir=git \
+  file://machine;subdir=git \
+  file://network;subdir=git \
+  file://nodeman;subdir=git \
+  file://onion;subdir=git \
+  file://pairing;subdir=git \
+  file://pos;subdir=git \
+  file://reboot;subdir=git \
+  file://state;subdir=git \
+  file://sweetdb;subdir=git \
+  file://sweetlog;subdir=git \
+  file://sysid;subdir=git \
+  file://updater;subdir=git \
+  file://config.go;subdir=git \
+  file://go.mod;subdir=git \
+  file://go.sum;subdir=git \
+  file://LICENSE;subdir=git \
+  file://main.go;subdir=git \
+  file://Makefile;subdir=git \
   file://sweetd.init \
   file://sweetd.default \
   file://sweet.conf \
@@ -41,7 +41,7 @@ RPROVIDES_${PN} = "sweetd"
 DEPENDS += "packr2-native"
 RDEPENDS_${PN} += "wpa-supplicant bluez5 pi-bluetooth lnd tor"
 
-FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
+FILESEXTRAPATHS_prepend := "${THISDIR}/files:${THISDIR}/../../..:"
 
 inherit update-rc.d systemd npm go
 
