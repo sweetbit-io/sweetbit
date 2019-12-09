@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import css from 'styled-jsx/css';
 import { ReactComponent as NoNodesImage } from './no-nodes.svg';
+import Button from './button';
 
 const { className, styles } = css.resolve`
   .no-nodes {
@@ -20,7 +21,7 @@ export default function NoNodes({
     <div>
       <NoNodesImage className={`${className} no-nodes`} />
       <p>Add a Lightning node through which you can accept payments.</p>
-      <button onClick={addNode}>Add node</button>
+      <Button onClick={addNode}>Add node</Button>
       {styles}
       <style jsx>{`
         div {
