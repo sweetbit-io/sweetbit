@@ -142,7 +142,9 @@ function App() {
         <div className="title">
           <p className="text">Nodes</p>
           <div className="actions">
-            <button onClick={showAddNodeModal}>add</button>
+            {nodes && nodes.length > 0 && (
+              <button onClick={showAddNodeModal}>add</button>
+            )}
           </div>
         </div>
         <div className="items">
