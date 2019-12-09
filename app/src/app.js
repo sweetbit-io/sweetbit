@@ -10,6 +10,7 @@ import AddNode from './add-node';
 import Status from './status';
 import Button from './button';
 import Spinner from './spinner';
+import Toggle from './toggle';
 import { ReactComponent as DispenserImage } from './dispenser.svg';
 
 const { className, styles } = css.resolve`
@@ -30,6 +31,25 @@ function App() {
       setDispenser(dispenser);
     }
     doFetch();
+  }, [setDispenser]);
+
+  const setDispenseOnTouch = useCallback((dispenseOnTouch) => {
+    async function doSetDispenseOnTouch() {
+      const res = await fetch('http://localhost:9000/api/v1/dispenser', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify([{
+          op: 'set',
+          name: 'dispenseOnTouch',
+          value: dispenseOnTouch,
+        }]),
+      });
+      const dispenser = await res.json();
+      setDispenser(dispenser);
+    }
+    doSetDispenseOnTouch();
   }, [setDispenser]);
 
   useEffect(() => {
@@ -137,6 +157,17 @@ function App() {
             <Button outline>Open</Button>
           </div>
         </div>
+        <div className="cell">
+          <div className="icon">
+          </div>
+          <div className="label">
+            <h1>Dispense on touch</h1>
+            <p>Dispenses candy even without payment by using the touch sensor</p>
+          </div>
+          <div className="action">
+            <Toggle checked={dispenser && dispenser.dispenseOnTouch} onChange={setDispenseOnTouch} />
+          </div>
+        </div>
       </div>
       <div className="nodes">
         <div className="title">
@@ -219,6 +250,10 @@ function App() {
           display: flex;
         }
 
+        .cell + .cell {
+          border-top: none;
+        }
+
         .cell .icon {
           position: absolute;
           top: 20px;
@@ -233,6 +268,7 @@ function App() {
 
         .cell .action {
           flex: 0;
+          padding-left: 10px;
         }
 
         .cell h1 {
@@ -252,12 +288,12 @@ function App() {
         }
 
         @media (min-width: 460px) {
-          .pos div:first-child {
+          .cell:first-child {
             border-top-left-radius: 10px;
             border-top-right-radius: 10px;
           }
 
-          .pos div:last-child {
+          .cell:last-child {
             border-bottom-left-radius: 10px;
             border-bottom-right-radius: 10px;
           }
