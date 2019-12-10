@@ -12,6 +12,7 @@ const { className, styles } = css.resolve`
     width: 100vw;
     height: 100vh;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: center;
     overflow-y: auto;
@@ -29,8 +30,13 @@ const { className, styles } = css.resolve`
     display: block;
     max-width: 460px;
     width: 100%;
-    margin: 0 auto;
-    background: #fff;
+    margin: 0 auto
+  }
+  @media (min-width: 460px) {
+    .ReactModal__Content {
+      max-width: 500px;
+      margin: 20px auto;
+    }
   }
 `
 

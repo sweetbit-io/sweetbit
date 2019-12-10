@@ -71,38 +71,6 @@ function App() {
     doDelete();
   }, [nodes, setNodes]);
 
-  const addNode = useCallback((data) => {
-    async function onAdd() {
-      const res = await fetch('http://localhost:9000/api/v1/nodes', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: data,
-      });
-      const node = await res.json();
-      setNodes([...nodes, node]);
-    }
-    onAdd();
-  }, [nodes, setNodes]);
-
-  const enableNode = useCallback((id) => {
-    async function onAdd() {
-      const res = await fetch(`http://localhost:9000/api/v1/nodes/${id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          enabled: true,
-        }),
-      });
-      const node = await res.json();
-      setNodes(nodes.map(n => n.id === node.id ? node : n));
-    }
-    onAdd();
-  }, [nodes, setNodes]);
-
   const [showAddNodeModal, hideAddNodeModal] = useModal(({ in: open }) => (
     <Modal open={open} onClose={hideAddNodeModal}>
       <AddNode
@@ -111,6 +79,39 @@ function App() {
       />
     </Modal>
   ), []);
+
+  const addNode = useCallback((data) => {
+    async function onAdd() {
+      const res = await fetch('http://localhost:9000/api/v1/nodes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+      const node = await res.json();
+      setNodes([...nodes, node]);
+      hideAddNodeModal();
+    }
+    onAdd();
+  }, [nodes, setNodes, hideAddNodeModal]);
+
+  const enableNode = useCallback((id, enabled) => {
+    async function onAdd() {
+      const res = await fetch(`http://localhost:9000/api/v1/nodes/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          enabled,
+        }),
+      });
+      const node = await res.json();
+      setNodes(nodes.map(n => n.id === node.id ? node : n));
+    }
+    onAdd();
+  }, [nodes, setNodes]);
 
   return (
     <div>
@@ -121,33 +122,33 @@ function App() {
         </div>
         <div className="cell">
           <div className="icon">
-            <Status />
+            <Status status="green" />
           </div>
           <div className="label">
             <h1>Candy dispenser {dispenser && dispenser.state}</h1>
             <p>Your candy dispenser is fully operational</p>
           </div>
           <div className="action">
-            <Button outline>Shutdown</Button>
+            <Button outline onClick={deleteNode}>⋯</Button>
           </div>
         </div>
         <div className="cell">
           <div className="icon">
-            <Spinner />
+            {/* <Spinner /> */}
           </div>
           <div className="label">
             <h1>Update available</h1>
             <p>Support for captive portals</p>
           </div>
           <div className="action">
-            <Button outline>Cancel</Button>
+            <Button outline>Update</Button>
           </div>
         </div>
       </div>
       <div className="pos">
         <div className="cell">
           <div className="icon">
-            <Status />
+            <Status status="green" />
           </div>
           <div className="label">
             <h1>Point of sales</h1>
@@ -155,6 +156,7 @@ function App() {
           </div>
           <div className="action">
             <Button outline>Open</Button>
+            <Button outline>⋯</Button>
           </div>
         </div>
         <div className="cell">
@@ -188,6 +190,7 @@ function App() {
             <div className="node" key={node.id}>
               <Node
                 id={node.id}
+                type={node.type}
                 name={node.name}
                 enabled={node.enabled}
                 onDelete={deleteNode}
@@ -269,6 +272,7 @@ function App() {
         .cell .action {
           flex: 0;
           padding-left: 10px;
+          flex: 0 auto;
         }
 
         .cell h1 {
