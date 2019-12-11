@@ -138,4 +138,5 @@ type Dispenser interface {
 	SubscribeUpdate(id string) (*updater.UpdateClient, error)
 	CommitUpdate(id string) (*updater.Update, error)
 	RejectUpdate(id string) (*updater.Update, error)
+	GetVersion() string
 }

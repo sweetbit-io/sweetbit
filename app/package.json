@@ -12,6 +12,7 @@
     "react-router-dom": "^5.1.2",
     "react-scripts": "^3.3.0",
     "react-transition-group": "^4.3.0",
+    "semver": "^6.3.0",
     "styled-jsx": "^3.2.4",
     "use-persisted-state": "^0.3.0"
   },

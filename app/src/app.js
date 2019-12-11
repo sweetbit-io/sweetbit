@@ -1,5 +1,6 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useMemo, useCallback, useState } from 'react';
 import { useModal } from 'react-modal-hook';
+import semver from 'semver';
 import css from 'styled-jsx/css';
 import Modal from './modal';
 import { useDispenserState } from './hooks/state';
@@ -24,6 +25,7 @@ const { className, styles } = css.resolve`
 function App() {
   const [dispenser, setDispenser] = useDispenserState(null);
   const [nodes, setNodes] = useNodesState([]);
+  const [release, setRelease] = useState();
 
   useEffect(() => {
     async function doFetch() {
@@ -33,6 +35,40 @@ function App() {
     }
     doFetch();
   }, [setDispenser]);
+
+  useEffect(() => {
+    async function doFetch() {
+      const res = await fetch('https://api.github.com/repos/sweetbit-io/sweetbit/releases/latest');
+      const release = await res.json();
+      setRelease(release);
+    }
+    doFetch();
+  }, [setRelease]);
+
+  const availableUpdate = useMemo(() => {
+    if (!dispenser || !release) {
+      return null;
+    }
+
+    const version = semver.clean(release.tag_name);
+    if (semver.lte(version, dispenser.version)) {
+      return null;
+    }
+
+    const asset = release.assets.find(asset => asset.name.indexOf('.mender') >= 0);
+    if (!asset) {
+      return null;
+    }
+
+    const url = asset.browser_download_url;
+    const name = release.name;
+
+    return {
+      url,
+      version,
+      name,
+    };
+  }, [dispenser, release]);
 
   const setDispenseOnTouch = useCallback((dispenseOnTouch) => {
     async function doSetDispenseOnTouch() {
@@ -52,6 +88,26 @@ function App() {
     }
     doSetDispenseOnTouch();
   }, [setDispenser]);
+
+  const update = useCallback(() => {
+    async function onUpdate() {
+      const res = await fetch(`${publicUrl}/api/v1/updates`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          url: availableUpdate.url,
+        }),
+      });
+      const update = await res.json();
+      setDispenser({
+        ...dispenser,
+        update,
+      });
+    }
+    onUpdate();
+  }, [availableUpdate, dispenser, setDispenser]);
 
   useEffect(() => {
     async function doFetch() {
@@ -133,18 +189,20 @@ function App() {
             <Button outline onClick={deleteNode}>⋯</Button>
           </div>
         </div>
-        <div className="cell">
-          <div className="icon">
-            {/* <Spinner /> */}
+        {availableUpdate && (
+          <div className="cell">
+            <div className="icon">
+              {/* <Spinner /> */}
+            </div>
+            <div className="label">
+              <h1>Update {availableUpdate.version} available</h1>
+              <p>{availableUpdate.name}</p>
+            </div>
+            <div className="action">
+              <Button outline onClick={update}>Update</Button>
+            </div>
           </div>
-          <div className="label">
-            <h1>Update available</h1>
-            <p>Support for captive portals</p>
-          </div>
-          <div className="action">
-            <Button outline>Update</Button>
-          </div>
-        </div>
+        )}
       </div>
       <div className="pos">
         <div className="cell">

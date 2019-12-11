@@ -535,3 +535,12 @@ func (d *Dispenser) SubscribeDispenses() *DispenseClient {
 
 	return client
 }
+
+func (d *Dispenser) GetVersion() string {
+	version, err := d.updater.GetVersion()
+	if err != nil {
+		return "0.0.0"
+	}
+
+	return version
+}
