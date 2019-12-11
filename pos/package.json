@@ -1,6 +1,7 @@
 {
-  "name": "@the-lightning-land/candy-pos",
+  "name": "@sweetbit-io/pos",
   "version": "1.0.0",
+  "private": true,
   "main": "index.js",
   "repository": "https://github.com/the-lightning-land/sweetd",
   "author": "David Knezić <davidknezic@gmail.com>",

@@ -185,9 +185,6 @@ function App() {
             <h1>Candy dispenser {dispenser && dispenser.state}</h1>
             <p>Your candy dispenser is fully operational</p>
           </div>
-          <div className="action">
-            <Button outline onClick={deleteNode}>⋯</Button>
-          </div>
         </div>
         {availableUpdate && (
           <div className="cell">
