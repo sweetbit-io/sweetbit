@@ -16,7 +16,7 @@
     "use-persisted-state": "^0.3.0"
   },
   "scripts": {
-    "start": "craco start",
+    "start": "REACT_APP_PUBLIC_URL=http://localhost:9000 craco start",
     "build": "craco build",
     "test": "craco test"
   },

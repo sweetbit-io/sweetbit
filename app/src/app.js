@@ -11,6 +11,7 @@ import Status from './status';
 import Button from './button';
 import Spinner from './spinner';
 import Toggle from './toggle';
+import publicUrl from './public-url';
 import { ReactComponent as DispenserImage } from './dispenser.svg';
 
 const { className, styles } = css.resolve`
@@ -26,7 +27,7 @@ function App() {
 
   useEffect(() => {
     async function doFetch() {
-      const res = await fetch('http://localhost:9000/api/v1/dispenser');
+      const res = await fetch(`${publicUrl}/api/v1/dispenser`);
       const dispenser = await res.json();
       setDispenser(dispenser);
     }
@@ -35,7 +36,7 @@ function App() {
 
   const setDispenseOnTouch = useCallback((dispenseOnTouch) => {
     async function doSetDispenseOnTouch() {
-      const res = await fetch('http://localhost:9000/api/v1/dispenser', {
+      const res = await fetch(`${publicUrl}/api/v1/dispenser`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -54,7 +55,7 @@ function App() {
 
   useEffect(() => {
     async function doFetch() {
-      const res = await fetch('http://localhost:9000/api/v1/nodes');
+      const res = await fetch(`${publicUrl}/api/v1/nodes`);
       const nodes = await res.json();
       setNodes(nodes);
     }
@@ -63,7 +64,7 @@ function App() {
 
   const deleteNode = useCallback((id) => {
     async function doDelete() {
-      await fetch(`http://localhost:9000/api/v1/nodes/${id}`, {
+      await fetch(`${publicUrl}/api/v1/nodes/${id}`, {
         method: 'DELETE',
       });
       setNodes(nodes.filter(node => node.id !== id));
@@ -82,7 +83,7 @@ function App() {
 
   const addNode = useCallback((data) => {
     async function onAdd() {
-      const res = await fetch('http://localhost:9000/api/v1/nodes', {
+      const res = await fetch(`${publicUrl}/api/v1/nodes`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -98,7 +99,7 @@ function App() {
 
   const enableNode = useCallback((id, enabled) => {
     async function onAdd() {
-      const res = await fetch(`http://localhost:9000/api/v1/nodes/${id}`, {
+      const res = await fetch(`${publicUrl}/api/v1/nodes/${id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
