@@ -193,6 +193,27 @@ function App() {
     onCancel();
   }, [currentUpdate, setCurrentUpdate]);
 
+  const completeUpdate = useCallback(() => {
+    async function onComplete() {
+      if (!currentUpdate) {
+        return;
+      }
+
+      const res = await fetch(`${publicUrl}/api/v1/updates/${currentUpdate.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          state: 'completed',
+        }),
+      });
+      const update = await res.json();
+      setCurrentUpdate(update);
+    }
+    onComplete();
+  }, [currentUpdate, setCurrentUpdate]);
+
   useEffect(() => {
     async function doFetch() {
       const res = await fetch(`${publicUrl}/api/v1/nodes`);
@@ -302,8 +323,10 @@ function App() {
                 <h1>Update {availableUpdate && availableUpdate.version} available</h1>
               ) : currentUpdate.state === 'failed' ? (
                 <h1>Update {availableUpdate && availableUpdate.version} available</h1>
-              ) : currentUpdate.state === 'installed' ? (
+              ) : currentUpdate.state === 'installed' && currentUpdate.reboot ? (
                 <h1>Reboot to complete installation</h1>
+              ) : currentUpdate.state === 'installed' && currentUpdate.commit ? (
+                <h1>Confirm the installation to complete the update</h1>
               ) : currentUpdate.state === 'rejected' ? (
                 <h1>Rejected</h1>
               ) : currentUpdate.state === 'completed' ? (
@@ -320,8 +343,10 @@ function App() {
                 <Button outline onClick={showUpdateModal}>Update</Button>
               ) : currentUpdate.state === 'failed' ? (
                 <Button outline onClick={showUpdateModal}>Update</Button>
-              ) : currentUpdate.state === 'installed' ? (
+              ) : currentUpdate.state === 'installed' && currentUpdate.reboot ? (
                 <Button outline onClick={reboot}>Reboot</Button>
+              ) : currentUpdate.state === 'installed' && currentUpdate.commit ? (
+                <Button outline onClick={completeUpdate}>Confirm</Button>
               ) : currentUpdate.state === 'rejected' ? (
                 <Button outline onClick={showUpdateModal}>Update</Button>
               ) : null}

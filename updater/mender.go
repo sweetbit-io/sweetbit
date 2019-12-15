@@ -109,6 +109,13 @@ func (m *MenderUpdater) Setup() error {
 	}
 
 	if currentUpdate != nil && currentUpdate.State == StateInstalled {
+		m.update = &Update{
+			Id:      currentUpdate.Id,
+			Started: currentUpdate.Started,
+			Url:     currentUpdate.Url,
+			State:   currentUpdate.State,
+		}
+
 		if artifactNameOutput.partitionMismatch {
 			m.shouldReboot = true
 		} else {
