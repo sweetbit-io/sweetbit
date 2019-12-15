@@ -8,11 +8,13 @@ import { useNodesState } from './hooks/state';
 import Node from './node';
 import NoNodes from './no-nodes';
 import AddNode from './add-node';
+import Update from './update';
 import Status from './status';
 import Button from './button';
 import Spinner from './spinner';
+import Progress from './progress';
 import Toggle from './toggle';
-import publicUrl from './public-url';
+import { publicUrl, publicWsUrl } from './config';
 import { ReactComponent as DispenserImage } from './dispenser.svg';
 
 const { className, styles } = css.resolve`
@@ -26,6 +28,7 @@ function App() {
   const [dispenser, setDispenser] = useDispenserState(null);
   const [nodes, setNodes] = useNodesState([]);
   const [release, setRelease] = useState();
+  const [currentUpdate, setCurrentUpdate] = useState();
 
   useEffect(() => {
     async function doFetch() {
@@ -35,6 +38,36 @@ function App() {
     }
     doFetch();
   }, [setDispenser]);
+
+  const currentUpdateId = useMemo(() => dispenser && dispenser.update && dispenser.update.id, [dispenser]);
+
+  useEffect(() => {
+    async function doFetch() {
+      if (!currentUpdateId) {
+        return;
+      }
+      const res = await fetch(`${publicUrl}/api/v1/updates/${currentUpdateId}`);
+      const update = await res.json();
+      setCurrentUpdate(update);
+    }
+    doFetch();
+  }, [currentUpdateId, setCurrentUpdate]);
+
+  useEffect(() => {
+    if (!currentUpdateId) {
+      return;
+    }
+
+    const socket = new WebSocket(`${publicWsUrl}/api/v1/updates/${currentUpdateId}/events`);
+    socket.onmessage = (event) => {
+      const update = JSON.parse(event.data);
+      setCurrentUpdate(update);
+    };
+
+    return () => {
+      socket.close();
+    };
+  }, [currentUpdateId, setCurrentUpdate]);
 
   useEffect(() => {
     async function doFetch() {
@@ -62,11 +95,13 @@ function App() {
 
     const url = asset.browser_download_url;
     const name = release.name;
+    const body = release.body;
 
     return {
       url,
       version,
       name,
+      body,
     };
   }, [dispenser, release]);
 
@@ -89,6 +124,23 @@ function App() {
     doSetDispenseOnTouch();
   }, [setDispenser]);
 
+  const reboot = useCallback(() => {
+    async function doReboot() {
+      const res = await fetch(`${publicUrl}/api/v1/dispenser`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify([{
+          op: 'reboot',
+        }]),
+      });
+      const dispenser = await res.json();
+      setDispenser(dispenser);
+    }
+    doReboot();
+  }, [setDispenser]);
+
   const update = useCallback(() => {
     async function onUpdate() {
       const res = await fetch(`${publicUrl}/api/v1/updates`, {
@@ -103,11 +155,43 @@ function App() {
       const update = await res.json();
       setDispenser({
         ...dispenser,
-        update,
+        update: { id: update.id },
       });
+
     }
     onUpdate();
   }, [availableUpdate, dispenser, setDispenser]);
+
+  const [showUpdateModal, hideUpdateModal] = useModal(({ in: open }) => (
+    <Modal open={open} onClose={hideUpdateModal}>
+      <Update
+        body={release.body}
+        onUpdate={update}
+        onCancel={hideUpdateModal}
+      />
+    </Modal>
+  ), [release, update]);
+
+  const cancelUpdate = useCallback(() => {
+    async function onCancel() {
+      if (!currentUpdate) {
+        return;
+      }
+
+      const res = await fetch(`${publicUrl}/api/v1/updates/${currentUpdate.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          state: 'cancelled',
+        }),
+      });
+      const update = await res.json();
+      setCurrentUpdate(update);
+    }
+    onCancel();
+  }, [currentUpdate, setCurrentUpdate]);
 
   useEffect(() => {
     async function doFetch() {
@@ -179,24 +263,68 @@ function App() {
         </div>
         <div className="cell">
           <div className="icon">
-            <Status status="green" />
+            {!dispenser ? (
+              <Status />
+            ) : dispenser.state === 'running' ? (
+              <Status status="green" />
+            ) : dispenser.state ===  'stopping' ? (
+              <Status status="red" />
+            ) : null}
           </div>
           <div className="label">
             <h1>Candy dispenser {dispenser && dispenser.state}</h1>
-            <p>Your candy dispenser is fully operational</p>
+            {!dispenser ? (
+              <p>Loading...</p>
+            ) : dispenser.state === 'running' ? (
+              <p>Your candy dispenser is fully operational</p>
+            ) : dispenser.state === 'stopping' ? (
+              <p>Your candy dispenser is shutting down...</p>
+            ) : null}
           </div>
         </div>
-        {availableUpdate && (
+        {(availableUpdate || currentUpdate) && (
           <div className="cell">
             <div className="icon">
-              {/* <Spinner /> */}
+              {!currentUpdate ? (
+                null
+              ) : currentUpdate.state === 'started' ? (
+                <Progress value={currentUpdate.progress} />
+              ) : currentUpdate.state === 'installed' ? (
+                <span role="img" aria-label="check">✅</span>
+              ) : null}
             </div>
             <div className="label">
-              <h1>Update {availableUpdate.version} available</h1>
-              <p>{availableUpdate.name}</p>
+              {!currentUpdate ? (
+                <h1>Update {availableUpdate && availableUpdate.version} available</h1>
+              ) : currentUpdate.state === 'started' ? (
+                <h1>Updating to {availableUpdate && availableUpdate.version}...</h1>
+              ) : currentUpdate.state === 'cancelled' ? (
+                <h1>Update {availableUpdate && availableUpdate.version} available</h1>
+              ) : currentUpdate.state === 'failed' ? (
+                <h1>Update {availableUpdate && availableUpdate.version} available</h1>
+              ) : currentUpdate.state === 'installed' ? (
+                <h1>Reboot to complete installation</h1>
+              ) : currentUpdate.state === 'rejected' ? (
+                <h1>Rejected</h1>
+              ) : currentUpdate.state === 'completed' ? (
+                <h1>Completed</h1>
+              ) : null}
+              <p>{availableUpdate && availableUpdate.name}</p>
             </div>
             <div className="action">
-              <Button outline onClick={update}>Update</Button>
+              {!currentUpdate ? (
+                <Button outline onClick={showUpdateModal}>Update</Button>
+              ) : currentUpdate.state === 'started' ? (
+                <Button outline onClick={cancelUpdate}>Cancel</Button>
+              ) : currentUpdate.state === 'cancelled' ? (
+                <Button outline onClick={showUpdateModal}>Update</Button>
+              ) : currentUpdate.state === 'failed' ? (
+                <Button outline onClick={showUpdateModal}>Update</Button>
+              ) : currentUpdate.state === 'installed' ? (
+                <Button outline onClick={reboot}>Reboot</Button>
+              ) : currentUpdate.state === 'rejected' ? (
+                <Button outline onClick={showUpdateModal}>Update</Button>
+              ) : null}
             </div>
           </div>
         )}

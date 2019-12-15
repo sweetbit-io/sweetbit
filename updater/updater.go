@@ -22,6 +22,7 @@ type Update struct {
 }
 
 type Updater interface {
+	Setup() error
 	GetVersion() (string, error)
 	StartUpdate(url string) (*Update, error)
 	GetUpdate(id string) (*Update, error)

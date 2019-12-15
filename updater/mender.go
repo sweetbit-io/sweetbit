@@ -15,6 +15,24 @@ import (
 
 var sizeRegexp = regexp.MustCompile("of size (\\d+)...")
 var progressRegex = regexp.MustCompile("(\\d+)% (\\d+) KiB")
+var artifactNameRegex = regexp.MustCompile(`(?s)(.*No match between boot and root partitions.*\s)?(\S+)\s$`)
+
+type artifactNameOutput struct {
+	artifactName      string
+	partitionMismatch bool
+}
+
+func parseArtifactNameOutput(output string) *artifactNameOutput {
+	match := artifactNameRegex.FindStringSubmatch(output)
+	if len(match) != 3 {
+		return nil
+	}
+
+	return &artifactNameOutput{
+		artifactName:      match[2],
+		partitionMismatch: match[1] != "",
+	}
+}
 
 type MenderUpdaterConfig struct {
 	Logger Logger
@@ -43,21 +61,10 @@ type MenderUpdater struct {
 // Compile time check for protocol compatibility
 var _ Updater = (*MenderUpdater)(nil)
 
-func NewMenderUpdater(config *MenderUpdaterConfig) (*MenderUpdater, error) {
-	_, err := exec.LookPath("mender")
-	if err != nil {
-		return nil, errors.New("mender is not installed or missing in $PATH")
-	}
-
-	artifact, err := exec.Command("mender", "-show-artifact").Output()
-	if err != nil {
-		return nil, errors.Errorf("Could not retrieve artifact name: %v", err)
-	}
-
+func NewMenderUpdater(config *MenderUpdaterConfig) *MenderUpdater {
 	updater := &MenderUpdater{
 		log:          config.Logger,
 		db:           config.DB,
-		artifactName: string(artifact),
 		updating:     0,
 		progress:     0,
 		shouldReboot: false,
@@ -71,7 +78,45 @@ func NewMenderUpdater(config *MenderUpdaterConfig) (*MenderUpdater, error) {
 		updater.log = noopLogger{}
 	}
 
-	return updater, nil
+	return updater
+}
+
+func (m *MenderUpdater) Setup() error {
+	// set current update based on system environment
+	// especially shouldCommit is important
+	// otherwise cancel previously uncommitted updates
+
+	_, err := exec.LookPath("mender")
+	if err != nil {
+		return errors.New("unable to find mender in $PATH")
+	}
+
+	output, err := exec.Command("mender", "-show-artifact").Output()
+	if err != nil {
+		return errors.Errorf("unable to read mender artifact name: %v", err)
+	}
+
+	artifactNameOutput := parseArtifactNameOutput(string(output))
+	if artifactNameOutput == nil {
+		return errors.Errorf("unable to parse artifact name output: %v", err)
+	}
+
+	m.artifactName = artifactNameOutput.artifactName
+
+	currentUpdate, err := m.db.GetCurrentUpdate()
+	if err != nil {
+		return errors.Errorf("unable to get current update: %v", err)
+	}
+
+	if currentUpdate != nil && currentUpdate.State == StateInstalled {
+		if artifactNameOutput.partitionMismatch {
+			m.shouldReboot = true
+		} else {
+			m.shouldCommit = true
+		}
+	}
+
+	return nil
 }
 
 func (m *MenderUpdater) GetVersion() (string, error) {
@@ -96,7 +141,7 @@ func (m *MenderUpdater) GetUpdate(id string) (*Update, error) {
 	}
 
 	// add progress information if it's the currently running update
-	if update.Id == m.update.Id {
+	if m.update != nil && update.Id == m.update.Id {
 		result.Progress = m.progress
 		result.ShouldReboot = m.shouldReboot
 		result.ShouldCommit = m.shouldCommit
@@ -119,7 +164,7 @@ func (m *MenderUpdater) StartUpdate(url string) (*Update, error) {
 		return nil, errors.Errorf("Could not generate id: %v", err)
 	}
 
-	m.update = &Update{
+	update := &Update{
 		Id:      id.String(),
 		Url:     url,
 		Started: time.Now(),
@@ -127,20 +172,25 @@ func (m *MenderUpdater) StartUpdate(url string) (*Update, error) {
 	}
 
 	err = m.db.SaveUpdate(&sweetdb.Update{
-		Id:      m.update.Id,
-		Started: m.update.Started,
-		Url:     m.update.Url,
-		State:   m.update.State,
+		Id:      update.Id,
+		Started: update.Started,
+		Url:     update.Url,
+		State:   update.State,
 	})
 	if err != nil {
-		return nil, errors.Errorf("Could not add update entry: %v", err)
+		return nil, errors.Errorf("unable to save update: %v", err)
+	}
+
+	err = m.db.SetCurrentUpdate(update.Id)
+	if err != nil {
+		return nil, errors.Errorf("unable to set current update: %v", err)
 	}
 
 	m.updateCmd = exec.Command("mender", "-install", url)
 
 	stdoutReader, err := m.updateCmd.StdoutPipe()
 	if err != nil {
-		return nil, err
+		return nil, errors.Errorf("unable to pipe stdout: %v", err)
 	}
 
 	go func() {
@@ -154,22 +204,23 @@ func (m *MenderUpdater) StartUpdate(url string) (*Update, error) {
 			}
 
 			if matches := progressRegex.FindStringSubmatch(text); len(matches) == 3 {
-				m.log.Infof("Update progressed %s%%", matches[1])
 				progress, err := strconv.ParseUint(matches[1], 10, 8)
 				if err != nil {
 					m.log.Errorf("Could not parse progress: %v", err)
 					continue
 				}
 
+				m.log.Infof("Update progressed %d%%", progress)
+
 				m.progress = uint8(progress)
-				m.notifyUpdateClients()
+				m.notifyUpdateClients(m.update)
 			}
 		}
 	}()
 
 	stderrReader, err := m.updateCmd.StderrPipe()
 	if err != nil {
-		return nil, err
+		return nil, errors.Errorf("unable to pipe stderr: %v", err)
 	}
 
 	go func() {
@@ -180,43 +231,32 @@ func (m *MenderUpdater) StartUpdate(url string) (*Update, error) {
 		}
 	}()
 
+	m.update = update
+
 	if err := m.updateCmd.Start(); err != nil {
 		m.update.State = StateFailed
-		err = m.db.SaveUpdate(&sweetdb.Update{
-			Id:      m.update.Id,
-			Started: m.update.Started,
-			Url:     m.update.Url,
-			State:   m.update.State,
-		})
-		if err != nil {
-			m.log.Errorf("could not save update state: %v", err)
-		}
+
+		m.saveUpdate(m.update)
+		m.notifyUpdateClients(m.update)
+
 		return nil, err
 	}
 
 	go func() {
 		err := m.updateCmd.Wait()
 		if err != nil {
-			m.update.State = StateFailed
-
-			// TODO(davidknezic): detect cancelled state
-			// m.update.State = StateCancelled
+			if m.update.State != StateCancelled {
+				// only set failure state if the process didn't stop
+				// because of a user initiated cancellation
+				m.update.State = StateFailed
+			}
 		} else {
 			m.update.State = StateInstalled
 			m.shouldReboot = true
 		}
 
-		err = m.db.SaveUpdate(&sweetdb.Update{
-			Id:      m.update.Id,
-			Started: m.update.Started,
-			Url:     m.update.Url,
-			State:   m.update.State,
-		})
-		if err != nil {
-			m.log.Errorf("could not save update state: %v", err)
-		}
-
-		m.notifyUpdateClients()
+		m.saveUpdate(m.update)
+		m.notifyUpdateClients(m.update)
 
 		atomic.StoreInt32(&m.updating, 0)
 	}()
@@ -229,12 +269,20 @@ func (m *MenderUpdater) CancelUpdate(id string) (*Update, error) {
 		return nil, errors.New("no update in progress")
 	}
 
+	// set this state before killing the process so that the
+	// handler can tell cancellations and failures apart
+	m.update.State = StateCancelled
+
 	err := m.updateCmd.Process.Kill()
 	if err != nil {
 		return nil, errors.Errorf("could not kill update: %v", err)
 	}
 
-	m.update.State = StateCancelled
+	// reset progress to zero
+	m.progress = 0
+
+	m.saveUpdate(m.update)
+	m.notifyUpdateClients(m.update)
 
 	return m.update, nil
 }
@@ -261,10 +309,21 @@ func (m *MenderUpdater) SubscribeUpdate(id string) (*UpdateClient, error) {
 	return client, nil
 }
 
-func (m *MenderUpdater) notifyUpdateClients() {
+func (m *MenderUpdater) notifyUpdateClients(update *Update) {
+	if update == nil {
+		return
+	}
+
 	for _, client := range m.clients {
-		if m.update.Id == client.updateId {
-			client.Update <- m.update
+		if update.Id == client.updateId {
+			// add progress information if it's the currently running update
+			if m.update != nil && update.Id == m.update.Id {
+				update.Progress = m.progress
+				update.ShouldReboot = m.shouldReboot
+				update.ShouldCommit = m.shouldCommit
+			}
+
+			client.Update <- update
 		}
 	}
 }
@@ -282,6 +341,9 @@ func (m *MenderUpdater) CommitUpdate(id string) (*Update, error) {
 
 	m.update.State = StateCompleted
 
+	m.saveUpdate(m.update)
+	m.notifyUpdateClients(m.update)
+
 	return m.update, nil
 }
 
@@ -292,6 +354,22 @@ func (m *MenderUpdater) RejectUpdate(id string) (*Update, error) {
 	}
 
 	m.update.State = StateRejected
+	m.update.ShouldReboot = true
+
+	m.saveUpdate(m.update)
+	m.notifyUpdateClients(m.update)
 
 	return m.update, nil
+}
+
+func (m *MenderUpdater) saveUpdate(update *Update) {
+	err := m.db.SaveUpdate(&sweetdb.Update{
+		Id:      update.Id,
+		Started: update.Started,
+		Url:     update.Url,
+		State:   update.State,
+	})
+	if err != nil {
+		m.log.Errorf("could not save update state: %v", err)
+	}
 }

@@ -135,17 +135,19 @@ func sweetdMain() error {
 
 		log.Info("Created noop updater.")
 	case "mender":
-		u, err = updater.NewMenderUpdater(&updater.MenderUpdaterConfig{
+		u = updater.NewMenderUpdater(&updater.MenderUpdaterConfig{
 			Logger: log.WithField("system", "updater"),
 			DB:     sweetDB,
 		})
-		if err != nil {
-			return errors.Errorf("unable to create Mender updater: %v", err)
-		}
 
 		log.Info("Created Mender updater.")
 	default:
 		return errors.Errorf("Unknown updater type %v", cfg.Updater)
+	}
+
+	err = u.Setup()
+	if err != nil {
+		return errors.Errorf("unable to set up updater: %v", err)
 	}
 
 	// hardware machine controller

@@ -8,7 +8,9 @@ import (
 	"github.com/the-lightning-land/sweetd/sweetdb"
 	"github.com/the-lightning-land/sweetd/updater"
 	"net/http"
+	"net/url"
 	"regexp"
+	"strings"
 )
 
 var localhostOriginPattern = regexp.MustCompile(`^https?://localhost(:\d+)?$`)
@@ -99,6 +101,24 @@ func (a *Handler) localhostMiddleware(next http.Handler) http.Handler {
 		}
 		next.ServeHTTP(w, r)
 	})
+}
+
+func checkOrigin(r *http.Request) bool {
+	origin := r.Header["Origin"]
+	if len(origin) == 0 {
+		return true
+	}
+
+	if localhostOriginPattern.MatchString(origin[0]) {
+		return true
+	}
+
+	u, err := url.Parse(origin[0])
+	if err != nil {
+		return false
+	}
+
+	return strings.EqualFold(u.Host, r.Host)
 }
 
 type LightningNode interface {

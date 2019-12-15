@@ -133,7 +133,9 @@ func (a *Handler) handlePatchUpdate() http.HandlerFunc {
 }
 
 func (a *Handler) handleGetUpdateEvents() http.HandlerFunc {
-	upgrader := &websocket.Upgrader{}
+	upgrader := &websocket.Upgrader{
+		CheckOrigin: checkOrigin,
+	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
@@ -147,12 +149,13 @@ func (a *Handler) handleGetUpdateEvents() http.HandlerFunc {
 
 		if client == nil {
 			a.jsonError(w, fmt.Sprintf("No update with id %s found", id), http.StatusNotFound)
+			return
 		}
 
 		c, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
 			client.Cancel()
-			a.jsonError(w, err.Error(), http.StatusInternalServerError)
+			a.log.Errorf("unable to upgrade: %v", err)
 			return
 		}
 

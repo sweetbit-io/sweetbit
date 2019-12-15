@@ -1,9 +1,14 @@
 package sweetdb
 
-import "time"
+import (
+	"github.com/go-errors/errors"
+	"time"
+)
 
 var (
-	updatesBucket = []byte("updates")
+	updatesBucket       = []byte("updates")
+	currentUpdateBucket = []byte("currentUpdate")
+	updateIdKey         = []byte("id")
 )
 
 type Update struct {
@@ -25,4 +30,41 @@ func (db *DB) GetUpdate(id string) (*Update, error) {
 	}
 
 	return update, nil
+}
+
+func (db *DB) GetCurrentUpdate() (*Update, error) {
+	id, err := db.getString(currentUpdateBucket, updateIdKey)
+	if err != nil {
+		return nil, errors.Errorf("unable to get current update id: %v", err)
+	}
+
+	if id == "" {
+		// no current update available
+		return nil, nil
+	}
+
+	update, err := db.GetUpdate(id);
+	if err != nil {
+		return nil, errors.Errorf("unable to get update: %v", err)
+	}
+
+	return update, nil
+}
+
+func (db *DB) SetCurrentUpdate(id string) error {
+	err := db.setString(currentUpdateBucket, updateIdKey, id)
+	if err != nil {
+		return errors.Errorf("unable to set current update: %v", err)
+	}
+
+	return nil
+}
+
+func (db *DB) ClearCurrentUpdate() error {
+	err := db.setString(currentUpdateBucket, updateIdKey, "")
+	if err != nil {
+		return errors.Errorf("unable to clear current update: %v", err)
+	}
+
+	return nil
 }

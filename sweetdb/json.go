@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/go-errors/errors"
-	"go.etcd.io/bbolt"
+	bolt "go.etcd.io/bbolt"
 )
 
 func (db *DB) setJSON(bucket []byte, bucketKey []byte, v interface{}) error {
@@ -13,7 +13,7 @@ func (db *DB) setJSON(bucket []byte, bucketKey []byte, v interface{}) error {
 		return err
 	}
 
-	return db.Update(func(tx *bbolt.Tx) error {
+	return db.Update(func(tx *bolt.Tx) error {
 		bucket, err := tx.CreateBucketIfNotExists(bucket)
 		if err != nil {
 			return err
@@ -28,7 +28,7 @@ func (db *DB) setJSON(bucket []byte, bucketKey []byte, v interface{}) error {
 }
 
 func (db *DB) getJSON(bucketName []byte, bucketKey []byte, v interface{}) error {
-	err := db.View(func(tx *bbolt.Tx) error {
+	err := db.View(func(tx *bolt.Tx) error {
 		// First fetch the bucket
 		bucket := tx.Bucket(bucketName)
 		if bucket == nil {
