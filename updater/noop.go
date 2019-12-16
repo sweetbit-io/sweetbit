@@ -12,6 +12,10 @@ func NewNoopUpdater() *NoopUpdater {
 	return &NoopUpdater{}
 }
 
+func (n *NoopUpdater) Setup() error {
+	return nil
+}
+
 func (n *NoopUpdater) GetVersion() (string, error) {
 	return "", errors.New("no updater available")
 }
@@ -39,10 +43,10 @@ func (n *NoopUpdater) SubscribeUpdate(id string) (*UpdateClient, error) {
 func (n *NoopUpdater) unsubscribeUpdate(client *UpdateClient) {
 }
 
-func (m *NoopUpdater) CommitUpdate(id string) (*Update, error) {
+func (n *NoopUpdater) CommitUpdate(id string) (*Update, error) {
 	return nil, errors.New("no updater available")
 }
 
-func (m *NoopUpdater) RejectUpdate(id string) (*Update, error) {
+func (n *NoopUpdater) RejectUpdate(id string) (*Update, error) {
 	return nil, errors.New("no updater available")
 }

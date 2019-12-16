@@ -1,0 +1,15 @@
+<svg viewBox="0 0 323 211">
+  <g fill="none" fill-rule="nonzero">
+    <ellipse fill="#3F3D56" cx="161.391" cy="186.63" rx="161" ry="23.5"/>
+    <circle fill="#2F2E41" cx="158.391" cy="79.503" r="79"/>
+    <path fill="#2F2E41" d="M122.391 141.503h24v43h-24z"/>
+    <ellipse fill="#2F2E41" transform="rotate(135 132.64 192.046)" cx="132.64" cy="192.046" rx="16" ry="12"/>
+    <circle fill="#FFF" cx="159.391" cy="59.503" r="27"/>
+    <circle fill="#3F3D56" cx="158.391" cy="59.503" r="9"/>
+    <ellipse fill="#2F2E41" transform="rotate(15 69.606 65.346)" cx="69.606" cy="65.346" rx="39.5" ry="12.4"/>
+    <path d="M202.39 102.503c0 7.732-19.908 23-42 23-22.09 0-43-14.268-43-22 0-7.732 20.91-6 43-6 22.092 0 42-2.732 42 5z" fill="#FFF"/>
+    <path fill="#2F2E41" d="M170.391 141.503h24v43h-24z"/>
+    <ellipse fill="#2F2E41" transform="rotate(60 183.5 187)" cx="183.5" cy="187" rx="17.5" ry="12"/>
+    <ellipse fill="#2F2E41" transform="rotate(-23.171 247.606 72.346)" cx="247.606" cy="72.346" rx="39.5" ry="12.4"/>
+  </g>
+</svg>

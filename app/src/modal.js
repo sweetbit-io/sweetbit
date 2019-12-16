@@ -7,15 +7,18 @@ ReactModal.setAppElement('#root')
 const { className, styles } = css.resolve`
   .ReactModal__Overlay {
     position: fixed;
-    overflow: scroll;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
-  }
-  .ReactModal__Overlay {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    overflow-y: auto;
     opacity: 0;
     transition: opacity 200ms ease-in-out;
+    background: rgba(0, 0, 0, 0.6);
   }
   .ReactModal__Overlay--after-open {
     opacity: 1;
@@ -25,14 +28,19 @@ const { className, styles } = css.resolve`
   }
   .ReactModal__Content {
     display: block;
-    box-shadow: 13px 13px 13px aliceblue;
-    padding: 40px 0;
-    max-width: 480px;
-    margin: 0 auto;
+    max-width: 460px;
+    width: 100%;
+    margin: 0 auto
+  }
+  @media (min-width: 460px) {
+    .ReactModal__Content {
+      max-width: 500px;
+      margin: 20px auto;
+    }
   }
 `
 
-function Modal({ children, open, onExited }) {
+function Modal({ children, open, onClose }) {
   return (
     <ReactModal
       closeTimeoutMS={200}
@@ -40,7 +48,7 @@ function Modal({ children, open, onExited }) {
       className={className}
       overlayClassName={className}
       contentLabel="modal"
-      onRequestClose={onExited}
+      onRequestClose={onClose}
     >
       {children}
       {styles}

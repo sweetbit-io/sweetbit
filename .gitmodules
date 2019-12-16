@@ -1,6 +1,6 @@
 [submodule "meta-mender"]
 	path = yocto/meta-mender
-	url = https://github.com/the-lightning-land/meta-mender.git
+	url = https://github.com/mendersoftware/meta-mender.git
 [submodule "meta-raspberrypi"]
 	path = yocto/meta-raspberrypi
 	url = https://github.com/agherzan/meta-raspberrypi.git

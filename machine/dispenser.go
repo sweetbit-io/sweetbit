@@ -141,7 +141,7 @@ func (m *DispenserMachine) handleTouch() {
 	for {
 		select {
 		case touch := <-edges:
-			log.WithField("pin", "touch").WithField("on", touch).Info("Received touch event")
+			log.WithField("pin", "touch").WithField("on", touch).Debug("Received touch event")
 			m.notifyTouchesClients(touch)
 		case <-m.done:
 			log.Info("Got done event in handleTouch")
@@ -149,8 +149,6 @@ func (m *DispenserMachine) handleTouch() {
 			return
 		}
 	}
-
-	log.Debug("Leaving handleTouch goroutine")
 }
 
 func (m *DispenserMachine) driveMotor() {
@@ -178,8 +176,6 @@ func (m *DispenserMachine) driveMotor() {
 			return
 		}
 	}
-
-	log.Debug("Leaving driveMotor goroutine")
 }
 
 func (m *DispenserMachine) driveBuzzer() {
@@ -207,8 +203,6 @@ func (m *DispenserMachine) driveBuzzer() {
 			return
 		}
 	}
-
-	log.Debug("Leaving driveBuzzer goroutine")
 }
 
 func (m *DispenserMachine) DiagnosticNoise() {

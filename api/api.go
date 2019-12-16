@@ -8,7 +8,9 @@ import (
 	"github.com/the-lightning-land/sweetd/sweetdb"
 	"github.com/the-lightning-land/sweetd/updater"
 	"net/http"
+	"net/url"
 	"regexp"
+	"strings"
 )
 
 var localhostOriginPattern = regexp.MustCompile(`^https?://localhost(:\d+)?$`)
@@ -39,24 +41,34 @@ func NewHandler(config *Config) http.Handler {
 	router.Use(api.loggingMiddleware)
 	router.Use(api.localhostMiddleware)
 
-	router.Handle("/dispenser", api.handleGetDispenser()).Methods(http.MethodGet, http.MethodOptions)
+	router.Handle("/dispenser", api.noContent()).Methods(http.MethodOptions)
+	router.Handle("/dispenser", api.handleGetDispenser()).Methods(http.MethodGet)
 	router.Handle("/dispenser", api.handlePatchDispenser()).Methods(http.MethodPatch)
-	router.Handle("/dispenser/events", api.handleGetDispenser()).Methods(http.MethodGet, http.MethodOptions)
+	router.Handle("/dispenser/events", api.noContent()).Methods(http.MethodOptions)
+	router.Handle("/dispenser/events", api.handleGetDispenser()).Methods(http.MethodGet)
 
-	router.Handle("/updates", api.handlePostUpdate()).Methods(http.MethodPost, http.MethodOptions)
-	router.Handle("/updates/{id}", api.handleGetUpdate()).Methods(http.MethodGet, http.MethodOptions)
+	router.Handle("/updates", api.noContent()).Methods(http.MethodOptions)
+	router.Handle("/updates", api.handlePostUpdate()).Methods(http.MethodPost)
+	router.Handle("/updates/{id}", api.noContent()).Methods(http.MethodOptions)
+	router.Handle("/updates/{id}", api.handleGetUpdate()).Methods(http.MethodGet)
 	router.Handle("/updates/{id}", api.handlePatchUpdate()).Methods(http.MethodPatch)
-	router.Handle("/updates/{id}/events", api.handleGetUpdateEvents()).Methods(http.MethodGet, http.MethodOptions)
+	router.Handle("/updates/{id}/events", api.noContent()).Methods(http.MethodOptions)
+	router.Handle("/updates/{id}/events", api.handleGetUpdateEvents()).Methods(http.MethodGet)
 
-	router.Handle("/nodes", api.getNodes()).Methods(http.MethodGet, http.MethodOptions)
+	router.Handle("/nodes", api.noContent()).Methods(http.MethodOptions)
+	router.Handle("/nodes", api.getNodes()).Methods(http.MethodGet)
 	router.Handle("/nodes", api.postNodes()).Methods(http.MethodPost)
-	router.Handle("/nodes/{id}", api.getNodes()).Methods(http.MethodGet, http.MethodOptions)
+	router.Handle("/nodes/{id}", api.noContent()).Methods(http.MethodOptions)
+	router.Handle("/nodes/{id}", api.getNodes()).Methods(http.MethodGet)
 	router.Handle("/nodes/{id}", api.patchNode()).Methods(http.MethodPatch)
 	router.Handle("/nodes/{id}", api.deleteNode()).Methods(http.MethodDelete)
 
-	router.Handle("/networks", api.handlePostUpdate()).Methods(http.MethodPost, http.MethodOptions)
-	router.Handle("/networks/{id}", api.handlePostUpdate()).Methods(http.MethodPatch, http.MethodOptions)
-	router.Handle("/networks/events", api.handlePostUpdate()).Methods(http.MethodGet, http.MethodOptions)
+	router.Handle("/networks", api.noContent()).Methods(http.MethodOptions)
+	router.Handle("/networks", api.handlePostUpdate()).Methods(http.MethodPost)
+	router.Handle("/networks/{id}", api.noContent()).Methods(http.MethodOptions)
+	router.Handle("/networks/{id}", api.handlePostUpdate()).Methods(http.MethodPatch)
+	router.Handle("/networks/events", api.noContent()).Methods(http.MethodOptions)
+	router.Handle("/networks/events", api.handlePostUpdate()).Methods(http.MethodGet)
 
 	router.Use(mux.CORSMethodMiddleware(router))
 
@@ -72,6 +84,13 @@ func (a *Handler) loggingMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+func (a *Handler) noContent() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Headers", "content-type")
+		w.WriteHeader(http.StatusNoContent)
+	})
+}
+
 func (a *Handler) localhostMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		origin := r.Header.Get("Origin")
@@ -82,6 +101,24 @@ func (a *Handler) localhostMiddleware(next http.Handler) http.Handler {
 		}
 		next.ServeHTTP(w, r)
 	})
+}
+
+func checkOrigin(r *http.Request) bool {
+	origin := r.Header["Origin"]
+	if len(origin) == 0 {
+		return true
+	}
+
+	if localhostOriginPattern.MatchString(origin[0]) {
+		return true
+	}
+
+	u, err := url.Parse(origin[0])
+	if err != nil {
+		return false
+	}
+
+	return strings.EqualFold(u.Host, r.Host)
 }
 
 type LightningNode interface {
@@ -121,4 +158,5 @@ type Dispenser interface {
 	SubscribeUpdate(id string) (*updater.UpdateClient, error)
 	CommitUpdate(id string) (*updater.Update, error)
 	RejectUpdate(id string) (*updater.Update, error)
+	GetVersion() string
 }

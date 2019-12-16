@@ -44,6 +44,7 @@ func (a *Handler) getDispenser() *dispenserResponse {
 
 	return &dispenserResponse{
 		Name:            a.dispenser.GetName(),
+		Version:         a.dispenser.GetVersion(),
 		Api:             a.dispenser.GetApiOnionID(),
 		Pos:             a.dispenser.GetPosOnionID(),
 		State:           state.String(a.dispenser.GetState()),

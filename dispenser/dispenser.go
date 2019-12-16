@@ -246,8 +246,6 @@ func (d *Dispenser) handleDispenses(wg sync.WaitGroup) {
 		select {
 		case on := <-touchesClient.Touches:
 			// react on direct touch events of the machine
-			d.log.Infof("Touch event %v", on)
-
 			if d.dispenseOnTouch && on {
 				d.ToggleDispense(true)
 			} else {
@@ -534,4 +532,13 @@ func (d *Dispenser) SubscribeDispenses() *DispenseClient {
 	d.dispenseClients[client.Id] = client
 
 	return client
+}
+
+func (d *Dispenser) GetVersion() string {
+	version, err := d.updater.GetVersion()
+	if err != nil {
+		return "0.0.0"
+	}
+
+	return version
 }
