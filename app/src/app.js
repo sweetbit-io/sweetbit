@@ -364,8 +364,7 @@ function App() {
             <p>{dispenser && `${dispenser.pos}.onion`}</p>
           </div>
           <div className="action">
-            <Button outline>Open</Button>
-            <Button outline>⋯</Button>
+            <Button outline href={`http://${dispenser.pos}.onion`}>Open</Button>
           </div>
         </div>
         <div className="cell">

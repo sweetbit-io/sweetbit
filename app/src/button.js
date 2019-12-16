@@ -2,12 +2,17 @@ import React from 'react';
 import classnames from 'classnames';
 import Spinner from './spinner';
 
-export default function({ children, onClick, submit, loading, outline }) {
+export default function({ children, onClick, submit, loading, outline, href, ...rest }) {
+  const Tag = href ? 'a' : 'button';
+  const type = href ? null : (submit ? 'submit' : 'button');
+
   return (
-    <button
+    <Tag
       onClick={onClick}
       className={classnames('submit', { loading, outline })}
-      type={submit ? 'submit' : 'button'}
+      type={type}
+      href={href}
+      {...rest}
     >
       <span className="label">{children}</span>
       <span className="spinner">
@@ -68,6 +73,6 @@ export default function({ children, onClick, submit, loading, outline }) {
           border-bottom-right-radius: 0;
         }
       `}</style>
-    </button>
+    </Tag>
   );
 }
