@@ -22,8 +22,6 @@ export default function Update({
       <style jsx>{`
         .update {
           padding: 20px;
-          background: #fff;
-          border-radius: 10px;
         }
 
         .actions {

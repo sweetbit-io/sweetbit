@@ -19,6 +19,7 @@ const { className, styles } = css.resolve`
     opacity: 0;
     transition: opacity 200ms ease-in-out;
     background: rgba(0, 0, 0, 0.6);
+    scroll-behavior: smooth;
   }
   .ReactModal__Overlay--after-open {
     opacity: 1;
@@ -27,15 +28,27 @@ const { className, styles } = css.resolve`
     opacity: 0;
   }
   .ReactModal__Content {
-    display: block;
     max-width: 460px;
     width: 100%;
-    margin: 0 auto
+    margin: 0 auto;
+    border-radius: none;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    min-height: 100vh;
+    background: white;
   }
-  @media (min-width: 460px) {
+  .ReactModal__Content > :global(div) {
+    flex: 1;
+  }
+  @media (min-width: 500px) {
     .ReactModal__Content {
+      display: block;
+      border-radius: 10px;
+      overflow: hidden;
       max-width: 500px;
       margin: 20px auto;
+      min-height: auto;
     }
   }
 `

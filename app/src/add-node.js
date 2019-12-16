@@ -92,8 +92,6 @@ export default function AddNode({
       <style jsx>{`
         .add {
           padding: 20px;
-          background: #fff;
-          border-radius: 10px;
         }
 
         .actions {
