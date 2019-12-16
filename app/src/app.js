@@ -38,11 +38,19 @@ function App() {
     doFetch();
   }, [setDispenser]);
 
+  const dismissUpdate = useCallback(() =>  {
+    setDispenser({
+      ...dispenser,
+      update: null,
+    });
+  }, [dispenser, setDispenser]);
+
   const currentUpdateId = useMemo(() => dispenser && dispenser.update && dispenser.update.id, [dispenser]);
 
   useEffect(() => {
     async function doFetch() {
       if (!currentUpdateId) {
+        setCurrentUpdate(null);
         return;
       }
       const res = await fetch(`${publicUrl}/api/v1/updates/${currentUpdateId}`);
@@ -309,10 +317,18 @@ function App() {
           <div className="cell">
             <div className="icon">
               {!currentUpdate ? (
-                null
+                <span role="img" aria-label="refresh">🔄</span>
               ) : currentUpdate.state === 'started' ? (
                 <Progress value={currentUpdate.progress} />
+              ) : currentUpdate.state === 'cancelled' ? (
+                <span role="img" aria-label="cancelled">🚫</span>
+              ) : currentUpdate.state === 'failed' ? (
+                <span role="img" aria-label="failed">❌</span>
               ) : currentUpdate.state === 'installed' ? (
+                <span role="img" aria-label="check">✅</span>
+              ) : currentUpdate.state === 'rejected' ? (
+                <span role="img" aria-label="rejected">🚫</span>
+              ) : currentUpdate.state === 'completed' ? (
                 <span role="img" aria-label="check">✅</span>
               ) : null}
             </div>
@@ -322,17 +338,17 @@ function App() {
               ) : currentUpdate.state === 'started' ? (
                 <h1>Updating to {availableUpdate && availableUpdate.version}...</h1>
               ) : currentUpdate.state === 'cancelled' ? (
-                <h1>Update {availableUpdate && availableUpdate.version} available</h1>
+                <h1>Cancelled update</h1>
               ) : currentUpdate.state === 'failed' ? (
-                <h1>Update {availableUpdate && availableUpdate.version} available</h1>
+                <h1>Update failed</h1>
               ) : currentUpdate.state === 'installed' && currentUpdate.reboot ? (
                 <h1>Reboot to complete installation</h1>
               ) : currentUpdate.state === 'installed' && currentUpdate.commit ? (
                 <h1>Confirm the installation to complete the update</h1>
               ) : currentUpdate.state === 'rejected' ? (
-                <h1>Rejected</h1>
+                <h1>Rejected update</h1>
               ) : currentUpdate.state === 'completed' ? (
-                <h1>Completed</h1>
+                <h1>Successfully completed update</h1>
               ) : null}
               <p>{availableUpdate && availableUpdate.name}</p>
             </div>
@@ -342,15 +358,17 @@ function App() {
               ) : currentUpdate.state === 'started' ? (
                 <Button outline onClick={cancelUpdate}>Cancel</Button>
               ) : currentUpdate.state === 'cancelled' ? (
-                <Button outline onClick={showUpdateModal}>Update</Button>
+                <Button outline onClick={dismissUpdate}>Dismiss</Button>
               ) : currentUpdate.state === 'failed' ? (
-                <Button outline onClick={showUpdateModal}>Update</Button>
+                <Button outline onClick={dismissUpdate}>Dismiss</Button>
               ) : currentUpdate.state === 'installed' && currentUpdate.reboot ? (
                 <Button outline onClick={reboot}>Reboot</Button>
               ) : currentUpdate.state === 'installed' && currentUpdate.commit ? (
                 <Button outline onClick={completeUpdate}>Confirm</Button>
               ) : currentUpdate.state === 'rejected' ? (
-                <Button outline onClick={showUpdateModal}>Update</Button>
+                <Button outline onClick={dismissUpdate}>Dismiss</Button>
+              ) : currentUpdate.state === 'completed' ? (
+                <Button outline onClick={dismissUpdate}>Dismiss</Button>
               ) : null}
             </div>
           </div>
@@ -366,7 +384,9 @@ function App() {
             <p>{dispenser && `${dispenser.pos}.onion`}</p>
           </div>
           <div className="action">
-            <Button outline href={`http://${dispenser.pos}.onion`}>Open</Button>
+            {dispenser ? (
+              <Button outline href={`http://${dispenser.pos}.onion`}>Open</Button>
+            ) : null}
           </div>
         </div>
         <div className="cell">
