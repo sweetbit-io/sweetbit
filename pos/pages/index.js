@@ -7,11 +7,14 @@ import Router from 'next/router'
 import queryString from 'query-string'
 import Candy from '../components/candy'
 import Check from '../components/check'
+import Cross from '../components/cross'
 import Button from '../components/button'
 import Return from '../components/return'
 
 export default class IndexPage extends Component {
   state = {
+    unavailable: false,
+    notFound: false,
     invoice: null,
   }
 
@@ -30,17 +33,37 @@ export default class IndexPage extends Component {
   }
 
   async fetch(rHash, { apiBaseUrl }) {
+    let res;
     let invoice = null;
 
     if (rHash) {
-      const res = await fetch(`${apiBaseUrl}/invoices/${rHash}`, { method: 'GET' })
-      invoice = await res.json()
+      res = await fetch(`${apiBaseUrl}/invoices/${rHash}`, { method: 'GET' })
     } else {
-      const res = await fetch(`${apiBaseUrl}/invoices`, { method: 'POST' })
-      invoice = await res.json()
+      res = await fetch(`${apiBaseUrl}/invoices`, { method: 'POST' })
     }
 
-    this.setState({ invoice })
+    if (res.status === 503) {
+      this.setState({
+        unavailable: true,
+        notFound: false,
+        invoice: null,
+      })
+      return
+    } else if (res.status === 404) {
+      this.setState({
+        unavailable: false,
+        notFound: true,
+        invoice: null,
+      })
+      return
+    } else {
+      invoice = await res.json()
+      this.setState({
+        unavailable: false,
+        notFound: false,
+        invoice,
+      })
+    }
 
     const url = `/?r_hash=${invoice.r_hash}`
     Router.push(url, url, { shallow: true })
@@ -66,6 +89,27 @@ export default class IndexPage extends Component {
     }
   }
 
+  handleRetry = async (e) =>  {
+    e.preventDefault();
+
+    this.setState({
+      unavailable: false,
+      notFound: false,
+      invoice: null,
+    })
+
+    await this.fetch(null, {
+      apiBaseUrl: this.props.apiBaseUrl || `${window.location.origin}/api`,
+    })
+  }
+
+  handleGenerateNewInvoice = async (e) =>  {
+    e.preventDefault();
+    await this.fetch(null, {
+      apiBaseUrl: this.props.apiBaseUrl || `${window.location.origin}/api`,
+    })
+  }
+
   handleReturnFromPaidInvoice = async () => {
     await this.fetch(null, {
       apiBaseUrl: this.props.apiBaseUrl || `${window.location.origin}/api`,
@@ -83,11 +127,11 @@ export default class IndexPage extends Component {
           <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
           <meta name="format-detection" content="telephone=no" />
           <meta name="apple-mobile-web-app-title" content="Sweet ⚡️" />
-          <title>Lightning Candy Dispenser</title>
+          <title>Candy Dispenser</title>
           <meta name="description" content="Pay for your candy with Bitcoin over Lightning" />
           <meta name="MobileOptimized" content="320" />
           <meta name="theme-color" content="#ffffff" />
-          <link rel="icon" href="/static/favicon.ico" type="image/x-icon" />
+          <link rel="icon" href="/favicon.ico" type="image/x-icon" />
           <meta name="twitter:title" content="Lightning Candy Dispenser" />
           <meta name="twitter:description" content="Pay for your candy with Bitcoin over Lightning" />
           {/* <meta name="twitter:image" content={imageUrl} /> */}
@@ -104,7 +148,21 @@ export default class IndexPage extends Component {
           Please use the invoice below in order to dispense your candy.
         </div>
         <div className="qr">
-          <div className={classnames('code', 'loading', { show: !this.state.invoice })}>
+          <div className={classnames('code', { show: this.state.unavailable })}>
+            <Cross />
+            <p>node unavailable</p>
+            <Button onClick={this.handleRetry}>
+              retry
+            </Button>
+          </div>
+          <div className={classnames('code', { show: this.state.notFound })}>
+            <Cross />
+            <p>not found.</p>
+            <Button onClick={this.handleGenerateNewInvoice}>
+              generate new
+            </Button>
+          </div>
+          <div className={classnames('code', 'loading', { show: !this.state.unavailable && !this.state.invoice })}>
             loading
           </div>
           <div className={classnames('code', 'loading', { show: this.state.invoice && this.state.invoice.settled })}>
