@@ -13,12 +13,12 @@
     "export": "npm run build && next export"
   },
   "dependencies": {
-    "next": "^9.0.2",
+    "next": "^9.1.5",
     "qrcode.react": "^0.9.3",
-    "query-string": "^6.8.1",
-    "react": "^16.8.6",
-    "react-animate-height": "^2.0.15",
-    "react-copy-to-clipboard": "^5.0.1",
-    "react-dom": "^16.8.6"
+    "query-string": "^6.9.0",
+    "react": "^16.12.0",
+    "react-animate-height": "^2.0.17",
+    "react-copy-to-clipboard": "^5.0.2",
+    "react-dom": "^16.12.0"
   }
 }
