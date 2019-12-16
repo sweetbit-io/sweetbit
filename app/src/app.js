@@ -11,7 +11,6 @@ import AddNode from './add-node';
 import Update from './update';
 import Status from './status';
 import Button from './button';
-import Spinner from './spinner';
 import Progress from './progress';
 import Toggle from './toggle';
 import { publicUrl, publicWsUrl } from './config';
@@ -141,6 +140,18 @@ function App() {
     doReboot();
   }, [setDispenser]);
 
+  const [showUpdateModal, hideUpdateModal] = useModal(({ in: open }) => {
+    return (
+      <Modal open={open} onClose={hideUpdateModal}>
+        <Update
+          body={release.body}
+          onUpdate={update}
+          onCancel={hideUpdateModal}
+        />
+      </Modal>
+    );
+  }, [release]);
+
   const update = useCallback(() => {
     async function onUpdate() {
       const res = await fetch(`${publicUrl}/api/v1/updates`, {
@@ -153,6 +164,7 @@ function App() {
         }),
       });
       const update = await res.json();
+      hideUpdateModal();
       setDispenser({
         ...dispenser,
         update: { id: update.id },
@@ -160,17 +172,7 @@ function App() {
 
     }
     onUpdate();
-  }, [availableUpdate, dispenser, setDispenser]);
-
-  const [showUpdateModal, hideUpdateModal] = useModal(({ in: open }) => (
-    <Modal open={open} onClose={hideUpdateModal}>
-      <Update
-        body={release.body}
-        onUpdate={update}
-        onCancel={hideUpdateModal}
-      />
-    </Modal>
-  ), [release, update]);
+  }, [availableUpdate, dispenser, setDispenser, hideUpdateModal]);
 
   const cancelUpdate = useCallback(() => {
     async function onCancel() {
