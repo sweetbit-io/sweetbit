@@ -1,6 +1,7 @@
 module github.com/the-lightning-land/sweetd
 
 require (
+	github.com/boltdb/bolt v1.3.1 // indirect
 	github.com/cretz/bine v0.1.0
 	github.com/go-errors/errors v1.0.1
 	github.com/gobuffalo/logger v1.0.1 // indirect
@@ -11,7 +12,7 @@ require (
 	github.com/gorilla/websocket v1.4.0
 	github.com/grpc-ecosystem/grpc-gateway v1.9.4 // indirect
 	github.com/jessevdk/go-flags v1.4.0
-	github.com/lightningnetwork/lnd v0.5.2-beta
+	github.com/lightningnetwork/lnd v0.8.2-beta-rc2
 	github.com/muka/go-bluetooth v0.0.0-20190511040657-127007ab0f74
 	github.com/pkg/errors v0.8.1
 	github.com/sirupsen/logrus v1.4.2
@@ -19,7 +20,7 @@ require (
 	go.etcd.io/bbolt v1.3.3
 	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4 // indirect
 	golang.org/x/net v0.0.0-20190628185345-da137c7871d7 // indirect
-	golang.org/x/sys v0.0.0-20190712062909-fae7ac547cb7
+	golang.org/x/sys v0.0.0-20190904154756-749cb33beabd
 	golang.org/x/text v0.3.2 // indirect
 	google.golang.org/appengine v1.4.0 // indirect
 	google.golang.org/genproto v0.0.0-20190716160619-c506a9f90610 // indirect
