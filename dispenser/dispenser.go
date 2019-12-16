@@ -374,16 +374,16 @@ func (d *Dispenser) RunAndWait() error {
 		d.log.Errorf("unable to advertise: %v", err)
 	}
 
-	err = d.runPos(wg)
+	err = d.runApi(wg)
 	if err != nil {
-		err = errors.Errorf("unable to run point of sales: %v", err)
+		err = errors.Errorf("unable to run api: %v", err)
 		d.Stop()
 		goto Teardown
 	}
 
-	err = d.runApi(wg)
+	err = d.runPos(wg)
 	if err != nil {
-		err = errors.Errorf("unable to run api: %v", err)
+		err = errors.Errorf("unable to run point of sales: %v", err)
 		d.Stop()
 		goto Teardown
 	}
