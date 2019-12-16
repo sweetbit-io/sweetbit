@@ -82,10 +82,6 @@ func NewMenderUpdater(config *MenderUpdaterConfig) *MenderUpdater {
 }
 
 func (m *MenderUpdater) Setup() error {
-	// set current update based on system environment
-	// especially shouldCommit is important
-	// otherwise cancel previously uncommitted updates
-
 	_, err := exec.LookPath("mender")
 	if err != nil {
 		return errors.New("unable to find mender in $PATH")
@@ -109,6 +105,8 @@ func (m *MenderUpdater) Setup() error {
 	}
 
 	if currentUpdate != nil && currentUpdate.State == StateInstalled {
+		// resume handling of update when it's installed, for example after reboot
+
 		m.update = &Update{
 			Id:      currentUpdate.Id,
 			Started: currentUpdate.Started,
@@ -116,10 +114,32 @@ func (m *MenderUpdater) Setup() error {
 			State:   currentUpdate.State,
 		}
 
+		upgradeAvailable, err := checkUpgradeAvailable()
+		if err != nil {
+			m.log.Errorf("unable to check available upgrade: %v", err)
+		}
+
 		if artifactNameOutput.partitionMismatch {
+			// we haven't rebooted yet and can detect this through an error
+			// message returned when obtaining the artifact name
 			m.shouldReboot = true
-		} else {
+		} else if upgradeAvailable {
+			// signal that the installed update was booted into and needs confirmation
 			m.shouldCommit = true
+		} else {
+			// assume the update was rejected and update its state accordingly
+			// don't notify subscribers as they're not subscribed yet during the setup phase
+			m.update.State = StateRejected
+
+			m.saveUpdate(m.update)
+		}
+	} else if currentUpdate != nil {
+		// clear old update as it is considered stale if it has any
+		// other state than installed
+
+		err := m.db.ClearCurrentUpdate()
+		if err != nil {
+			m.log.Errorf("unable to clear old update: %v", err)
 		}
 	}
 
