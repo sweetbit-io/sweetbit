@@ -35,6 +35,7 @@ SRC_URI = "\
   file://sweetd.service \
   "
 
+PV = "${DISTRO_VERSION}"
 PROVIDES = "sweetd"
 RPROVIDES_${PN} = "sweetd"
 
