@@ -13,8 +13,8 @@ import (
 	"time"
 )
 
-var sizeRegexp = regexp.MustCompile("of size (\\d+)...")
-var progressRegex = regexp.MustCompile("(\\d+)% (\\d+) KiB")
+var sizeRegexp = regexp.MustCompile(`of size (\d+)\.\.\.`)
+var progressRegex = regexp.MustCompile(`(\d+)% (\d+) KiB`)
 var artifactNameRegex = regexp.MustCompile(`(?s)(.*No match between boot and root partitions.*\s)?(\S+)\s$`)
 
 type artifactNameOutput struct {

@@ -13,7 +13,7 @@ import (
 	"strings"
 )
 
-var localhostOriginPattern = regexp.MustCompile(`^https?://localhost(:\d+)?$`)
+var localhostOriginPattern = regexp.MustCompile(`^https?://(localhost|192\.168\.\d+\.\d+)(:\d+)?$`)
 
 type Config struct {
 	Dispenser Dispenser
@@ -62,6 +62,12 @@ func NewHandler(config *Config) http.Handler {
 	router.Handle("/nodes/{id}", api.getNodes()).Methods(http.MethodGet)
 	router.Handle("/nodes/{id}", api.patchNode()).Methods(http.MethodPatch)
 	router.Handle("/nodes/{id}", api.deleteNode()).Methods(http.MethodDelete)
+	router.Handle("/nodes/{id}/status", api.noContent()).Methods(http.MethodOptions)
+	router.Handle("/nodes/{id}/status", api.handleGetNodeStatusEvents()).Methods(http.MethodGet)
+	router.Handle("/nodes/{id}/seed", api.noContent()).Methods(http.MethodOptions)
+	router.Handle("/nodes/{id}/seed", api.handlePostNodeSeed()).Methods(http.MethodPost)
+	router.Handle("/nodes/{id}/connection", api.noContent()).Methods(http.MethodOptions)
+	router.Handle("/nodes/{id}/connection", api.handlePostNodeConnection()).Methods(http.MethodPost)
 
 	router.Handle("/networks", api.noContent()).Methods(http.MethodOptions)
 	router.Handle("/networks", api.handlePostUpdate()).Methods(http.MethodPost)

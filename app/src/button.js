@@ -63,15 +63,6 @@ export default function({ children, onClick, submit, loading, outline, href, ...
         .submit.loading .spinner {
           opacity: 1;
         }
-        .submit + .submit {
-          border-left: none;
-          border-top-left-radius: 0;
-          border-bottom-left-radius: 0;
-        }
-        .submit:not(:last-of-type) {
-          border-top-right-radius: 0;
-          border-bottom-right-radius: 0;
-        }
       `}</style>
     </Tag>
   );

@@ -1,36 +1,46 @@
 import React from 'react';
+import css from 'styled-jsx/css';
 import Markdown from 'react-markdown';
 import Button from './button';
+import { ReactComponent as UpdateImage } from './update.svg';
+
+const { className, styles } = css.resolve`
+  .image {
+    width: auto;
+    height: 120px;
+  }
+`;
 
 export default function Update({
   onCancel,
   onUpdate,
+  name,
   body,
 }) {
   return (
     <div className="update">
-      <h1>Update</h1>
+      <p className="center">
+        <UpdateImage className={`${className} image`} />
+      </p>
+      <h1 className="center">{name}</h1>
       <Markdown source={body} />
-      <div className="actions">
-        <div className="action">
-          <Button type="button" onClick={onUpdate}>update</Button>
-        </div>
-        <div className="action">
-          <Button type="button" onClick={onCancel} outline>cancel</Button>
-        </div>
+      <div className="center actions">
+        <Button type="button" onClick={onUpdate}>update</Button>
+        <span> </span>
+        <Button type="button" onClick={onCancel} outline>cancel</Button>
       </div>
+      {styles}
       <style jsx>{`
         .update {
           padding: 20px;
         }
 
-        .actions {
-          padding-top: 40px;
-          display: flex;
+        .center {
+          text-align: center;
         }
 
-        .action + .action {
-          padding-left: 10px;
+        .actions {
+          padding-top: 40px;
         }
 
         h1 {

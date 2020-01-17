@@ -21,7 +21,7 @@ export default function NoNodes({
     <div>
       <NoNodesImage className={`${className} no-nodes`} />
       <p>Add a Lightning node through which you can accept payments.</p>
-      <Button onClick={addNode}>Add node</Button>
+      <Button onClick={addNode}>add node</Button>
       {styles}
       <style jsx>{`
         div {

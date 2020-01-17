@@ -35,10 +35,11 @@ type RemoteLndNode struct {
 
 type LocalNode struct {
 	lightningNode
-	Id      string `json:"id"`
-	Name    string `json:"name"`
-	Enabled bool   `json:"enabled"`
-	Mainnet bool   `json:"mainnet"`
+	Id       string `json:"id"`
+	Name     string `json:"name"`
+	Enabled  bool   `json:"enabled"`
+	Mainnet  bool   `json:"mainnet"`
+	OnionKey []byte `json:"onionkey"`
 }
 
 func (db *DB) GetNodes() ([]LightningNode, error) {

@@ -212,6 +212,7 @@ func sweetdMain() error {
 	nodeman := nodeman.New(&nodeman.Config{
 		NodesDataDir: filepath.Join(cfg.DataDir, "nodes"),
 		DB:           sweetDB,
+		Tor:          t,
 		LogCreator: func(node string) nodeman.Logger {
 			logger := log.WithField("system", "nodeman")
 

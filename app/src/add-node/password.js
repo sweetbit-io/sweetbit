@@ -1,99 +1,38 @@
 import React, { useRef, useCallback } from 'react';
-import Button from './button';
+import Button from '../button';
 
-export default function AddNode({
-  onCancel,
-  onAdd,
+export default function Password({
+  onSetPassword,
 }) {
-  const nameEl = useRef(null);
-  const typeEl = useRef(null);
-  const uriEl = useRef(null);
-  const certEl = useRef(null);
-  const macaroonEl = useRef(null);
+  const passwordEl = useRef(null);
   const submit = useCallback((e) => {
     e.preventDefault();
-    onAdd({
-      name: nameEl.current.value,
-      type: typeEl.current.value,
-      uri: uriEl.current.value,
-      cert: certEl.current.innerText,
-      macaroon: macaroonEl.current.value,
-    });
-  }, [nameEl, typeEl, uriEl, certEl, macaroonEl, onAdd]);
+    onSetPassword(passwordEl.current.value);
+  }, [passwordEl, onSetPassword]);
 
   return (
-    <div className="add">
-      <h1>Add Lightning node</h1>
+    <div>
       <form onSubmit={submit}>
         <div className="name">
-          <div className="group">
+          <div className="group centered">
             <input
-              ref={nameEl}
-              placeholder="Name"
+              ref={passwordEl}
+              placeholder="Password"
               required
-              name="name"
-              type="text"
-              autoComplete="name"
+              name="password"
+              type="password"
+              autoComplete="password"
             />
-            <label htmlFor="name">Name</label>
-          </div>
-        </div>
-        <div className="type">
-          <div className="group">
-            <select required ref={typeEl} defaultValue="">
-              <option value="" disabled></option>
-              <option value="remote-lnd">Remote LND node</option>
-              <option value="local">Local LND node</option>
-            </select>
-            <label htmlFor="username">Type</label>
-          </div>
-        </div>
-        <div className="uri">
-          <div className="group">
-            <input
-              ref={uriEl}
-              placeholder="URI"
-              required
-              name="uri"
-              type="text"
-              autoComplete="uri"
-            />
-            <label htmlFor="uri">URI</label>
-          </div>
-        </div>
-        <div className="cert">
-          <div className="group">
-            <div contentEditable="true" ref={certEl}></div>
-            <label htmlFor="cert">Certificate</label>
-          </div>
-        </div>
-        <div className="macaroon">
-          <div className="group">
-            <input
-              ref={macaroonEl}
-              placeholder="Macaroon"
-              required
-              name="macaroon"
-              type="text"
-              autoComplete="macaroon"
-            />
-            <label htmlFor="macaroon">Macaroon</label>
+            <label htmlFor="password">Password</label>
           </div>
         </div>
         <div className="actions">
           <div className="action">
             <Button submit type="submit">add</Button>
           </div>
-          <div className="action">
-            <Button type="button" onClick={onCancel} outline>cancel</Button>
-          </div>
         </div>
       </form>
       <style jsx>{`
-        .add {
-          padding: 20px;
-        }
-
         .actions {
           padding-top: 40px;
           display: flex;
@@ -121,7 +60,7 @@ export default function AddNode({
         .group [contenteditable],
         .group select {
           font-size: 18px;
-          padding: 10px 10px 10px 5px;
+          padding: 10px;
           display: block;
           width: 100%;
           border: none;

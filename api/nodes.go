@@ -5,9 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/websocket"
+	"github.com/the-lightning-land/sweetd/lightning"
 	"github.com/the-lightning-land/sweetd/nodeman"
 	"io/ioutil"
 	"net/http"
+	"time"
 )
 
 const (
@@ -36,13 +39,16 @@ type postNodesRemoteLndResponse struct {
 	Uri     string `json:"uri"`
 	Name    string `json:"name"`
 	Enabled bool   `json:"enabled"`
+	Status  string `json:"status"`
 }
 
 type postNodesLocalResponse struct {
 	ID      string `json:"id"`
 	Type    string `json:"type"`
+	Uri     string `json:"uri"`
 	Name    string `json:"name"`
 	Enabled bool   `json:"enabled"`
+	Status  string `json:"status"`
 }
 
 type getNodesRemoteLndResponse struct {
@@ -51,20 +57,76 @@ type getNodesRemoteLndResponse struct {
 	Uri     string `json:"uri"`
 	Name    string `json:"name"`
 	Enabled bool   `json:"enabled"`
+	Status  string `json:"status"`
 }
 
 type getNodesLocalLndResponse struct {
 	ID      string `json:"id"`
 	Type    string `json:"type"`
+	Uri     string `json:"uri"`
 	Name    string `json:"name"`
 	Enabled bool   `json:"enabled"`
+	Status  string `json:"status"`
 }
 
 type getNodesResponse []interface{}
 
 type patchNodeRequest struct {
-	Enabled bool   `json:"enabled"`
-	Name    string `json:"name"`
+	Op string `json:"op"`
+}
+
+type patchNodeRenameRequest struct {
+	Name string `json:"name"`
+}
+
+type patchNodeEnableRequest struct {
+	Enabled bool `json:"enabled"`
+}
+
+type patchNodeUnlockRequest struct {
+	Password string `json:"password"`
+}
+
+type patchNodeInitRequest struct {
+	Password string   `json:"password"`
+	Mnemonic []string `json:"mnemonic"`
+}
+
+type nodeStatusResponse struct {
+	Status string `json:"status"`
+}
+
+type postNodeSeedRequest struct {
+}
+
+type nodeSeedResponse struct {
+	Mnemonic []string `json:"mnemonic"`
+}
+
+type postNodeConnectionRequest struct {
+}
+
+type nodeConnectionResponse struct {
+	Uri      string `json:"uri"`
+	Cert     string `json:"cert"`
+	Macaroon string `json:"macaroon"`
+}
+
+func nodeStatusString(status lightning.Status) string {
+	switch status {
+	case lightning.StatusStopped:
+		return "stopped"
+	case lightning.StatusUninitialized:
+		return "uninitialized"
+	case lightning.StatusLocked:
+		return "locked"
+	case lightning.StatusStarted:
+		return "started"
+	case lightning.StatusFailed:
+		return "failed"
+	default:
+		return ""
+	}
 }
 
 func (a *Handler) postNodes() http.HandlerFunc {
@@ -116,6 +178,7 @@ func (a *Handler) postNodes() http.HandlerFunc {
 				Uri:     remoteLndNode.Uri,
 				Name:    remoteLndNode.Name(),
 				Enabled: remoteLndNode.Enabled(),
+				Status:  nodeStatusString(remoteLndNode.Status()),
 			}, http.StatusOK)
 		case postNodesTypeLocal:
 			req := postNodesLocalRequest{}
@@ -137,9 +200,11 @@ func (a *Handler) postNodes() http.HandlerFunc {
 
 			a.jsonResponse(w, &postNodesLocalResponse{
 				ID:      localNode.ID(),
-				Type:    postNodesTypeRemoteLnd,
+				Type:    postNodesTypeLocal,
+				Uri:     localNode.Uri(),
 				Name:    localNode.Name(),
 				Enabled: localNode.Enabled(),
+				Status:  nodeStatusString(localNode.Status()),
 			}, http.StatusOK)
 		default:
 			a.jsonError(w, fmt.Sprintf("unknown type \"%s\"", req.Type), http.StatusBadRequest)
@@ -162,13 +227,16 @@ func (a *Handler) getNodes() http.HandlerFunc {
 					Uri:     node.Uri,
 					Name:    node.Name(),
 					Enabled: node.Enabled(),
+					Status:  nodeStatusString(node.Status()),
 				})
 			case *nodeman.LocalNode:
 				results = append(results, &getNodesLocalLndResponse{
 					ID:      node.ID(),
 					Type:    postNodesTypeLocal,
+					Uri:     node.Uri(),
 					Name:    node.Name(),
 					Enabled: node.Enabled(),
+					Status:  nodeStatusString(node.Status()),
 				})
 			default:
 				a.log.Warnf("got unknown type of node %T", node)
@@ -199,8 +267,14 @@ func (a *Handler) patchNode() http.HandlerFunc {
 		vars := mux.Vars(r)
 		id := vars["id"]
 
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			a.jsonError(w, fmt.Sprintf("unable to read body: %v", err), http.StatusInternalServerError)
+			return
+		}
+
 		req := patchNodeRequest{}
-		err := json.NewDecoder(r.Body).Decode(&req)
+		err = json.Unmarshal(body, &req)
 		if err != nil {
 			a.jsonError(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -208,8 +282,28 @@ func (a *Handler) patchNode() http.HandlerFunc {
 
 		node := a.dispenser.GetNode(id)
 
-		if req.Enabled != node.Enabled() {
-			var err error
+		switch req.Op {
+		case "rename":
+			req := patchNodeRenameRequest{}
+			err := json.Unmarshal(body, &req)
+			if err != nil {
+				a.jsonError(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			err = a.dispenser.RenameNode(id, req.Name)
+			if err != nil {
+				a.jsonError(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		case "enable":
+			req := patchNodeEnableRequest{}
+			err := json.Unmarshal(body, &req)
+			if err != nil {
+				a.jsonError(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
 			if req.Enabled {
 				err = a.dispenser.EnableNode(id)
 				if err != nil {
@@ -223,14 +317,34 @@ func (a *Handler) patchNode() http.HandlerFunc {
 					return
 				}
 			}
-		} else if req.Name != node.Name() {
-			err = a.dispenser.RenameNode(id, req.Name)
+		case "unlock":
+			req := patchNodeUnlockRequest{}
+			err := json.Unmarshal(body, &req)
 			if err != nil {
 				a.jsonError(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-		} else {
-			a.jsonError(w, "Can only enable, disable and rename node.", http.StatusBadRequest)
+
+			err = node.Unlock(req.Password)
+			if err != nil {
+				a.jsonError(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		case "init":
+			req := patchNodeInitRequest{}
+			err := json.Unmarshal(body, &req)
+			if err != nil {
+				a.jsonError(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			err = node.Init(req.Password, req.Mnemonic)
+			if err != nil {
+				a.jsonError(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		default:
+			a.jsonError(w, "Can only rename, enable, disable, init and unlock node.", http.StatusBadRequest)
 			return
 		}
 
@@ -242,19 +356,168 @@ func (a *Handler) patchNode() http.HandlerFunc {
 				Uri:     node.Uri,
 				Name:    node.Name(),
 				Enabled: node.Enabled(),
+				Status:  nodeStatusString(node.Status()),
 			}, http.StatusOK)
 			return
 		case *nodeman.LocalNode:
 			a.jsonResponse(w, &getNodesLocalLndResponse{
 				ID:      node.ID(),
 				Type:    postNodesTypeLocal,
+				Uri:     node.Uri(),
 				Name:    node.Name(),
 				Enabled: node.Enabled(),
+				Status:  nodeStatusString(node.Status()),
 			}, http.StatusOK)
 			return
 		default:
 			a.jsonError(w, fmt.Sprintf("unknown node type %T", node), http.StatusBadRequest)
 			return
 		}
+	}
+}
+
+func (a *Handler) handleGetNodeStatusEvents() http.HandlerFunc {
+	upgrader := &websocket.Upgrader{
+		CheckOrigin: checkOrigin,
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		id := vars["id"]
+
+		node := a.dispenser.GetNode(id)
+		if node == nil {
+			a.jsonError(w, fmt.Sprintf("No node with id %s found", id), http.StatusNotFound)
+			return
+		}
+
+		client := node.SubscribeStatus()
+
+		c, err := upgrader.Upgrade(w, r, nil)
+		if err != nil {
+			client.Cancel()
+			a.log.Errorf("unable to upgrade: %v", err)
+			return
+		}
+
+		// read pump
+		go func() {
+			defer c.Close()
+
+			c.SetReadLimit(512)
+			c.SetReadDeadline(time.Now().Add(60 * time.Second))
+			c.SetPongHandler(func(string) error {
+				c.SetReadDeadline(time.Now().Add(60 * time.Second))
+				return nil
+			})
+
+			for {
+				_, _, err := c.ReadMessage()
+				if err != nil {
+					if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+						a.log.Errorf("unexpected websocket closure: %v", err)
+					}
+					break
+				}
+			}
+		}()
+
+		// write pump
+		go func() {
+			defer c.Close()
+			defer client.Cancel()
+
+			ticker := time.NewTicker(54 * time.Second)
+			defer ticker.Stop()
+
+			for {
+				select {
+				case status, ok := <-client.Status:
+					c.SetWriteDeadline(time.Now().Add(10 * time.Second))
+
+					if !ok {
+						c.WriteMessage(websocket.CloseMessage, []byte{})
+						return
+					}
+
+					err := c.WriteJSON(&nodeStatusResponse{
+						Status: nodeStatusString(status),
+					})
+					if err != nil {
+						return
+					}
+				case <-ticker.C:
+					c.SetWriteDeadline(time.Now().Add(10 * time.Second))
+					if err := c.WriteMessage(websocket.PingMessage, nil); err != nil {
+						return
+					}
+				}
+			}
+		}()
+	}
+}
+
+func (a *Handler) handlePostNodeSeed() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		id := vars["id"]
+
+		req := postNodeSeedRequest{}
+		err := json.NewDecoder(r.Body).Decode(&req)
+		if err != nil {
+			a.jsonError(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		node := a.dispenser.GetNode(id)
+		if node == nil {
+			a.jsonError(w, fmt.Sprintf("No node with id %s found", id), http.StatusNotFound)
+			return
+		}
+
+		mnemonic, err := node.GenerateSeed()
+		if err != nil {
+			a.jsonError(w, fmt.Sprintf("Unable to generate seed: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		a.jsonResponse(w, &nodeSeedResponse{
+			Mnemonic: mnemonic,
+		}, http.StatusOK)
+	}
+}
+
+func (a *Handler) handlePostNodeConnection() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		id := vars["id"]
+
+		req := postNodeConnectionRequest{}
+		err := json.NewDecoder(r.Body).Decode(&req)
+		if err != nil {
+			a.jsonError(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		node := a.dispenser.GetNode(id)
+		if node == nil {
+			a.jsonError(w, fmt.Sprintf("No node with id %s found", id), http.StatusNotFound)
+			return
+		}
+
+		// TODO support all types
+		localNode, ok := node.(*nodeman.LocalNode)
+		if !ok {
+			a.jsonError(w, fmt.Sprintf("No connections available for node type %T", node), http.StatusNotFound)
+			return
+		}
+
+		// TODO create a new macaroon here
+
+		a.jsonResponse(w, &nodeConnectionResponse{
+			Uri:      localNode.Uri(),
+			Cert:     localNode.Cert(),
+			Macaroon: localNode.AdminMacaroon(),
+		}, http.StatusOK)
 	}
 }

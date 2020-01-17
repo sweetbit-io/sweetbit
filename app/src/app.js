@@ -1,10 +1,9 @@
-import React, { useEffect, useMemo, useCallback, useState } from 'react';
+import React, { useEffect, useMemo, useCallback, useState, useReducer } from 'react';
 import { useModal } from 'react-modal-hook';
 import semver from 'semver';
 import css from 'styled-jsx/css';
 import Modal from './modal';
 import { useDispenserState } from './hooks/state';
-import { useNodesState } from './hooks/state';
 import Node from './node';
 import NoNodes from './no-nodes';
 import AddNode from './add-node';
@@ -14,6 +13,7 @@ import Button from './button';
 import Progress from './progress';
 import Toggle from './toggle';
 import { publicUrl, publicWsUrl } from './config';
+import { useApi } from './api';
 import { ReactComponent as DispenserImage } from './dispenser.svg';
 
 const { className, styles } = css.resolve`
@@ -23,9 +23,28 @@ const { className, styles } = css.resolve`
   }
 `;
 
+function nodesReducer(state, action) {
+  switch (action.type) {
+    case 'set':
+      return action.nodes;
+    case 'add':
+      return [...state, action.node];
+    case 'update':
+      return state.map(node => node.id === action.node.id ? action.node : node);
+    case 'remove':
+      return state.filter(node => node.id !== action.id);
+    case 'status':
+      return state.map(node => node.id === action.id ? { ...node, status: action.status } : node);
+    default:
+      throw new Error();
+  }
+}
+
 function App() {
+  const api = useApi({ publicUrl, publicWsUrl });
   const [dispenser, setDispenser] = useDispenserState(null);
-  const [nodes, setNodes] = useNodesState([]);
+  // const [nodes, setNodes] = useNodesState([]);
+  const [nodes, dispatchNodesAction] = useReducer(nodesReducer, []);
   const [release, setRelease] = useState();
   const [currentUpdate, setCurrentUpdate] = useState();
 
@@ -103,11 +122,13 @@ function App() {
     const url = asset.browser_download_url;
     const name = release.name;
     const body = release.body;
+    const description = release.body.split('.\r\n')[0];
 
     return {
       url,
       version,
       name,
+      description,
       body,
     };
   }, [dispenser, release]);
@@ -152,6 +173,7 @@ function App() {
     return (
       <Modal open={open} onClose={hideUpdateModal}>
         <Update
+          name={release.name}
           body={release.body}
           onUpdate={update}
           onCancel={hideUpdateModal}
@@ -228,69 +250,64 @@ function App() {
     async function doFetch() {
       const res = await fetch(`${publicUrl}/api/v1/nodes`);
       const nodes = await res.json();
-      setNodes(nodes);
+      dispatchNodesAction({
+        type: 'set',
+        nodes,
+      });
     }
     doFetch();
-  }, [setNodes]);
+  }, [dispatchNodesAction]);
 
   const deleteNode = useCallback((id) => {
     async function doDelete() {
       await fetch(`${publicUrl}/api/v1/nodes/${id}`, {
         method: 'DELETE',
       });
-      setNodes(nodes.filter(node => node.id !== id));
+      dispatchNodesAction({
+        type: 'remove',
+        id,
+      });
     }
     doDelete();
-  }, [nodes, setNodes]);
+  }, [dispatchNodesAction]);
 
-  const [showAddNodeModal, hideAddNodeModal] = useModal(({ in: open }) => (
-    <Modal open={open} onClose={hideAddNodeModal}>
-      <AddNode
-        onAdd={addNode}
-        onCancel={hideAddNodeModal}
-      />
-    </Modal>
-  ), []);
-
-  const addNode = useCallback((data) => {
-    async function onAdd() {
-      const res = await fetch(`${publicUrl}/api/v1/nodes`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-      const node = await res.json();
-      setNodes([...nodes, node]);
-      hideAddNodeModal();
-    }
-    onAdd();
-  }, [nodes, setNodes, hideAddNodeModal]);
+  const [showAddNodeModal, hideAddNodeModal] = useModal(({ in: open }) => {
+    return (
+      <Modal open={open} onClose={hideAddNodeModal}>
+        <AddNode
+          api={api}
+          dispatchNodesAction={dispatchNodesAction}
+          onCancel={hideAddNodeModal}
+        />
+      </Modal>
+    );
+  }, [api]);
 
   const enableNode = useCallback((id, enabled) => {
     async function onAdd() {
-      const res = await fetch(`${publicUrl}/api/v1/nodes/${id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          enabled,
-        }),
+      const node = await api.enableNode(id, enabled);
+      dispatchNodesAction({
+        type: 'update',
+        node,
       });
-      const node = await res.json();
-      setNodes(nodes.map(n => n.id === node.id ? node : n));
     }
     onAdd();
-  }, [nodes, setNodes]);
+  }, [api, dispatchNodesAction]);
+
+  const changeNodeStatus = useCallback((id, status) => {
+    dispatchNodesAction({
+      type: 'status',
+      id,
+      status,
+    });
+  }, [dispatchNodesAction]);
 
   return (
     <div>
       <div className="dispenser">
         <div className="header">
           <DispenserImage className={`${className} image`} />
-          <h1>{dispenser && dispenser.name}</h1>
+          <h1><input type="text" defaultValue={dispenser && dispenser.name} /></h1>
         </div>
         <div className="cell">
           <div className="icon">
@@ -350,25 +367,25 @@ function App() {
               ) : currentUpdate.state === 'completed' ? (
                 <h1>Successfully completed update</h1>
               ) : null}
-              <p>{availableUpdate && availableUpdate.name}</p>
+              <p>{availableUpdate && availableUpdate.description}</p>
             </div>
             <div className="action">
               {!currentUpdate ? (
-                <Button outline onClick={showUpdateModal}>Update</Button>
+                <Button outline onClick={showUpdateModal}>update</Button>
               ) : currentUpdate.state === 'started' ? (
-                <Button outline onClick={cancelUpdate}>Cancel</Button>
+                <Button outline onClick={cancelUpdate}>cancel</Button>
               ) : currentUpdate.state === 'cancelled' ? (
-                <Button outline onClick={dismissUpdate}>Dismiss</Button>
+                <Button outline onClick={dismissUpdate}>dismiss</Button>
               ) : currentUpdate.state === 'failed' ? (
-                <Button outline onClick={dismissUpdate}>Dismiss</Button>
+                <Button outline onClick={dismissUpdate}>dismiss</Button>
               ) : currentUpdate.state === 'installed' && currentUpdate.reboot ? (
-                <Button outline onClick={reboot}>Reboot</Button>
+                <Button outline onClick={reboot}>reboot</Button>
               ) : currentUpdate.state === 'installed' && currentUpdate.commit ? (
-                <Button outline onClick={completeUpdate}>Confirm</Button>
+                <Button outline onClick={completeUpdate}>confirm</Button>
               ) : currentUpdate.state === 'rejected' ? (
-                <Button outline onClick={dismissUpdate}>Dismiss</Button>
+                <Button outline onClick={dismissUpdate}>dismiss</Button>
               ) : currentUpdate.state === 'completed' ? (
-                <Button outline onClick={dismissUpdate}>Dismiss</Button>
+                <Button outline onClick={dismissUpdate}>dismiss</Button>
               ) : null}
             </div>
           </div>
@@ -381,12 +398,20 @@ function App() {
           </div>
           <div className="label">
             <h1>Point of sales</h1>
-            <p>{dispenser && `${dispenser.pos}.onion`}</p>
+            <p>Generates invoices that dispense candy when paid</p>
+            {dispenser ? (
+              <p>
+                <a
+                  href={`http://${dispenser.pos}.onion`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {`http://${dispenser.pos}.onion`}
+                </a>
+              </p>
+            ) : null}
           </div>
           <div className="action">
-            {dispenser ? (
-              <Button outline href={`http://${dispenser.pos}.onion`}>Open</Button>
-            ) : null}
           </div>
         </div>
         <div className="cell">
@@ -406,7 +431,7 @@ function App() {
           <p className="text">Nodes</p>
           <div className="actions">
             {nodes && nodes.length > 0 && (
-              <button onClick={showAddNodeModal}>add</button>
+              <button className="action" onClick={showAddNodeModal}>add node</button>
             )}
           </div>
         </div>
@@ -419,19 +444,24 @@ function App() {
           {nodes && nodes.map(node => (
             <div className="node" key={node.id}>
               <Node
+                api={api}
                 id={node.id}
                 type={node.type}
                 name={node.name}
+                uri={node.uri}
                 enabled={node.enabled}
                 onDelete={deleteNode}
                 onEnable={enableNode}
+                status={node.status}
+                onChangeStatus={changeNodeStatus}
               />
             </div>
           ))}
         </div>
       </div>
       <div className="feedback">
-        <a href="https://github.com/sweetbit-io/sweetbit/issues/new">How do you like your candy dispenser?</a>
+        <p className="meta">{dispenser && `v${dispenser.version}`}</p>
+        <p><a href="https://github.com/sweetbit-io/sweetbit/issues/new">How do you like your candy dispenser?</a></p>
       </div>
       {styles}
       <style jsx>{`
@@ -448,6 +478,21 @@ function App() {
           background: #804FA0;
           color: white;
           padding: 20px;
+          text-align: center;
+        }
+
+        .dispenser input {
+          appearance: none;
+          border: none;
+          font-size: inherit;
+          font-weight: inherit;
+          font-style: inherit;
+          font-kerning: inherit;
+          color: inherit;
+          width: 100%;
+          padding: 0;
+          outline: none;
+          background: transparent;
           text-align: center;
         }
 
@@ -496,13 +541,13 @@ function App() {
         }
 
         .cell .label {
-          flex: 1;
+          overflow: auto;
+          flex: 1 1 auto;
         }
 
         .cell .action {
-          flex: 0;
+          flex: 1 0 auto;
           padding-left: 10px;
-          flex: 0 auto;
         }
 
         .cell h1 {
@@ -550,7 +595,17 @@ function App() {
         }
 
         .title .actions {
-          flex: 0;
+          flex: 0 0 auto;
+        }
+
+        .title .actions .action {
+          background: transparent;
+          border: none;
+          font-size: inherit;
+          color: #5335B8;
+          text-decoration: underline;
+          font-weight: inherit;
+          padding: 0;
         }
 
         .nodes {
@@ -585,6 +640,14 @@ function App() {
           padding: 20px 20px 80px;
           text-align: center;
         }
+
+        .feedback p {
+          margin: 5px 0 0;
+        }
+
+        .feedback .meta {
+          color: #666;
+        }
       `}</style>
       <style jsx global>{`
         * {
@@ -604,6 +667,10 @@ function App() {
 
         code {
           font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
+        }
+
+        code {
+          overflow-wrap: break-word;
         }
 
         .ReactModal__Body--open {

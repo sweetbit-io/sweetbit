@@ -24,6 +24,7 @@ type Service struct {
 	log      Logger
 	service  *tor.OnionService
 	key      crypto.PrivateKey
+	port     int
 	listener net.Listener
 	context  context.Context
 	cancel   context.CancelFunc
@@ -32,17 +33,26 @@ type Service struct {
 type ServiceConfig struct {
 	Tor    *tor.Tor
 	Logger Logger
+	Port   int
+	Key    crypto.PrivateKey
 }
 
 func NewService(config *ServiceConfig) *Service {
 	service := &Service{
 		tor: config.Tor,
+		key: config.Key,
 	}
 
 	if config.Logger != nil {
 		service.log = config.Logger
 	} else {
 		service.log = noopLogger{}
+	}
+
+	if config.Port > 0 {
+		service.port = config.Port
+	} else {
+		service.port = 80
 	}
 
 	return service
@@ -66,7 +76,7 @@ func (s *Service) Start() {
 		s.service, err = s.tor.Listen(s.context, &tor.ListenConf{
 			LocalListener: s.listener,
 			Key:           s.key,
-			RemotePorts:   []int{80},
+			RemotePorts:   []int{s.port},
 		})
 		if err != nil {
 			s.log.Errorf("unable to start %s.onion: %v", s.ID(), err)

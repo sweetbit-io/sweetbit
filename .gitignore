@@ -26,3 +26,5 @@
 # Tor data directory
 tor
 
+# Data folder
+data/

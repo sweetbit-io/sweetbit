@@ -1,9 +1,12 @@
 package nodeman
 
 import (
+	"crypto/x509"
+	"github.com/cretz/bine/tor"
 	"github.com/go-errors/errors"
 	"github.com/google/uuid"
 	"github.com/the-lightning-land/sweetd/lightning"
+	"github.com/the-lightning-land/sweetd/onion"
 	"github.com/the-lightning-land/sweetd/sweetdb"
 	"path/filepath"
 )
@@ -24,6 +27,9 @@ type Nodeman struct {
 
 	// log
 	log Logger
+
+	// tor instance for nodes to expose services through
+	tor *tor.Tor
 }
 
 type Config struct {
@@ -32,6 +38,9 @@ type Config struct {
 
 	// DB where node connection data is persisted
 	DB *sweetdb.DB
+
+	// Tor instance for nodes to expose services through
+	Tor *tor.Tor
 
 	// LogCreator
 	LogCreator LogCreator
@@ -44,6 +53,7 @@ func New(config *Config) *Nodeman {
 		nodes:        nil,
 		nodesDataDir: config.NodesDataDir,
 		db:           config.DB,
+		tor:          config.Tor,
 		logCreator:   config.LogCreator,
 	}
 
@@ -73,6 +83,7 @@ func (n *Nodeman) Load() {
 			})
 			if err != nil {
 				n.log.Errorf("unable to create node: %v", err)
+				continue
 			}
 
 			n.nodes = append(n.nodes, &RemoteLndNode{
@@ -83,12 +94,27 @@ func (n *Nodeman) Load() {
 				Uri:     node.Url,
 			})
 		case *sweetdb.LocalNode:
+			key, err := x509.ParsePKCS1PrivateKey(node.OnionKey)
+			if err != nil {
+				n.log.Errorf("unable to parse onion key: %v", err)
+				continue
+			}
+
+			onionSvc := onion.NewService(&onion.ServiceConfig{
+				Tor:    n.tor,
+				Logger: n.log,
+				Port:   8080,
+				Key:    key,
+			})
+
 			localNode, err := lightning.NewLocalNode(&lightning.LocalNodeConfig{
-				DataDir: filepath.Join(n.nodesDataDir, node.Id),
-				Logger:  n.logCreator(node.Id),
+				DataDir:  filepath.Join(n.nodesDataDir, node.Id),
+				Logger:   n.logCreator(node.Id),
+				OnionSvc: onionSvc,
 			})
 			if err != nil {
 				n.log.Errorf("unable to create node: %v", err)
+				continue
 			}
 
 			n.nodes = append(n.nodes, &LocalNode{
@@ -163,18 +189,34 @@ func (n *Nodeman) AddNode(config NodeConfig) (LightningNode, error) {
 	case *LocalNodeConfig:
 		n.log.Infof("adding local node with id %s", id)
 
-		err := n.db.SaveNode(&sweetdb.LocalNode{
-			Id:      id.String(),
-			Name:    config.Name,
-			Enabled: false,
+		onionKey, err := onion.GeneratePrivateKey(onion.V2)
+		if err != nil {
+			return nil, errors.Errorf("unable to generate onion key: %v", err)
+		}
+
+		payload := x509.MarshalPKCS1PrivateKey(onionKey)
+
+		err = n.db.SaveNode(&sweetdb.LocalNode{
+			Id:       id.String(),
+			Name:     config.Name,
+			Enabled:  false,
+			OnionKey: payload,
 		})
 		if err != nil {
 			return nil, errors.Errorf("unable to save: %v", err)
 		}
 
+		onionSvc := onion.NewService(&onion.ServiceConfig{
+			Tor:    n.tor,
+			Logger: n.log,
+			Port:   8080,
+			Key:    onionKey,
+		})
+
 		localNode, err := lightning.NewLocalNode(&lightning.LocalNodeConfig{
-			DataDir: filepath.Join(n.nodesDataDir, id.String()),
-			Logger:  n.logCreator(id.String()),
+			DataDir:  filepath.Join(n.nodesDataDir, id.String()),
+			Logger:   n.logCreator(id.String()),
+			OnionSvc: onionSvc,
 		})
 		if err != nil {
 			return nil, errors.Errorf("unable to create: %v", err)
