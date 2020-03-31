@@ -13,7 +13,7 @@
     "export": "npm run build && next export"
   },
   "dependencies": {
-    "next": "^9.1.5",
+    "next": "^9.3.2",
     "qrcode.react": "^0.9.3",
     "query-string": "^6.9.0",
     "react": "^16.12.0",
