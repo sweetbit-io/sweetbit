@@ -12,10 +12,10 @@
     "react-modal": "^3.11.1",
     "react-modal-hook": "^2.0.0",
     "react-router-dom": "^5.1.2",
-    "react-scripts": "^3.3.0",
+    "react-scripts": "^5.0.1",
     "react-transition-group": "^4.3.0",
     "semver": "^6.3.0",
-    "styled-jsx": "^3.2.4",
+    "styled-jsx": "^5.1.0",
     "use-persisted-state": "^0.3.0"
   },
   "scripts": {
